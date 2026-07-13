@@ -84,8 +84,8 @@ export function parseStructuredImagePath(relativePath: string, filename: string)
   if (!fileMatch) return null
   const [, chapterCode, sectionCode, questionCode, kindToken, orderToken] = fileMatch
   const folders = relativePath.split('/').slice(0, -1)
-  const folderPattern = new RegExp(`^0*${Number(chapterCode)}\\s*([^0-9]*?)\\s+0*${Number(sectionCode)}[-_ ](.+?)(?:\\.assets)?$`, 'i')
-  const folderMatch = folders.map(folder => folder.match(folderPattern)).find(Boolean)
+  const folderPattern = new RegExp(`^0*${Number(chapterCode)}\\s*([^0-9]*?)\\s+0*${Number(sectionCode)}[-_ ](.+?)$`, 'i')
+  const folderMatch = folders.map(folder => folder.replace(/\.[^.]+$/, '').match(folderPattern)).find(Boolean)
   return {
     chapterCode,
     chapterName: folderMatch?.[1]?.trim() || `第 ${chapterCode} 章`,
