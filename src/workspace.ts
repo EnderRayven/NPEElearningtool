@@ -60,6 +60,21 @@ export async function loadWorkspaceHandle(): Promise<FileSystemDirectoryHandle |
   return handle
 }
 
+export async function clearWorkspaceHandle() {
+  const database = await openDatabase()
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite')
+    transaction.objectStore(STORE_NAME).delete(HANDLE_KEY)
+    transaction.oncomplete = () => resolve()
+    transaction.onerror = () => reject(transaction.error)
+  })
+  database.close()
+}
+
+export function isMissingWorkspaceError(error: unknown) {
+  return error instanceof DOMException && error.name === 'NotFoundError'
+}
+
 export async function hasWorkspacePermission(handle: FileSystemDirectoryHandle, request = false) {
   const writableHandle = handle as WritableDirectoryHandle
   const options = { mode: 'readwrite' } as const

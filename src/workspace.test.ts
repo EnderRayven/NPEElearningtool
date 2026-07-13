@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { safeFolderName } from './workspace'
+import { isMissingWorkspaceError, safeFolderName } from './workspace'
 
 describe('safeFolderName', () => {
   it('removes characters forbidden in local folder names', () => {
@@ -8,5 +8,12 @@ describe('safeFolderName', () => {
 
   it('provides a readable fallback', () => {
     expect(safeFolderName('   ')).toBe('未命名题库')
+  })
+})
+
+describe('isMissingWorkspaceError', () => {
+  it('识别目录移动后产生的 NotFoundError', () => {
+    expect(isMissingWorkspaceError(new DOMException('missing', 'NotFoundError'))).toBe(true)
+    expect(isMissingWorkspaceError(new Error('missing'))).toBe(false)
   })
 })

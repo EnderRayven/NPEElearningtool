@@ -9,7 +9,7 @@ import SettingsDialog from './SettingsDialog'
 import { assetKeysForBank, clearQuestionStatuses, orderedQuestionEntriesForBank, questionIdsForBank, removeBank, resetBankData } from './bankManagement'
 import { sampleBanks } from './data'
 import { mergeImageEntries } from './imageImport'
-import { chooseWorkspace, createBankFolder, hasWorkspacePermission, loadWorkspaceHandle, readWorkspaceManifest, removeBankFolder, safeFolderName, scanWorkspaceImages, writeWorkspaceManifest } from './workspace'
+import { chooseWorkspace, clearWorkspaceHandle, createBankFolder, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceHandle, readWorkspaceManifest, removeBankFolder, safeFolderName, scanWorkspaceImages, writeWorkspaceManifest } from './workspace'
 
 const statusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
   none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错题', icon: '×' }
@@ -52,7 +52,12 @@ export default function App() {
       setWorkspaceHandle(handle)
       if (await hasWorkspacePermission(handle)) await loadWorkspace(handle)
       else setWorkspaceState('available')
-    }).catch(() => setWorkspaceState('error'))
+    }).catch(async error => {
+      if (isMissingWorkspaceError(error)) {
+        await clearWorkspaceHandle().catch(() => {})
+        setWorkspaceHandle(null); setWorkspaceState('none'); setToast('原题库文件夹已移动，请重新选择“默认题库”')
+      } else setWorkspaceState('error')
+    })
   }, [])
   useEffect(() => {
     if (!workspaceHandle || workspaceState !== 'connected' || !workspaceReady.current) return
@@ -213,14 +218,30 @@ export default function App() {
       setWorkspaceState('connected')
       window.setTimeout(() => { workspaceReady.current = true; writeWorkspaceManifest(handle, result.banks, nextStatuses, folders).catch(() => setWorkspaceState('error')) }, 0)
       setToast(`已连接“${handle.name}”${result.imported ? `，同步 ${result.imported} 张图片` : ''}`)
+      return true
     } catch (error) {
-      setWorkspaceState('error'); setToast(error instanceof Error ? error.message : '题库文件夹同步失败')
+      if (isMissingWorkspaceError(error)) {
+        await clearWorkspaceHandle().catch(() => {})
+        setWorkspaceHandle(null); setWorkspaceState('none'); setToast('原题库文件夹已移动，请重新选择“默认题库”')
+      } else {
+        setWorkspaceState('error'); setToast(error instanceof Error ? error.message : '题库文件夹同步失败')
+      }
+      return false
     }
   }
 
   async function connectWorkspace() {
     try {
-      const handle = workspaceHandle && await hasWorkspacePermission(workspaceHandle, true) ? workspaceHandle : await chooseWorkspace()
+      if (workspaceHandle) {
+        try {
+          if (await hasWorkspacePermission(workspaceHandle, true) && await loadWorkspace(workspaceHandle)) return
+        } catch (error) {
+          if (!isMissingWorkspaceError(error)) throw error
+          await clearWorkspaceHandle().catch(() => {})
+          setWorkspaceHandle(null)
+        }
+      }
+      const handle = await chooseWorkspace()
       await loadWorkspace(handle)
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return
