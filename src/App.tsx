@@ -255,13 +255,19 @@ export default function App() {
       <div className="header-actions">
         <input ref={importRef} hidden type="file" accept=".json,application/json" onChange={e => importData(e.target.files?.[0])}/>
         <input ref={node => { imageImportRef.current = node; node?.setAttribute('webkitdirectory', '') }} hidden type="file" multiple accept="image/*" onChange={e => importImages(e.target.files)}/>
-        <button className={workspaceState === 'connected' ? 'ghost workspace-connected' : 'ghost'} title="连接本地题库文件夹并实时同步" onClick={connectWorkspace}><FolderSync size={17}/>{workspaceState === 'connected' ? '已连接' : '文件夹'}</button>
-        <button className="ghost" onClick={() => importRef.current?.click()}><FileUp size={17}/>导入</button>
-        <button className="ghost" title="批量导入题目图和答案图" onClick={() => imageImportRef.current?.click()}><FileImage size={17}/>图片</button>
-        <button className="icon-ghost" title="查看图片命名参考" aria-label="图片命名参考" onClick={() => setNamingHelpOpen(true)}><CircleHelp size={18}/></button>
-        <button className="icon-ghost" title="设置与数据管理" aria-label="设置与数据管理" onClick={() => setSettingsOpen(true)}><SettingsIcon size={18}/></button>
-        <button className="ghost" onClick={() => setExportOpen(true)}><FileText size={17}/>导出</button>
-        <button className="ghost" onClick={exportData}><Download size={17}/>备份</button>
+        <div className="header-action-group import-tools">
+          <button className={workspaceState === 'connected' ? 'tool-button workspace-connected primary-tool' : 'tool-button primary-tool'} title="连接本地题库文件夹并实时同步" onClick={connectWorkspace}><FolderSync/><span>{workspaceState === 'connected' ? '已连接' : '题库文件夹'}</span></button>
+          <button className="tool-button" title="导入 JSON 题库" onClick={() => importRef.current?.click()}><FileUp/><span>导入</span></button>
+          <button className="tool-button" title="批量导入题目图和答案图" onClick={() => imageImportRef.current?.click()}><FileImage/><span>图片</span></button>
+        </div>
+        <div className="header-action-group utility-tools">
+          <button className="tool-button icon-tool" title="查看图片命名参考" aria-label="图片命名参考" onClick={() => setNamingHelpOpen(true)}><CircleHelp/></button>
+          <button className="tool-button icon-tool" title="设置与数据管理" aria-label="设置与数据管理" onClick={() => setSettingsOpen(true)}><SettingsIcon/></button>
+        </div>
+        <div className="header-action-group output-tools">
+          <button className="tool-button" title="导出 PDF 或图片" onClick={() => setExportOpen(true)}><FileText/><span>导出</span></button>
+          <button className="tool-button" title="备份题库数据" onClick={exportData}><Download/><span>备份</span></button>
+        </div>
       </div>
     </header>
 
