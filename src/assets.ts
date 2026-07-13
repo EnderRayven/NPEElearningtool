@@ -62,7 +62,6 @@ export async function clearAssets() {
 }
 
 export type ImageKind = 'question' | 'answer'
-export interface ImageMatch { questionId: string; kind: ImageKind; order: number }
 
 export interface StructuredImageMatch {
   chapterCode: string
@@ -76,40 +75,19 @@ export interface StructuredImageMatch {
 
 export function parseStructuredImagePath(relativePath: string, filename: string): StructuredImageMatch | null {
   const basename = filename.replace(/\.[^.]+$/, '')
-  const prefixedMatch = basename.match(/^(Q|A)-(\d+)-(\d+)-(\d+)(?:\.(\d+))?$/i)
-  const legacyMatch = basename.match(/^(\d+)-(\d+)-(\d+)(?:-(Q|A|题目|答案))?(?:-(\d+))?$/i)
-  const fileMatch = prefixedMatch
-    ? [prefixedMatch[0], prefixedMatch[2], prefixedMatch[3], prefixedMatch[4], prefixedMatch[1], prefixedMatch[5]]
-    : legacyMatch
-  if (!fileMatch) return null
-  const [, chapterCode, sectionCode, questionCode, kindToken, orderToken] = fileMatch
+  const match = basename.match(/^(Q|A)-(\d+)-(\d+)-(\d+)(?:\.(\d+))?$/i)
+  if (!match) return null
+  const [, kindToken, chapterCode, sectionCode, questionCode, orderToken] = match
   const folders = relativePath.split('/').slice(0, -1)
   const folderPattern = new RegExp(`^0*${Number(chapterCode)}\\s*([^0-9]*?)\\s+0*${Number(sectionCode)}[-_ ](.+?)$`, 'i')
-  const folderMatch = folders.map(folder => folder.replace(/\.[^.]+$/, '').match(folderPattern)).find(Boolean)
+  const folderMatch = folders.map(folder => folder.includes('.') ? null : folder.match(folderPattern)).find(Boolean)
   return {
     chapterCode,
     chapterName: folderMatch?.[1]?.trim() || `第 ${chapterCode} 章`,
     sectionCode,
     sectionName: folderMatch?.[2]?.trim() || `第 ${sectionCode} 节`,
     questionCode,
-    kind: /^(A|答案)$/i.test(kindToken || '') ? 'answer' : 'question',
+    kind: kindToken.toUpperCase() === 'A' ? 'answer' : 'question',
     order: Number(orderToken || 1)
   }
-}
-
-export function parseImageFilename(filename: string, questionIds: Set<string>): ImageMatch | null {
-  const basename = filename.replace(/\.[^.]+$/, '')
-  const canonical = basename.match(/^(q|a)__(.+?)(?:__(\d+))?$/i)
-  if (canonical) {
-    const questionId = canonical[2]
-    if (!questionIds.has(questionId)) return null
-    return { questionId, kind: canonical[1].toLowerCase() === 'q' ? 'question' : 'answer', order: Number(canonical[3] || 1) }
-  }
-  for (const questionId of questionIds) {
-    if (basename === questionId) return { questionId, kind: 'question', order: 1 }
-    const suffix = basename.slice(questionId.length)
-    const friendly = suffix.match(/^(?:__|_|-)(q|question|题目|a|answer|答案)(?:(?:__|_|-)(\d+))?$/i)
-    if (friendly) return { questionId, kind: /^(a|answer|答案)$/i.test(friendly[1]) ? 'answer' : 'question', order: Number(friendly[2] || 1) }
-  }
-  return null
 }

@@ -1,4 +1,4 @@
-import { parseImageFilename, parseStructuredImagePath, putAssets, type StructuredImageMatch } from './assets'
+import { parseStructuredImagePath, putAssets, type StructuredImageMatch } from './assets'
 import type { QuestionBank } from './types'
 
 export interface ImportImageEntry { file: File; relativePath: string; bankId: string }
@@ -13,21 +13,14 @@ export async function mergeImageEntries(initialBanks: QuestionBank[], entries: I
   for (const entry of entries) {
     const targetBank = initialBanks.find(bank => bank.id === entry.bankId)
     if (!targetBank) { skipped++; continue }
-    const questionIds = new Set(targetBank.chapters.flatMap(chapter => chapter.sections.flatMap(section => section.questions.map(question => question.id))))
-    let match = parseImageFilename(entry.file.name, questionIds)
-    if (!match) {
-      const structured = parseStructuredImagePath(entry.relativePath, entry.file.name)
-      if (structured) {
-        const questionId = `${targetBank.id}-${structured.chapterCode}-${structured.sectionCode}-${structured.questionCode}`
-        match = { questionId, kind: structured.kind, order: structured.order }
-        structuredQuestions.set(questionId, { bankId: targetBank.id, definition: structured })
-      }
-    }
-    if (!match) { skipped++; continue }
-    const key = `${match.questionId}/${match.kind}/${match.order}-${entry.file.name}`
-    const update = updates.get(match.questionId) || { question: [], answer: [] }
-    update[match.kind].push({ key, order: match.order })
-    updates.set(match.questionId, update)
+    const structured = parseStructuredImagePath(entry.relativePath, entry.file.name)
+    if (!structured) { skipped++; continue }
+    const questionId = `${targetBank.id}-${structured.chapterCode}-${structured.sectionCode}-${structured.questionCode}`
+    structuredQuestions.set(questionId, { bankId: targetBank.id, definition: structured })
+    const key = `${questionId}/${structured.kind}/${structured.order}-${entry.file.name}`
+    const update = updates.get(questionId) || { question: [], answer: [] }
+    update[structured.kind].push({ key, order: structured.order })
+    updates.set(questionId, update)
     assets.push({ key, file: entry.file })
   }
   if (!assets.length) return { banks: initialBanks, imported: 0, matchedQuestions: 0, createdQuestions: 0, skipped }
