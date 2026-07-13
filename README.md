@@ -6,10 +6,10 @@
 
 ### 一键启动
 
-- macOS：双击 `一键启动.command`
-- Windows：双击 `一键启动.bat`
+- macOS：双击 `一键启动.command`（自动配置 Homebrew、Node.js、pnpm 和项目依赖）
+- Windows：双击 `一键启动.bat`（通过 winget 自动配置 Node.js、pnpm 和项目依赖）
 
-首次启动会自动安装依赖，随后打开浏览器。也可以使用命令行：
+首次启动需要联网，macOS 安装 Homebrew 时可能要求输入系统密码。配置完成后会自动打开浏览器；以后双击通常可以直接启动。也可以使用命令行：
 
 ```bash
 pnpm install
