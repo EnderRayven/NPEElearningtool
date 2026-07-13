@@ -27,6 +27,24 @@ export interface WorkspaceManifest {
   folders?: Record<string, string>
 }
 
+export interface DefaultWorkspaceIndex {
+  name: string
+  manifest: WorkspaceManifest | null
+  images: Array<{ name: string; relativePath: string; bankFolder: string; url: string }>
+}
+
+export async function readDefaultWorkspace(): Promise<DefaultWorkspaceIndex> {
+  const response = await fetch('/api/default-workspace/index')
+  if (!response.ok) throw new Error('无法自动连接默认题库')
+  return response.json() as Promise<DefaultWorkspaceIndex>
+}
+
+export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], statuses: Record<string, QuestionStatus>, folders: Record<string, string> = {}) {
+  const manifest: WorkspaceManifest = { version: 1, updatedAt: new Date().toISOString(), banks, statuses, folders }
+  const response = await fetch('/api/default-workspace/manifest', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(manifest, null, 2) })
+  if (!response.ok) throw new Error('默认题库数据写入失败')
+}
+
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 1)

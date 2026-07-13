@@ -1,13 +1,13 @@
 import { parseStructuredImagePath, putAssets, type StructuredImageMatch } from './assets'
 import type { QuestionBank } from './types'
 
-export interface ImportImageEntry { file: File; relativePath: string; bankId: string }
+export interface ImportImageEntry { file: File; relativePath: string; bankId: string; assetUrl?: string }
 export interface ImageImportResult { banks: QuestionBank[]; imported: number; matchedQuestions: number; createdQuestions: number; skipped: number; firstSectionId?: string }
 
 export async function mergeImageEntries(initialBanks: QuestionBank[], entries: ImportImageEntry[]): Promise<ImageImportResult> {
   const updates = new Map<string, { question: Array<{ key: string; order: number }>; answer: Array<{ key: string; order: number }> }>()
   const structuredQuestions = new Map<string, { bankId: string; definition: StructuredImageMatch }>()
-  const assets: Array<{ key: string; file: File }> = []
+  const assets: Array<{ key: string; file: File; url?: string }> = []
   let skipped = 0
 
   for (const entry of entries) {
@@ -21,7 +21,7 @@ export async function mergeImageEntries(initialBanks: QuestionBank[], entries: I
     const update = updates.get(questionId) || { question: [], answer: [] }
     update[structured.kind].push({ key, order: structured.order })
     updates.set(questionId, update)
-    assets.push({ key, file: entry.file })
+    assets.push({ key, file: entry.file, url: entry.assetUrl })
   }
   if (!assets.length) return { banks: initialBanks, imported: 0, matchedQuestions: 0, createdQuestions: 0, skipped }
   await putAssets(assets)

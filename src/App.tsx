@@ -9,7 +9,7 @@ import SettingsDialog from './SettingsDialog'
 import { assetKeysForBank, clearQuestionStatuses, orderedQuestionEntriesForBank, questionIdsForBank, removeBank, resetBankData } from './bankManagement'
 import { sampleBanks } from './data'
 import { mergeImageEntries } from './imageImport'
-import { chooseWorkspace, clearWorkspaceHandle, createBankFolder, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceHandle, readWorkspaceManifest, removeBankFolder, safeFolderName, scanWorkspaceImages, writeWorkspaceManifest } from './workspace'
+import { chooseWorkspace, clearWorkspaceHandle, createBankFolder, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, removeBankFolder, safeFolderName, scanWorkspaceImages, writeDefaultWorkspaceManifest, writeWorkspaceManifest } from './workspace'
 
 const statusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
   none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错题', icon: '×' }
@@ -40,6 +40,7 @@ export default function App() {
   const [workspaceHandle, setWorkspaceHandle] = useState<FileSystemDirectoryHandle | null>(null)
   const [workspaceState, setWorkspaceState] = useState<'none' | 'available' | 'syncing' | 'connected' | 'error'>('none')
   const [workspaceFolders, setWorkspaceFolders] = useState<Record<string, string>>({})
+  const [defaultWorkspaceConnected, setDefaultWorkspaceConnected] = useState(false)
   const workspaceReady = useRef(false)
   const importRef = useRef<HTMLInputElement>(null)
   const imageImportRef = useRef<HTMLInputElement>(null)
@@ -48,24 +49,27 @@ export default function App() {
   useEffect(() => saveStatuses(statuses), [statuses])
   useEffect(() => {
     loadWorkspaceHandle().then(async handle => {
-      if (!handle) return
+      if (!handle) { await loadDefaultWorkspace(); return }
       setWorkspaceHandle(handle)
       if (await hasWorkspacePermission(handle)) await loadWorkspace(handle)
       else setWorkspaceState('available')
     }).catch(async error => {
       if (isMissingWorkspaceError(error)) {
         await clearWorkspaceHandle().catch(() => {})
-        setWorkspaceHandle(null); setWorkspaceState('none'); setToast('原题库文件夹已移动，请重新选择“默认题库”')
+        setWorkspaceHandle(null); await loadDefaultWorkspace()
       } else setWorkspaceState('error')
     })
   }, [])
   useEffect(() => {
-    if (!workspaceHandle || workspaceState !== 'connected' || !workspaceReady.current) return
+    if (workspaceState !== 'connected' || !workspaceReady.current) return
     const timer = window.setTimeout(() => {
-      writeWorkspaceManifest(workspaceHandle, banks, statuses, workspaceFolders).catch(() => setWorkspaceState('error'))
+      const save = defaultWorkspaceConnected
+        ? writeDefaultWorkspaceManifest(banks, statuses, workspaceFolders)
+        : workspaceHandle ? writeWorkspaceManifest(workspaceHandle, banks, statuses, workspaceFolders) : Promise.resolve()
+      save.catch(() => setWorkspaceState('error'))
     }, 450)
     return () => window.clearTimeout(timer)
-  }, [banks, statuses, workspaceFolders, workspaceHandle, workspaceState])
+  }, [banks, statuses, workspaceFolders, workspaceHandle, workspaceState, defaultWorkspaceConnected])
   useEffect(() => {
     const saved = loadNavigation()
     if (saved) {
@@ -188,6 +192,37 @@ export default function App() {
     if (imageImportRef.current) imageImportRef.current.value = ''
   }
 
+  async function loadDefaultWorkspace() {
+    setWorkspaceState('syncing')
+    try {
+      const index = await readDefaultWorkspace()
+      const nextBanks = index.manifest ? validateBanks(index.manifest) : structuredClone(banks)
+      const nextStatuses = index.manifest?.statuses ? validateStatuses(index.manifest.statuses) : statuses
+      const folders = { ...(index.manifest?.folders || {}) }
+      for (const folderName of new Set(index.images.map(item => item.bankFolder).filter(Boolean))) {
+        let target = nextBanks.find(item => folders[item.id] === folderName || safeFolderName(item.name) === folderName)
+        if (!target) {
+          target = { id: `default-${Date.now()}-${nextBanks.length}`, name: folderName, description: '默认本地题库', source: 'local', chapters: [] }
+          nextBanks.push(target)
+        }
+        folders[target.id] = folderName
+      }
+      const entries = index.images.map(item => {
+        const target = item.bankFolder ? nextBanks.find(bank => folders[bank.id] === item.bankFolder) : nextBanks[0]
+        return { file: new File([], item.name), relativePath: item.relativePath, bankId: target!.id, assetUrl: item.url }
+      })
+      const result = await mergeImageEntries(nextBanks, entries)
+      workspaceReady.current = false
+      setBanks(result.banks); setStatuses(nextStatuses); setWorkspaceFolders(folders); setWorkspaceHandle(null); setDefaultWorkspaceConnected(true); setWorkspaceState('connected')
+      window.setTimeout(() => { workspaceReady.current = true; writeDefaultWorkspaceManifest(result.banks, nextStatuses, folders).catch(() => setWorkspaceState('error')) }, 0)
+      setToast(`已自动连接“${index.name}”${result.imported ? `，识别 ${result.imported} 张图片` : ''}`)
+      return true
+    } catch {
+      setDefaultWorkspaceConnected(false); setWorkspaceState('none')
+      return false
+    }
+  }
+
   async function loadWorkspace(handle: FileSystemDirectoryHandle) {
     setWorkspaceState('syncing')
     try {
@@ -214,7 +249,7 @@ export default function App() {
       })
       const result = await mergeImageEntries(nextBanks, entries)
       workspaceReady.current = false
-      setBanks(result.banks); setStatuses(nextStatuses); setWorkspaceFolders(folders); setWorkspaceHandle(handle)
+      setBanks(result.banks); setStatuses(nextStatuses); setWorkspaceFolders(folders); setWorkspaceHandle(handle); setDefaultWorkspaceConnected(false)
       setWorkspaceState('connected')
       window.setTimeout(() => { workspaceReady.current = true; writeWorkspaceManifest(handle, result.banks, nextStatuses, folders).catch(() => setWorkspaceState('error')) }, 0)
       setToast(`已连接“${handle.name}”${result.imported ? `，同步 ${result.imported} 张图片` : ''}`)
@@ -222,7 +257,7 @@ export default function App() {
     } catch (error) {
       if (isMissingWorkspaceError(error)) {
         await clearWorkspaceHandle().catch(() => {})
-        setWorkspaceHandle(null); setWorkspaceState('none'); setToast('原题库文件夹已移动，请重新选择“默认题库”')
+        setWorkspaceHandle(null); await loadDefaultWorkspace()
       } else {
         setWorkspaceState('error'); setToast(error instanceof Error ? error.message : '题库文件夹同步失败')
       }
@@ -232,6 +267,7 @@ export default function App() {
 
   async function connectWorkspace() {
     try {
+      if (defaultWorkspaceConnected) { await loadDefaultWorkspace(); return }
       if (workspaceHandle) {
         try {
           if (await hasWorkspacePermission(workspaceHandle, true) && await loadWorkspace(workspaceHandle)) return
@@ -282,7 +318,7 @@ export default function App() {
     <header>
       <button className="mobile-menu" onClick={() => setSidebar(true)} aria-label="打开菜单"><Menu/></button>
       <div className="brand"><span className="brand-mark"><BookOpen size={20}/></span><div><strong>本地题库</strong><small>QUESTION BANK</small></div></div>
-      <div className="header-center"><span className={`source-dot ${workspaceState === 'connected' ? 'workspace-on' : ''}`}/>{workspaceState === 'connected' ? `已同步：${workspaceHandle?.name}` : workspaceState === 'syncing' ? '正在同步题库文件夹…' : '本地增强模式 · 数据与位置自动保存'}</div>
+      <div className="header-center"><span className={`source-dot ${workspaceState === 'connected' ? 'workspace-on' : ''}`}/>{workspaceState === 'connected' ? `已同步：${defaultWorkspaceConnected ? '默认题库' : workspaceHandle?.name}` : workspaceState === 'syncing' ? '正在同步题库文件夹…' : '本地增强模式 · 数据与位置自动保存'}</div>
       <div className="header-actions">
         <input ref={importRef} hidden type="file" accept=".json,application/json" onChange={e => importData(e.target.files?.[0])}/>
         <input ref={node => { imageImportRef.current = node; node?.setAttribute('webkitdirectory', '') }} hidden type="file" multiple accept="image/*" onChange={e => importImages(e.target.files)}/>

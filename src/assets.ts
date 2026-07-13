@@ -2,7 +2,7 @@ const DB_NAME = 'npee-question-assets'
 const STORE_NAME = 'assets'
 const DB_VERSION = 1
 
-export interface AssetInput { key: string; file: File }
+export interface AssetInput { key: string; file: File; url?: string }
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -22,7 +22,7 @@ export async function putAssets(inputs: AssetInput[]) {
   await new Promise<void>((resolve, reject) => {
     const transaction = database.transaction(STORE_NAME, 'readwrite')
     const store = transaction.objectStore(STORE_NAME)
-    inputs.forEach(({ key, file }) => store.put({ key, blob: file, name: file.name, type: file.type, updatedAt: Date.now() }))
+    inputs.forEach(({ key, file, url }) => store.put(url ? { key, url, name: file.name, type: file.type, updatedAt: Date.now() } : { key, blob: file, name: file.name, type: file.type, updatedAt: Date.now() }))
     transaction.oncomplete = () => resolve()
     transaction.onerror = () => reject(transaction.error || new Error('图片写入失败，可能已超出浏览器存储空间'))
     transaction.onabort = () => reject(transaction.error || new Error('图片写入已中止'))
@@ -33,12 +33,17 @@ export async function putAssets(inputs: AssetInput[]) {
 export async function getAssetBlobs(keys: string[]): Promise<Blob[]> {
   if (!keys.length) return []
   const database = await openDatabase()
-  const blobs = await Promise.all(keys.map(key => new Promise<Blob | null>((resolve, reject) => {
+  const records = await Promise.all(keys.map(key => new Promise<{ blob?: Blob; url?: string } | null>((resolve, reject) => {
     const request = database.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(key)
-    request.onsuccess = () => resolve(request.result?.blob instanceof Blob ? request.result.blob : null)
+    request.onsuccess = () => resolve(request.result || null)
     request.onerror = () => reject(request.error)
   })))
   database.close()
+  const blobs = await Promise.all(records.map(async record => {
+    if (record?.blob instanceof Blob) return record.blob
+    if (record?.url) { const response = await fetch(record.url); return response.ok ? response.blob() : null }
+    return null
+  }))
   return blobs.filter((blob): blob is Blob => blob !== null)
 }
 
