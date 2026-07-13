@@ -3,7 +3,7 @@ export type QuestionStatus = 'none' | 'proficient' | 'vague' | 'wrong'
 export interface Question {
   id: string
   number: number
-  type: string
+  type?: string
   text: string
   options?: string[]
   answer: string

@@ -75,7 +75,7 @@ export default function App() {
     return matchesStatus && haystack.includes(query.trim().toLowerCase())
   }), [sourceQuestions, filter, query, statuses])
   const question = filteredQuestions[Math.min(questionIndex, Math.max(0, filteredQuestions.length - 1))]
-  const questionText = question?.type === '图片题' && question.text === `第 ${question.number} 题` ? '' : question?.text
+  const questionText = question && (question.type === '图片题' || question.imageUrl || question.imageKeys?.length) && question.text === `第 ${question.number} 题` ? '' : question?.text
   const currentQuestionEntry = view === 'wrong' ? wrongEntries.find(entry => entry.question.id === question?.id) : undefined
   const counts = bankQuestionEntries.reduce((acc, entry) => { const s = statuses[entry.question.id] || 'none'; acc[s]++; return acc }, { none: 0, proficient: 0, vague: 0, wrong: 0 })
 
@@ -181,8 +181,8 @@ export default function App() {
             let targetSection = chapter.sections.find(entry => entry.id === sectionIdForImport)
             if (!targetSection) { targetSection = { id: sectionIdForImport, name: definition.sectionName, questions: [] }; chapter.sections.push(targetSection) }
             const existingQuestion = targetSection.questions.find(entry => entry.id === questionId)
-            if (!existingQuestion) targetSection.questions.push({ id: questionId, number: Number(definition.questionCode), type: '图片题', text: '', answer: '见答案图片', analysis: '暂无文字解析' })
-            else if (existingQuestion.type === '图片题' && existingQuestion.text === `第 ${existingQuestion.number} 题`) existingQuestion.text = ''
+            if (!existingQuestion) targetSection.questions.push({ id: questionId, number: Number(definition.questionCode), text: '', answer: '见答案图片', analysis: '暂无文字解析' })
+            else if ((existingQuestion.type === '图片题' || existingQuestion.imageUrl || existingQuestion.imageKeys?.length) && existingQuestion.text === `第 ${existingQuestion.number} 题`) existingQuestion.text = ''
             targetSection.questions.sort((a, b) => a.number - b.number)
           }
           clone.chapters.sort((a, b) => a.id.localeCompare(b.id, 'zh-CN', { numeric: true }))
@@ -269,7 +269,7 @@ export default function App() {
 
         {question ? <div className="study-layout">
           <section className="question-card">
-            <div className="question-top"><div><span className="number">{String(question.number).padStart(2,'0')}</span><span className="type">{question.type}</span>{currentQuestionEntry && <span className="wrong-context">{currentQuestionEntry.chapterName} · {currentQuestionEntry.sectionName}</span>}</div><span className={`current-status ${(statuses[question.id] || 'none')}`}>{statusMeta[statuses[question.id] || 'none'].icon} {statusMeta[statuses[question.id] || 'none'].label}</span></div>
+            <div className="question-top"><div><span className="number">{String(question.number).padStart(2,'0')}</span>{question.type && <span className="type">{question.type}</span>}{currentQuestionEntry && <span className="wrong-context">{currentQuestionEntry.chapterName} · {currentQuestionEntry.sectionName}</span>}</div><span className={`current-status ${(statuses[question.id] || 'none')}`}>{statusMeta[statuses[question.id] || 'none'].icon} {statusMeta[statuses[question.id] || 'none'].label}</span></div>
             <div className="question-content">{questionText && <p>{questionText}</p>}<AssetGallery keys={question.imageKeys} urls={question.imageUrl ? [question.imageUrl] : []} alt="题目配图"/>{question.options && <div className="options">{question.options.map((o, i) => <div key={i}>{o}</div>)}</div>}</div>
             <div className="status-bar"><span>掌握情况</span><div>{(['proficient','vague','wrong'] as const).map(s => <button key={s} className={(statuses[question.id] || 'none') === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => mark((statuses[question.id] || 'none') === s ? 'none' : s)}><b>{statusMeta[s].icon}</b>{statusMeta[s].label}</button>)}</div></div>
             <button className="answer-toggle" onClick={() => setAnswerOpen(v => !v)}><CircleHelp size={19}/>{answerOpen ? '收起答案与解析' : '查看答案与解析'}<ChevronDown className={answerOpen ? 'rotated' : ''} size={18}/></button>

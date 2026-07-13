@@ -51,6 +51,12 @@ describe('validateBanks', () => {
     Object.assign(imageOnly.chapters[0].sections[0].questions[0], { type: '图片题', text: '', imageKeys: ['q/1'] })
     expect(validateBanks([imageOnly])[0].chapters[0].sections[0].questions[0].text).toBe('')
   })
+
+  it('题型字段可以完全省略', () => {
+    const withoutType = structuredClone(validBank)
+    Reflect.deleteProperty(withoutType.chapters[0].sections[0].questions[0], 'type')
+    expect(validateBanks([withoutType])[0].chapters[0].sections[0].questions[0].type).toBeUndefined()
+  })
 })
 
 describe('local storage recovery', () => {

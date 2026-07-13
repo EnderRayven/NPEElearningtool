@@ -49,9 +49,9 @@ async function waitForImages(container: HTMLElement) {
 export function ExportPage({ questions, includeAnswers, pageNumber, showType = true }: { questions: Question[]; includeAnswers: boolean; pageNumber: number; showType?: boolean }) {
   return <article className="export-page">
     {questions.map(question => {
-      const text = question.type === '图片题' && question.text === `第 ${question.number} 题` ? '' : question.text
+      const text = (question.type === '图片题' || question.imageUrl || question.imageKeys?.length) && question.text === `第 ${question.number} 题` ? '' : question.text
       return <section className="export-question" key={question.id}>
-        <div className="export-question-title"><strong>{String(question.number).padStart(2, '0')}</strong>{showType && <span>{question.type}</span>}</div>
+        <div className="export-question-title"><strong>{String(question.number).padStart(2, '0')}</strong>{showType && question.type && <span>{question.type}</span>}</div>
         {text && <p>{text}</p>}
         <AssetGallery keys={question.imageKeys} urls={question.imageUrl ? [question.imageUrl] : []} alt="题目配图"/>
         {question.options?.map(option => <p className="export-option" key={option}>{option}</p>)}
