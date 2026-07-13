@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlertCircle, BookOpen, ChevronDown, ChevronRight, CircleHelp, Download, FileImage, FileText, FileUp, Filter, Menu, Pencil, Plus, RotateCcw, Search, X } from 'lucide-react'
+import { AlertCircle, BookOpen, ChevronDown, ChevronRight, CircleHelp, Download, FileImage, FileText, FileUp, Filter, Menu, Pencil, Plus, RotateCcw, Search, Settings as SettingsIcon, X } from 'lucide-react'
 import type { Question, QuestionBank, QuestionStatus, Section } from './types'
 import { loadBanks, loadNavigation, loadStatuses, renameBank, renameChapter, saveBanks, saveNavigation, saveStatuses, validateBanks, validateStatuses } from './store'
-import { parseImageFilename, parseStructuredImagePath, putAssets, type StructuredImageMatch } from './assets'
+import { clearAssets, deleteAssets, parseImageFilename, parseStructuredImagePath, putAssets, type StructuredImageMatch } from './assets'
 import AssetGallery from './AssetGallery'
 import ExportDialog, { ExportPage, type ExportJob } from './ExportDialog'
+import SettingsDialog from './SettingsDialog'
+import { assetKeysForBank, clearQuestionStatuses, questionIdsForBank, removeBank, resetBankData } from './bankManagement'
+import { sampleBanks } from './data'
 
 const statusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
   none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错题', icon: '×' }
@@ -25,6 +28,7 @@ export default function App() {
   const [printMode, setPrintMode] = useState(false)
   const [printJob, setPrintJob] = useState<ExportJob | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [newBankOpen, setNewBankOpen] = useState(false)
   const [newBankName, setNewBankName] = useState('')
   const [namingHelpOpen, setNamingHelpOpen] = useState(false)
@@ -89,6 +93,34 @@ export default function App() {
   function exportData() {
     const blob = new Blob([JSON.stringify({ version: 1, banks, statuses }, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `研途题库备份-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url)
+  }
+  function exportSingleBank(targetBank: QuestionBank) {
+    const blob = new Blob([JSON.stringify({ version: 1, banks: [targetBank] }, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${targetBank.name.replace(/[\\/:*?"<>|]/g, '-')}.json`; link.click(); URL.revokeObjectURL(url); setToast(`已导出“${targetBank.name}”`)
+  }
+  function clearMarks(targetBankId: string | 'all', status: QuestionStatus | 'all') {
+    setStatuses(previous => clearQuestionStatuses(previous, banks, targetBankId, status)); setToast('所选标注已清除')
+  }
+  async function resetManagedBank(targetBank: QuestionBank) {
+    await deleteAssets(assetKeysForBank(targetBank)); const baseline = sampleBanks.find(item => item.id === targetBank.id)
+    setStatuses(previous => clearQuestionStatuses(previous, banks, targetBank.id, 'all')); setBanks(previous => resetBankData(previous, targetBank.id, baseline))
+    if (bankId === targetBank.id) { setSectionId(baseline?.chapters[0]?.sections[0]?.id || ''); setQuestionIndex(0); setView('section') }
+    setToast(baseline ? '内置题库已恢复' : '自建题库内容已清空')
+  }
+  async function deleteManagedBank(targetBank: QuestionBank) {
+    if (banks.length <= 1) { setToast('至少需要保留一个题库'); return }
+    await deleteAssets(assetKeysForBank(targetBank)); const ids = questionIdsForBank(targetBank)
+    setStatuses(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => !ids.has(id))))
+    const remaining = removeBank(banks, targetBank.id); setBanks(remaining)
+    if (bankId === targetBank.id) selectBank(remaining[0]); setToast(`已删除“${targetBank.name}”`)
+  }
+  async function restoreBuiltIns() {
+    const builtInIds = new Set(sampleBanks.map(item => item.id)); const existingBuiltIns = banks.filter(item => builtInIds.has(item.id))
+    await deleteAssets(existingBuiltIns.flatMap(assetKeysForBank)); setStatuses(previous => existingBuiltIns.reduce((next, item) => clearQuestionStatuses(next, banks, item.id, 'all'), previous))
+    setBanks(previous => [...previous.filter(item => !builtInIds.has(item.id)), ...structuredClone(sampleBanks)]); setToast('内置题库已恢复')
+  }
+  async function factoryReset() {
+    await clearAssets(); const defaults = structuredClone(sampleBanks); setBanks(defaults); setStatuses({}); setBankId(defaults[0].id); setSectionId(defaults[0].chapters[0]?.sections[0]?.id || ''); setQuestionIndex(0); setView('section'); setSettingsOpen(false); setToast('已恢复出厂设置')
   }
   function printExport(job: ExportJob) {
     if (!job.questions.length) { setToast('当前条件下没有可导出的题目'); return }
@@ -201,6 +233,7 @@ export default function App() {
         <button className="ghost" onClick={() => importRef.current?.click()}><FileUp size={17}/>导入</button>
         <button className="ghost" title="批量导入题目图和答案图" onClick={() => imageImportRef.current?.click()}><FileImage size={17}/>图片</button>
         <button className="icon-ghost" title="查看图片命名参考" aria-label="图片命名参考" onClick={() => setNamingHelpOpen(true)}><CircleHelp size={18}/></button>
+        <button className="icon-ghost" title="设置与数据管理" aria-label="设置与数据管理" onClick={() => setSettingsOpen(true)}><SettingsIcon size={18}/></button>
         <button className="ghost" onClick={() => setExportOpen(true)}><FileText size={17}/>导出</button>
         <button className="ghost" onClick={exportData}><Download size={17}/>备份</button>
       </div>
@@ -255,5 +288,6 @@ export default function App() {
     {namingHelpOpen && <div className="modal-backdrop" onClick={() => setNamingHelpOpen(false)}><section className="modal-card naming-card" role="dialog" aria-modal="true" aria-labelledby="naming-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setNamingHelpOpen(false)}><X/></button><span className="modal-icon"><FileImage/></span><h2 id="naming-title">图片命名参考</h2><p>Q 表示题目，A 表示答案；后面依次是章号－小节号－题号。</p><div className="naming-example"><code>Q-01-1-01.png</code><span>单张题目图</span><code>Q-01-1-01.1.png</code><span>多图组成时的第 1 张</span><code>Q-01-1-01.2.png</code><span>多图组成时的第 2 张</span><code>A-01-1-01.png</code><span>单张答案图</span><code>A-01-1-01.1.png</code><span>多张答案中的第 1 张</span><code>A-01-1-01.2.png</code><span>多张答案中的第 2 张</span></div><h3>文件夹自动识别名称</h3><code className="folder-example">01 行列式 1-基础.assets</code><p>自动生成“行列式”章节和“基础”小节。旧的 <code>01-1-01.png</code> 仍可识别为题目图。</p><button className="primary-button" onClick={() => setNamingHelpOpen(false)}>我知道了</button></section></div>}
     {exportOpen && <ExportDialog banks={banks} statuses={statuses} defaultBankId={bank.id} defaultSectionId={sectionId} onClose={() => setExportOpen(false)} onPdf={printExport} onNotice={setToast}/>}
     {renameTarget && <div className="modal-backdrop" onClick={() => setRenameTarget(null)}><section className="modal-card rename-card" role="dialog" aria-modal="true" aria-labelledby="rename-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setRenameTarget(null)}><X/></button><span className="modal-icon"><Pencil/></span><h2 id="rename-title">重命名{renameTarget.kind === 'bank' ? '题库' : '章节'}</h2><p>只修改显示名称，不会改变题目、图片或学习状态。</p><label>新名称<input autoFocus value={renameValue} onChange={event => setRenameValue(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') applyRename() }} placeholder={renameTarget.name}/></label><button className="primary-button" onClick={applyRename}>保存名称</button></section></div>}
+    {settingsOpen && <SettingsDialog banks={banks} activeBankId={bank.id} builtInIds={new Set(sampleBanks.map(item => item.id))} onClose={() => setSettingsOpen(false)} onClearMarks={clearMarks} onExportBank={exportSingleBank} onResetBank={resetManagedBank} onDeleteBank={deleteManagedBank} onRestoreBuiltIns={restoreBuiltIns} onFactoryReset={factoryReset}/>}
   </div>
 }

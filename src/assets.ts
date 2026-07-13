@@ -42,6 +42,25 @@ export async function getAssetBlobs(keys: string[]): Promise<Blob[]> {
   return blobs.filter((blob): blob is Blob => blob !== null)
 }
 
+export async function deleteAssets(keys: string[]) {
+  if (!keys.length) return
+  const database = await openDatabase()
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite'); const store = transaction.objectStore(STORE_NAME)
+    keys.forEach(key => store.delete(key)); transaction.oncomplete = () => resolve(); transaction.onerror = () => reject(transaction.error)
+  })
+  database.close()
+}
+
+export async function clearAssets() {
+  const database = await openDatabase()
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite'); transaction.objectStore(STORE_NAME).clear()
+    transaction.oncomplete = () => resolve(); transaction.onerror = () => reject(transaction.error)
+  })
+  database.close()
+}
+
 export type ImageKind = 'question' | 'answer'
 export interface ImageMatch { questionId: string; kind: ImageKind; order: number }
 
