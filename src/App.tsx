@@ -15,7 +15,7 @@ import { isImageAnswerPlaceholder } from './questionPresentation'
 import { sortBanksForDisplay } from './bankSorting'
 import LearningDashboard from './LearningDashboard'
 import { calculateLearningStats, calculateQuestionStats, formatRate } from './learningStats'
-import { resolveNavigation, resolveProfileBankId } from './navigationRestore'
+import { resolveNavigation, resolveProfileBankId, type SavedNavigation } from './navigationRestore'
 
 const statusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
   none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错题', icon: '×' }
@@ -73,6 +73,7 @@ export default function App() {
   const [workspaceFolders, setWorkspaceFolders] = useState<Record<string, string>>({})
   const [defaultWorkspaceConnected, setDefaultWorkspaceConnected] = useState(false)
   const workspaceReady = useRef(false)
+  const studyPositions = useRef<Partial<Record<Subject, SavedNavigation>>>({})
   const importRef = useRef<HTMLInputElement>(null)
   const imageImportRef = useRef<HTMLInputElement>(null)
 
@@ -165,7 +166,9 @@ export default function App() {
 
   useEffect(() => {
     if (!navigationReady) return
-    saveNavigation({ bankId: bank?.id || '', sectionId, questionId: question?.id || '', view, page: activePage, profileBankId })
+    const currentPosition = { bankId: bank?.id || '', sectionId, questionId: question?.id || '', view }
+    studyPositions.current[subject] = currentPosition
+    saveNavigation({ ...currentPosition, page: activePage, profileBankId, studyPositions: studyPositions.current })
   }, [navigationReady, bank?.id, sectionId, question?.id, view, activePage, profileBankId])
 
   function selectBank(next: QuestionBank) {
@@ -174,15 +177,28 @@ export default function App() {
   function restoreSavedNavigation(targetBanks: QuestionBank[], targetStatuses: Record<string, QuestionStatus>) {
     const saved = loadNavigation()
     if (!saved) return false
+    studyPositions.current = { ...saved.studyPositions }
     setProfileBankId(resolveProfileBankId(targetBanks, saved.profileBankId || saved.bankId))
     setActivePage(saved.page)
     const restored = resolveNavigation(targetBanks, targetStatuses, saved)
     if (!restored) return saved.page === 'profile'
+    const restoredBank = targetBanks.find(item => item.id === restored.bankId)
+    if (restoredBank) studyPositions.current[bankSubject(restoredBank)] = saved
     setBankId(restored.bankId); setSectionId(restored.sectionId); setExpandedChapterIds(new Set([restored.chapterId])); setQuestionIndex(restored.questionIndex); setView(restored.view)
     setAnswerOpen(false); setExpandedPassageAnswers(new Set()); setFilter('all'); setQuery('')
     return true
   }
   function selectSubject(nextSubject: Subject) {
+    if (bankSubject(bank) === nextSubject) {
+      setActivePage('study'); setSidebar(false)
+      return
+    }
+    const restored = resolveNavigation(banks.filter(item => bankSubject(item) === nextSubject), statuses, studyPositions.current[nextSubject] || null)
+    if (restored) {
+      setBankId(restored.bankId); setSectionId(restored.sectionId); setExpandedChapterIds(new Set([restored.chapterId])); setQuestionIndex(restored.questionIndex); setView(restored.view)
+      setAnswerOpen(false); setExpandedPassageAnswers(new Set()); setFilter('all'); setQuery(''); setActivePage('study'); setSidebar(false)
+      return
+    }
     const nextBank = sortBanksForDisplay(banks.filter(item => bankSubject(item) === nextSubject))[0]
     if (nextBank) { setActivePage('study'); selectBank(nextBank) }
     else setToast(nextSubject === 'english' ? '还没有英语题库' : '还没有数学题库')

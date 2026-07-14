@@ -166,13 +166,19 @@ describe('rename', () => {
 
 describe('navigation recovery', () => {
   it('保存并恢复最后学习位置', () => {
-    saveNavigation({ bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section', page: 'profile', profileBankId: 'english-exams' })
-    expect(loadNavigation()).toEqual({ bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section', page: 'profile', profileBankId: 'english-exams' })
+    const studyPositions = { math: { bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section' as const } }
+    saveNavigation({ bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section', page: 'profile', profileBankId: 'english-exams', studyPositions })
+    expect(loadNavigation()).toEqual({ bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section', page: 'profile', profileBankId: 'english-exams', studyPositions })
   })
 
   it('兼容未记录我的板块的旧版位置', () => {
     localStorage.setItem('npee:navigation:v1', JSON.stringify({ bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section' }))
-    expect(loadNavigation()).toMatchObject({ page: 'study', profileBankId: '' })
+    expect(loadNavigation()).toMatchObject({ page: 'study', profileBankId: '', studyPositions: {} })
+  })
+
+  it('忽略损坏的学科位置并保留有效位置', () => {
+    localStorage.setItem('npee:navigation:v1', JSON.stringify({ bankId: 'bank-1', sectionId: 'section-1', questionId: 'q1', studyPositions: { math: { bankId: 1 }, english: { bankId: 'english', sectionId: 'reading', questionId: 'q2', view: 'wrong' } } }))
+    expect(loadNavigation()?.studyPositions).toEqual({ math: undefined, english: { bankId: 'english', sectionId: 'reading', questionId: 'q2', view: 'wrong' } })
   })
 
   it('损坏的位置记录会被安全忽略', () => {

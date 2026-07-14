@@ -120,6 +120,15 @@ export interface NavigationState {
   view: 'section' | 'wrong'
   page: 'study' | 'profile'
   profileBankId: string
+  studyPositions: {
+    math?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
+    english?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
+  }
+}
+
+function parseStudyPosition(value: unknown) {
+  if (!isRecord(value) || typeof value.bankId !== 'string' || typeof value.sectionId !== 'string' || typeof value.questionId !== 'string') return undefined
+  return { bankId: value.bankId, sectionId: value.sectionId, questionId: value.questionId, view: value.view === 'wrong' ? 'wrong' as const : 'section' as const }
 }
 
 export function loadNavigation(): NavigationState | null {
@@ -133,6 +142,10 @@ export function loadNavigation(): NavigationState | null {
       view: value.view === 'wrong' ? 'wrong' : 'section',
       page: value.page === 'profile' ? 'profile' : 'study',
       profileBankId: typeof value.profileBankId === 'string' ? value.profileBankId : '',
+      studyPositions: isRecord(value.studyPositions) ? {
+        math: parseStudyPosition(value.studyPositions.math),
+        english: parseStudyPosition(value.studyPositions.english),
+      } : {},
     }
   } catch { return null }
 }
