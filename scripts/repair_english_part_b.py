@@ -189,13 +189,16 @@ def repair_payload(payload: dict) -> tuple[int, int]:
     repaired_sections = 0
     removed_crops = 0
 
+    year_sections = []
     for bank in payload["banks"]:
-        if not re.fullmatch(r"english-\d{4}", bank.get("id", "")):
-            continue
-        year = int(bank["id"].split("-")[1])
+        if re.fullmatch(r"english-\d{4}", bank.get("id", "")):
+            year_sections.append((int(bank["id"].split("-")[1]), [section for chapter in bank["chapters"] for section in chapter["sections"]]))
+        elif bank.get("id") == "english-exams":
+            year_sections.extend((int(chapter["id"].rsplit("-", 1)[1]), chapter["sections"]) for chapter in bank["chapters"] if re.fullmatch(r"english-exams-\d{4}", chapter.get("id", "")))
+
+    for year, sections in year_sections:
         kind = PART_B_KIND.get(year)
-        for chapter in bank["chapters"]:
-            for section in chapter["sections"]:
+        for section in sections:
                 questions = [question for question in section["questions"] if question.get("type") == "阅读理解 Part B"]
                 if not questions:
                     continue

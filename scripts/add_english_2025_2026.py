@@ -16,6 +16,7 @@ from PIL import Image
 
 import build_english_exam_bank as legacy
 from build_english_exam_bank_2010_2024 import normalize
+from english_bank_structure import merge_english_banks
 
 
 ANSWER_KEYS = {
@@ -188,10 +189,8 @@ def main() -> None:
 
     payload = json.loads(args.bank.read_text(encoding="utf-8"))
     ids = {bank["id"] for bank in banks}
-    payload["banks"] = [bank for bank in payload["banks"] if bank["id"] not in ids] + banks
-    payload["builtinEnglishVersion"] = 5
+    merge_english_banks(payload, banks)
     payload["updatedAt"] = datetime.now().astimezone().isoformat(timespec="seconds")
-    payload.setdefault("folders", {}).update({bank["id"]: f"英语一真题/{bank['name']}" for bank in banks})
     args.bank.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"added": sorted(ids), "analysisAssets": len(ANALYSIS_GROUPS)}, ensure_ascii=False))
 

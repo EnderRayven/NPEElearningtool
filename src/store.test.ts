@@ -98,14 +98,22 @@ describe('local storage recovery', () => {
     expect(loadStatuses()).toEqual({ q1: 'wrong', q3: 'proficient' })
   })
 
-  it('为已有缓存一次性补入英语真题内置题库', () => {
+  it('为已有缓存一次性补入合并后的英语真题题库', () => {
     localStorage.setItem('npee:banks:v1', JSON.stringify([validBank]))
     const firstLoad = loadBanks()
     expect(firstLoad.some(bank => bank.id === 'bank-1')).toBe(true)
-    expect(firstLoad.filter(bank => /^english-200[4-9]$/.test(bank.id))).toHaveLength(6)
+    expect(firstLoad.filter(bank => bank.id === 'english-exams')).toHaveLength(1)
+    expect(firstLoad.find(bank => bank.id === 'english-exams')?.chapters).toHaveLength(23)
 
-    saveBanks(firstLoad.filter(bank => bank.id !== 'english-2004'))
-    expect(loadBanks().some(bank => bank.id === 'english-2004')).toBe(false)
+    saveBanks(firstLoad.filter(bank => bank.id !== 'english-exams'))
+    expect(loadBanks().some(bank => bank.id === 'english-exams')).toBe(false)
+  })
+
+  it('将旧版逐年英语题库缓存迁移为一个题库', () => {
+    localStorage.setItem('npee:banks:v1', JSON.stringify({ version: 2, bankOrder: ['bank-1', 'english-2004', 'english-2005'], banks: [validBank] }))
+    const migrated = loadBanks()
+    expect(migrated.some(bank => bank.id === 'bank-1')).toBe(true)
+    expect(migrated.filter(bank => bank.id.startsWith('english-')).map(bank => bank.id)).toEqual(['english-exams'])
   })
 
   it('导入备份时过滤非法学习状态', () => {
@@ -129,11 +137,11 @@ describe('local storage recovery', () => {
 
   it('紧凑缓存保留内置题库删除和自定义修改', () => {
     const banks = loadBanks()
-    const changed = banks.filter(bank => bank.id !== 'english-2004')
+    const changed = banks.filter(bank => bank.id !== 'english-exams')
     changed[0] = { ...changed[0], name: '用户重命名' }
     saveBanks(changed)
     const restored = loadBanks()
-    expect(restored.some(bank => bank.id === 'english-2004')).toBe(false)
+    expect(restored.some(bank => bank.id === 'english-exams')).toBe(false)
     expect(restored[0].name).toBe('用户重命名')
   })
 })

@@ -100,6 +100,13 @@ def main() -> None:
 
     payload = json.loads(args.bank_json.read_text(encoding="utf-8"))
     banks = {int(bank["id"].split("-")[1]): bank for bank in payload["banks"] if re.fullmatch(r"english-20(?:1\d|2[0-4])", bank["id"])}
+    consolidated = next((bank for bank in payload["banks"] if bank.get("id") == "english-exams"), None)
+    if consolidated:
+        banks.update({
+            int(chapter["id"].rsplit("-", 1)[1]): {"name": chapter["name"], "chapters": [{"sections": chapter["sections"]}]}
+            for chapter in consolidated["chapters"]
+            if re.fullmatch(r"english-exams-20(?:1\d|2[0-4])", chapter["id"])
+        })
     report = {}
 
     for year in range(2010, 2025):

@@ -5,7 +5,7 @@ const STORE_NAME = 'handles'
 const HANDLE_KEY = 'question-bank-root'
 export const WORKSPACE_MANIFEST = '题库数据.json'
 export const WORKSPACE_USER_DATA = '用户数据.json'
-export const BUILTIN_ENGLISH_VERSION = 5
+export const BUILTIN_ENGLISH_VERSION = 6
 
 type WritableDirectoryHandle = FileSystemDirectoryHandle & {
   queryPermission(options: { mode: 'readwrite' }): Promise<PermissionState>
