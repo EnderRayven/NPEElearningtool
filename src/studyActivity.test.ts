@@ -5,23 +5,45 @@ describe('study activity', () => {
   const now = new Date(2026, 6, 14, 10, 30)
 
   it('按本地日期记录同一道题当天的最终状态', () => {
-    const first = updateStudyActivity([], { questionId: 'q1', bankId: 'math', status: 'wrong' }, now)
-    const updated = updateStudyActivity(first, { questionId: 'q1', bankId: 'math', status: 'proficient' }, now)
+    const first = updateStudyActivity([], { questionId: 'q1', bankId: 'math', status: 'wrong', previousStatus: 'none' }, now)
+    const updated = updateStudyActivity(first, { questionId: 'q1', bankId: 'math', status: 'proficient', previousStatus: 'wrong' }, new Date(2026, 6, 14, 11, 30))
     expect(updated).toHaveLength(1)
-    expect(updated[0]).toMatchObject({ date: '2026-07-14', questionId: 'q1', status: 'proficient' })
+    expect(updated[0]).toMatchObject({
+      schemaVersion: 2,
+      date: '2026-07-14',
+      questionId: 'q1',
+      initialStatus: 'none',
+      status: 'proficient',
+      firstUpdatedAt: now.toISOString(),
+      updatedAt: new Date(2026, 6, 14, 11, 30).toISOString(),
+      changeCount: 2,
+    })
     expect(localDateKey(now)).toBe('2026-07-14')
   })
 
-  it('取消标记时移除当天记录但保留其他日期', () => {
+  it('取消标记时保留当天最终的未标记状态', () => {
     const activities = [
       { date: '2026-07-13', questionId: 'q1', bankId: 'math', status: 'wrong' as const, updatedAt: '2026-07-13T02:00:00.000Z' },
       { date: '2026-07-14', questionId: 'q1', bankId: 'math', status: 'wrong' as const, updatedAt: '2026-07-14T02:00:00.000Z' },
     ]
-    expect(updateStudyActivity(activities, { questionId: 'q1', bankId: 'math', status: 'none' }, now)).toEqual([activities[0]])
+    expect(updateStudyActivity(activities, { questionId: 'q1', bankId: 'math', status: 'none', previousStatus: 'wrong' }, now)).toEqual([
+      activities[0],
+      expect.objectContaining({ date: '2026-07-14', initialStatus: 'wrong', status: 'none', changeCount: 1 }),
+    ])
+  })
+
+  it('保存以后分析所需的题目上下文', () => {
+    const [record] = updateStudyActivity([], {
+      questionId: 'q1', bankId: 'math', status: 'vague', previousStatus: 'none',
+      chapterId: 'c1', sectionId: 's1', questionNumber: 7, questionType: '选择题',
+      subject: 'math', source: 'study', answerRevealed: true,
+    }, now)
+    expect(record).toMatchObject({ chapterId: 'c1', sectionId: 's1', questionNumber: 7, questionType: '选择题', subject: 'math', source: 'study', answerRevealed: true })
   })
 
   it('统计每日题量和正确率', () => {
     expect(calculateDailyActivity([
+      { date: '2026-07-14', questionId: 'q0', bankId: 'math', status: 'none', updatedAt: '' },
       { date: '2026-07-14', questionId: 'q1', bankId: 'math', status: 'proficient', updatedAt: '' },
       { date: '2026-07-14', questionId: 'q2', bankId: 'math', status: 'vague', updatedAt: '' },
       { date: '2026-07-14', questionId: 'q3', bankId: 'math', status: 'wrong', updatedAt: '' },

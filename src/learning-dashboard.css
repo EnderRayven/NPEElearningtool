@@ -221,6 +221,13 @@
   font: 700 31px/1.1 'Playfair Display', 'Noto Sans SC', serif;
 }
 
+.learning-metrics article > strong em {
+  margin-left: 5px;
+  color: #918a81;
+  font: 500 11px/1 'Noto Sans SC', sans-serif;
+  font-style: normal;
+}
+
 .learning-metrics article > small {
   display: block;
   margin-top: 10px;
@@ -318,12 +325,12 @@
 .calendar-month-actions strong { min-width: 104px; text-align: center; font-size: 11px; }
 .calendar-month-actions .calendar-today { display: block; margin-left: 3px; font-size: 9px; }
 
-.activity-calendar-body { display: grid; grid-template-columns: minmax(0, 1fr) 250px; }
-.calendar-area { padding: 18px 22px 22px; }
-.calendar-weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-.calendar-weekdays { margin-bottom: 7px; }
+.activity-calendar-body { display: grid; grid-template-columns: minmax(0, 1fr) 220px; align-items: stretch; }
+.calendar-area { padding: 15px 18px 18px; }
+.calendar-weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.calendar-weekdays { margin-bottom: 6px; }
 .calendar-weekdays span { color: #aaa199; text-align: center; font-size: 8px; }
-.calendar-day { position: relative; min-height: 64px; padding: 8px; border: 1px solid #eee8e1; border-radius: 9px; background: #fff; color: #665f58; text-align: left; }
+.calendar-day { position: relative; min-height: 56px; padding: 7px; border: 1px solid #eee8e1; border-radius: 8px; background: #fff; color: #665f58; text-align: left; }
 .calendar-day:not(.empty):hover { border-color: #d6b9b4; background: #fdfaf8; }
 .calendar-day.empty { border-color: transparent; background: transparent; }
 .calendar-day > span { display: block; font-size: 9px; }
@@ -337,7 +344,19 @@
 .calendar-day.selected { border-color: #9f2e25; box-shadow: 0 0 0 2px rgba(159, 46, 37, .1); }
 .calendar-day.active { background: #fcfaf7; }
 
-.calendar-summary { padding: 21px 22px; border-left: 1px solid #eee8e1; background: #faf8f5; }
+.calendar-summary {
+  position: static;
+  top: auto;
+  align-self: stretch;
+  display: block;
+  height: auto;
+  min-height: 0;
+  padding: 18px 19px;
+  overflow: visible;
+  border-right: 0;
+  border-left: 1px solid #eee8e1;
+  background: #faf8f5;
+}
 .month-summary, .selected-day-summary { padding-bottom: 18px; border-bottom: 1px solid #e8e1d9; }
 .month-summary > span, .selected-day-summary > span { color: #918a81; font-size: 9px; }
 .month-summary > strong { display: block; margin-top: 7px; color: #8f3028; font: 700 28px/1 'Playfair Display', 'Noto Sans SC', serif; }

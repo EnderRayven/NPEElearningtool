@@ -220,9 +220,24 @@ export default function App() {
   }
   function showWrongBook() { setView('wrong'); setFilter('all'); setQuery(''); setQuestionIndex(0); setAnswerOpen(false); setExpandedPassageAnswers(new Set()); setSidebar(false) }
   function markQuestion(questionId: string, status: QuestionStatus, targetQuestion?: Question) {
-    const item = targetQuestion || bankQuestionEntries.find(entry => entry.question.id === questionId)?.question
+    const questionEntry = bankQuestionEntries.find(entry => entry.question.id === questionId)
+    const item = targetQuestion || questionEntry?.question
+    const previousStatus = effectiveQuestionStatus(item, statuses[questionId] || 'none', binaryFilterMode)
     setStatuses(prev => ({ ...prev, [questionId]: status })); setToast(`已标记为“${questionStatusMeta(item, status, binaryFilterMode).label}”`)
-    setActivities(previous => updateStudyActivity(previous, { questionId, bankId: bank.id, status }))
+    setActivities(previous => updateStudyActivity(previous, {
+      questionId,
+      bankId: bank.id,
+      status,
+      previousStatus,
+      chapterId: questionEntry?.chapterId,
+      sectionId: questionEntry?.sectionId,
+      questionNumber: item?.number,
+      questionType: item?.type,
+      readingType: item?.readingType,
+      subject,
+      source: view === 'wrong' ? 'wrong-book' : 'study',
+      answerRevealed: isBinaryMasteryQuestion(item) ? expandedPassageAnswers.has(questionId) : answerOpen,
+    }))
   }
   function mark(status: QuestionStatus) { if (question) markQuestion(question.id, status, question) }
   function togglePassageAnswer(questionId: string) {
@@ -275,6 +290,27 @@ export default function App() {
     const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `${targetBank.name.replace(/[\\/:*?"<>|]/g, '-')}.json`; link.click(); URL.revokeObjectURL(url); setToast(`已导出“${targetBank.name}”`)
   }
   function clearMarks(targetBankId: string | 'all', status: QuestionStatus | 'all') {
+    const targets = banks
+      .filter(targetBank => targetBankId === 'all' || targetBank.id === targetBankId)
+      .flatMap(targetBank => orderedQuestionEntriesForBank(targetBank).map(entry => ({ targetBank, entry })))
+      .filter(({ entry }) => {
+        const current = statuses[entry.question.id] || 'none'
+        return current !== 'none' && (status === 'all' || current === status)
+      })
+    const now = new Date()
+    setActivities(previous => targets.reduce((next, { targetBank, entry }) => updateStudyActivity(next, {
+      questionId: entry.question.id,
+      bankId: targetBank.id,
+      status: 'none',
+      previousStatus: statuses[entry.question.id] || 'none',
+      chapterId: entry.chapterId,
+      sectionId: entry.sectionId,
+      questionNumber: entry.question.number,
+      questionType: entry.question.type,
+      readingType: entry.question.readingType,
+      subject: bankSubject(targetBank),
+      source: 'bulk-clear',
+    }, now), previous))
     setStatuses(previous => clearQuestionStatuses(previous, banks, targetBankId, status)); setToast('所选标注已清除')
   }
   async function resetManagedBank(targetBank: QuestionBank) {
