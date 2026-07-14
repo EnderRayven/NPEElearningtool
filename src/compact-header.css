@@ -128,6 +128,11 @@
 }
 
 @media screen and (min-width: 901px) {
+  .body-grid > main {
+    min-width: 0;
+    overflow: visible;
+  }
+
   .study-layout > .question-nav,
   .passage-question-nav {
     position: sticky;
