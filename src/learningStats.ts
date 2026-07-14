@@ -1,4 +1,4 @@
-import type { QuestionBank, QuestionStatus } from './types'
+import type { Question, QuestionBank, QuestionStatus } from './types'
 
 export interface LearningStats {
   total: number
@@ -11,8 +11,7 @@ export interface LearningStats {
   completion: number
 }
 
-export function calculateLearningStats(banks: QuestionBank[], statuses: Record<string, QuestionStatus>): LearningStats {
-  const questions = banks.flatMap(bank => bank.chapters.flatMap(chapter => chapter.sections.flatMap(section => section.questions)))
+export function calculateQuestionStats(questions: Question[], statuses: Record<string, QuestionStatus>): LearningStats {
   const counts = { proficient: 0, vague: 0, wrong: 0 }
 
   for (const question of questions) {
@@ -29,6 +28,10 @@ export function calculateLearningStats(banks: QuestionBank[], statuses: Record<s
     accuracy: marked ? counts.proficient / marked : null,
     completion: questions.length ? marked / questions.length : 0,
   }
+}
+
+export function calculateLearningStats(banks: QuestionBank[], statuses: Record<string, QuestionStatus>): LearningStats {
+  return calculateQuestionStats(banks.flatMap(bank => bank.chapters.flatMap(chapter => chapter.sections.flatMap(section => section.questions))), statuses)
 }
 
 export function formatRate(value: number | null) {

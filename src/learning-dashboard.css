@@ -11,6 +11,13 @@
   margin: 0 auto;
 }
 
+.learning-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 32px;
+}
+
 .learning-heading > span,
 .bank-progress-heading > div > span {
   color: #a15c53;
@@ -30,6 +37,34 @@
   font-size: 12px;
 }
 
+.dashboard-bank-picker {
+  display: grid;
+  gap: 7px;
+  width: min(400px, 38vw);
+}
+
+.dashboard-bank-picker > span {
+  color: #918a81;
+  font-size: 10px;
+}
+
+.dashboard-bank-picker select {
+  width: 100%;
+  height: 42px;
+  padding: 0 38px 0 13px;
+  border: 1px solid #ded7ce;
+  border-radius: 10px;
+  outline: 0;
+  background: #fff;
+  color: #4f4943;
+  font-size: 12px;
+}
+
+.dashboard-bank-picker select:focus {
+  border-color: #b87971;
+  box-shadow: 0 0 0 3px rgba(159, 46, 37, .09);
+}
+
 .learning-metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -39,11 +74,78 @@
 
 .learning-metrics article,
 .learning-status-summary,
-.bank-progress-panel {
+.bank-progress-panel,
+.section-progress-panel {
   background: #fff;
   border: 1px solid #e8e1d8;
   box-shadow: 0 10px 30px rgba(71, 57, 44, .05);
 }
+
+.section-progress-panel {
+  margin-top: 20px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.section-progress-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 24px;
+  padding: 21px 24px 19px;
+  border-bottom: 1px solid #eee8e1;
+}
+
+.section-progress-heading > div:first-child > span {
+  color: #a15c53;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+}
+
+.section-progress-heading h2 { margin: 5px 0 0; font-size: 19px; }
+.section-progress-heading p { margin: 6px 0 0; color: #aaa199; font-size: 9px; }
+.section-progress-heading > div:last-child { text-align: right; }
+.section-progress-heading > div:last-child span { display: block; color: #918a81; font-size: 9px; }
+.section-progress-heading > div:last-child strong { display: block; margin-top: 5px; color: #8f3028; font: 700 23px/1 'Playfair Display', 'Noto Sans SC', serif; }
+.chapter-progress { border-bottom: 1px solid #eae4dd; }
+.chapter-progress:last-child { border-bottom: 0; }
+
+.chapter-progress-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 54px;
+  padding: 10px 24px;
+  background: #faf8f5;
+}
+
+.chapter-progress-heading > div { display: flex; align-items: center; gap: 10px; }
+.chapter-progress-heading > div:first-child span { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 7px; background: #efe7e1; color: #9a4b43; font-size: 9px; }
+.chapter-progress-heading > div:first-child strong { font-size: 12px; }
+.chapter-progress-heading > div:last-child span { color: #aaa199; font-size: 9px; }
+.chapter-progress-heading > div:last-child strong { min-width: 36px; text-align: right; font-size: 13px; }
+.section-progress-list { display: grid; }
+
+.section-progress-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.1fr) minmax(140px, 1fr) 70px minmax(205px, auto);
+  gap: 20px;
+  align-items: center;
+  min-height: 64px;
+  padding: 11px 24px 11px 59px;
+  border-top: 1px solid #f1ece6;
+}
+
+.section-progress-row:first-child { border-top: 0; }
+.section-progress-row > div:first-child strong { display: block; font-size: 11px; }
+.section-progress-row > div:first-child small { display: block; margin-top: 5px; color: #aaa199; font-size: 9px; }
+.section-progress-bar { height: 6px; overflow: hidden; border-radius: 4px; background: #eeeae5; }
+.section-progress-bar i { display: block; height: 100%; border-radius: inherit; background: #9f2e25; }
+.section-progress-rate span { display: block; color: #918a81; font-size: 8px; }
+.section-progress-rate strong { display: block; margin-top: 3px; font-size: 13px; }
+.section-progress-counts { display: flex; justify-content: flex-end; gap: 11px; font-size: 9px; white-space: nowrap; }
+.section-progress-empty { padding: 36px 24px; color: #aaa199; text-align: center; font-size: 11px; }
 
 .learning-metrics article {
   min-height: 132px;
@@ -153,9 +255,13 @@
   .learning-metrics { grid-template-columns: repeat(2, 1fr); }
   .bank-progress-row { grid-template-columns: minmax(180px, 1fr) minmax(120px, 1fr) 70px; }
   .bank-progress-counts { grid-column: 1 / -1; justify-content: flex-start; }
+  .section-progress-row { grid-template-columns: minmax(160px, 1fr) minmax(120px, 1fr) 64px; padding-left: 24px; }
+  .section-progress-counts { grid-column: 1 / -1; justify-content: flex-start; }
 }
 
 @media (max-width: 580px) {
+  .learning-top { display: block; }
+  .dashboard-bank-picker { width: 100%; margin-top: 18px; }
   .learning-heading h1 { font-size: 27px; }
   .learning-metrics { grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 20px; }
   .learning-metrics article { min-height: 120px; padding: 16px; }
@@ -164,4 +270,10 @@
   .bank-progress-row { grid-template-columns: 1fr 64px; gap: 12px; padding: 15px 18px; }
   .bank-progress-bar { grid-column: 1 / -1; grid-row: 2; }
   .bank-progress-counts { grid-column: 1 / -1; }
+  .section-progress-heading { align-items: flex-start; padding: 18px; }
+  .chapter-progress-heading { align-items: flex-start; padding-right: 18px; padding-left: 18px; }
+  .chapter-progress-heading > div:last-child { display: grid; justify-items: end; gap: 3px; }
+  .section-progress-row { grid-template-columns: 1fr 60px; gap: 11px; padding: 14px 18px; }
+  .section-progress-bar { grid-column: 1 / -1; grid-row: 2; }
+  .section-progress-counts { grid-column: 1 / -1; }
 }
