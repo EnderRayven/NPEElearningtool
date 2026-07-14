@@ -94,6 +94,13 @@
   margin: 18px 24px 20px;
 }
 
+.question-card .status-bar {
+  border: 0;
+  background: #fff;
+  padding: 0;
+  margin: 16px 24px 20px;
+}
+
 @media screen and (max-width: 580px) {
   .standard-answer-toggle {
     width: calc(100% - 36px);
@@ -102,6 +109,11 @@
   }
 
   .standard-answer-panel {
+    margin-right: 18px;
+    margin-left: 18px;
+  }
+
+  .question-card .status-bar {
     margin-right: 18px;
     margin-left: 18px;
   }
