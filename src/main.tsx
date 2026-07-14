@@ -4,6 +4,7 @@ import App from './App'
 import { loadDefaultBanks } from './data'
 import './styles.css'
 import './compact-header.css'
+import './learning-dashboard.css'
 
 const root = ReactDOM.createRoot(document.getElementById('root')!)
 root.render(<div className="empty-app"><h1>正在加载题库…</h1></div>)

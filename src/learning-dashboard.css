@@ -1,0 +1,167 @@
+.body-grid.profile-mode {
+  display: block;
+}
+
+.profile-main {
+  min-height: calc(100vh - 72px);
+}
+
+.learning-dashboard {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.learning-heading > span,
+.bank-progress-heading > div > span {
+  color: #a15c53;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+}
+
+.learning-heading h1 {
+  margin: 7px 0 0;
+  font: 700 32px/1.2 'Playfair Display', 'Noto Sans SC', serif;
+}
+
+.learning-heading p {
+  margin: 9px 0 0;
+  color: #918a81;
+  font-size: 12px;
+}
+
+.learning-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.learning-metrics article,
+.learning-status-summary,
+.bank-progress-panel {
+  background: #fff;
+  border: 1px solid #e8e1d8;
+  box-shadow: 0 10px 30px rgba(71, 57, 44, .05);
+}
+
+.learning-metrics article {
+  min-height: 132px;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.learning-metrics article > span,
+.bank-progress-state span {
+  display: block;
+  color: #918a81;
+  font-size: 10px;
+}
+
+.learning-metrics article > strong {
+  display: block;
+  margin-top: 9px;
+  color: #8f3028;
+  font: 700 31px/1.1 'Playfair Display', 'Noto Sans SC', serif;
+}
+
+.learning-metrics article > small {
+  display: block;
+  margin-top: 10px;
+  color: #aaa199;
+  font-size: 9px;
+}
+
+.learning-status-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 14px;
+  padding: 17px 20px;
+  border-radius: 14px;
+}
+
+.learning-status-summary > div {
+  display: grid;
+  grid-template-columns: 8px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 0 17px;
+  border-right: 1px solid #eee8e1;
+}
+
+.learning-status-summary > div:last-child { border-right: 0; }
+.learning-status-summary i { width: 7px; height: 7px; border-radius: 50%; background: #bbb; }
+.learning-status-summary span { color: #7f7870; font-size: 10px; }
+.learning-status-summary strong { font-size: 14px; }
+
+.bank-progress-panel {
+  margin-top: 20px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.bank-progress-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  padding: 21px 24px 18px;
+  border-bottom: 1px solid #eee8e1;
+}
+
+.bank-progress-heading h2 { margin: 5px 0 0; font-size: 18px; }
+.bank-progress-heading > small { color: #aaa199; font-size: 9px; }
+.bank-progress-list { display: grid; }
+
+.bank-progress-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.3fr) minmax(140px, 1fr) 80px minmax(210px, auto);
+  gap: 22px;
+  align-items: center;
+  min-height: 76px;
+  padding: 13px 24px;
+  border-bottom: 1px solid #f0ebe5;
+}
+
+.bank-progress-row:last-child { border-bottom: 0; }
+.bank-progress-name > span { display: inline-block; margin-right: 8px; padding: 2px 6px; border-radius: 5px; background: #f2ece6; color: #8c645e; font-size: 8px; }
+.bank-progress-name > strong { font-size: 12px; }
+.bank-progress-name > small { display: block; margin-top: 6px; color: #aaa199; font-size: 9px; }
+.bank-progress-bar { height: 7px; overflow: hidden; border-radius: 5px; background: #eeeae5; }
+.bank-progress-bar i { display: block; height: 100%; border-radius: inherit; background: #9f2e25; }
+.bank-progress-state strong { display: block; margin-top: 4px; font-size: 15px; }
+.bank-progress-counts { display: flex; justify-content: flex-end; gap: 12px; font-size: 9px; white-space: nowrap; }
+.green-text { color: #397851; }
+.yellow-text { color: #946819; }
+.red-text { color: #9d342b; }
+
+.nav-accuracy {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 8px;
+  align-items: end;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee9e3;
+}
+
+.nav-accuracy span { color: #89827a; font-size: 9px; }
+.nav-accuracy strong { color: #8f3028; font: 700 18px/1 'Playfair Display', 'Noto Sans SC', serif; }
+.nav-accuracy small { grid-column: 1 / -1; color: #aaa199; font-size: 8px; }
+
+@media (max-width: 900px) {
+  .profile-main { min-height: calc(100vh - 64px); }
+  .learning-metrics { grid-template-columns: repeat(2, 1fr); }
+  .bank-progress-row { grid-template-columns: minmax(180px, 1fr) minmax(120px, 1fr) 70px; }
+  .bank-progress-counts { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
+@media (max-width: 580px) {
+  .learning-heading h1 { font-size: 27px; }
+  .learning-metrics { grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 20px; }
+  .learning-metrics article { min-height: 120px; padding: 16px; }
+  .learning-status-summary { grid-template-columns: 1fr 1fr; gap: 13px 0; }
+  .learning-status-summary > div:nth-child(2) { border-right: 0; }
+  .bank-progress-row { grid-template-columns: 1fr 64px; gap: 12px; padding: 15px 18px; }
+  .bank-progress-bar { grid-column: 1 / -1; grid-row: 2; }
+  .bank-progress-counts { grid-column: 1 / -1; }
+}
