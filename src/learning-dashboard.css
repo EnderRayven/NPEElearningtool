@@ -127,18 +127,31 @@
 .chapter-progress-heading > div:last-child strong { min-width: 36px; text-align: right; font-size: 13px; }
 .section-progress-list { display: grid; }
 
+.section-progress-item {
+  border-top: 1px solid #f1ece6;
+}
+
+.section-progress-item:first-child { border-top: 0; }
+
 .section-progress-row {
   display: grid;
   grid-template-columns: minmax(150px, 1.1fr) minmax(140px, 1fr) 70px minmax(205px, auto);
   gap: 20px;
   align-items: center;
+  width: 100%;
   min-height: 64px;
   padding: 11px 24px 11px 59px;
-  border-top: 1px solid #f1ece6;
+  border: 0;
+  background: #fff;
+  color: inherit;
+  text-align: left;
+  transition: background .18s;
 }
 
-.section-progress-row:first-child { border-top: 0; }
-.section-progress-row > div:first-child strong { display: block; font-size: 11px; }
+.section-progress-row:hover { background: #fcfaf7; }
+.section-progress-row > div:first-child strong { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.section-progress-row > div:first-child strong svg { color: #9c756f; transition: transform .2s; }
+.section-progress-row > div:first-child strong svg.rotated { transform: rotate(180deg); }
 .section-progress-row > div:first-child small { display: block; margin-top: 5px; color: #aaa199; font-size: 9px; }
 .section-progress-bar { height: 6px; overflow: hidden; border-radius: 4px; background: #eeeae5; }
 .section-progress-bar i { display: block; height: 100%; border-radius: inherit; background: #9f2e25; }
@@ -146,6 +159,47 @@
 .section-progress-rate strong { display: block; margin-top: 3px; font-size: 13px; }
 .section-progress-counts { display: flex; justify-content: flex-end; gap: 11px; font-size: 9px; white-space: nowrap; }
 .section-progress-empty { padding: 36px 24px; color: #aaa199; text-align: center; font-size: 11px; }
+
+.section-question-details {
+  padding: 15px 24px 20px 59px;
+  border-top: 1px solid #eee8e1;
+  background: #fcfaf7;
+}
+
+.section-question-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+}
+
+.section-question-heading > strong { color: #665f58; font-size: 10px; }
+.section-question-heading > div { display: flex; gap: 13px; color: #918a81; font-size: 8px; }
+.section-question-heading span { display: flex; align-items: center; gap: 5px; }
+.section-question-heading i { width: 6px; height: 6px; border-radius: 50%; background: #bbb; }
+
+.section-question-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(34px, 34px));
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.section-question-grid > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e3ddd5;
+  border-radius: 7px;
+  background: #fff;
+  color: #5f5952;
+  font-size: 9px;
+}
+
+.section-question-grid > span.proficient { background: #e7f2ea; border-color: #b8d6c1; color: #397851; }
+.section-question-grid > span.vague { background: #f9efd9; border-color: #ead5a7; color: #946819; }
+.section-question-grid > span.wrong { background: #f8e5e2; border-color: #e5b5af; color: #9d342b; }
 
 .learning-metrics article {
   min-height: 132px;
@@ -257,6 +311,7 @@
   .bank-progress-counts { grid-column: 1 / -1; justify-content: flex-start; }
   .section-progress-row { grid-template-columns: minmax(160px, 1fr) minmax(120px, 1fr) 64px; padding-left: 24px; }
   .section-progress-counts { grid-column: 1 / -1; justify-content: flex-start; }
+  .section-question-details { padding-left: 24px; }
 }
 
 @media (max-width: 580px) {
@@ -276,4 +331,9 @@
   .section-progress-row { grid-template-columns: 1fr 60px; gap: 11px; padding: 14px 18px; }
   .section-progress-bar { grid-column: 1 / -1; grid-row: 2; }
   .section-progress-counts { grid-column: 1 / -1; }
+  .section-question-details { padding: 14px 18px 18px; }
+  .section-question-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .section-question-heading > div { flex-wrap: wrap; }
+  .section-question-grid { grid-template-columns: repeat(auto-fill, minmax(32px, 32px)); gap: 7px; }
+  .section-question-grid > span { width: 32px; height: 32px; }
 }

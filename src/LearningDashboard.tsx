@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import type { QuestionBank, QuestionStatus } from './types'
 import { sortBanksForDisplay } from './bankSorting'
 import { calculateLearningStats, calculateQuestionStats, formatRate } from './learningStats'
@@ -14,7 +15,9 @@ export default function LearningDashboard({ banks, statuses }: LearningDashboard
   const overall = calculateLearningStats(banks, statuses)
   const orderedBanks = [...sortBanksForDisplay(banks.filter(bank => bankSubject(bank) === '数学')), ...sortBanksForDisplay(banks.filter(bank => bankSubject(bank) === '英语'))]
   const [selectedBankId, setSelectedBankId] = useState(orderedBanks[0]?.id || '')
+  const [expandedSectionIds, setExpandedSectionIds] = useState<Set<string>>(() => new Set())
   const selectedBank = orderedBanks.find(bank => bank.id === selectedBankId) || orderedBanks[0]
+  const selectedBankIsEnglish = selectedBank ? bankSubject(selectedBank) === '英语' : false
   const selectedStats = selectedBank ? calculateLearningStats([selectedBank], statuses) : null
   const details = orderedBanks
     .map(bank => ({ bank, stats: calculateLearningStats([bank], statuses) }))
@@ -25,7 +28,7 @@ export default function LearningDashboard({ banks, statuses }: LearningDashboard
 
   return <section className="learning-dashboard">
     <div className="learning-top"><div className="learning-heading"><span>MY LEARNING</span><h1>我的学习数据</h1><p>正确率仅按已标记题目计算，未标记题目不会影响结果。</p></div>
-      <label className="dashboard-bank-picker"><span>查看题库详情</span><select value={selectedBank?.id || ''} onChange={event => setSelectedBankId(event.target.value)}>{orderedBanks.map(bank => <option key={bank.id} value={bank.id}>{bank.name}</option>)}</select></label>
+      <label className="dashboard-bank-picker"><span>查看题库详情</span><select value={selectedBank?.id || ''} onChange={event => { setSelectedBankId(event.target.value); setExpandedSectionIds(new Set()) }}>{orderedBanks.map(bank => <option key={bank.id} value={bank.id}>{bank.name}</option>)}</select></label>
     </div>
     <div className="learning-metrics">
       <article><span>当前正确率</span><strong>{formatRate(overall.accuracy)}</strong><small>{overall.marked ? `${overall.proficient} / ${overall.marked} 道已标记题` : '完成标记后开始统计'}</small></article>
@@ -48,11 +51,15 @@ export default function LearningDashboard({ banks, statuses }: LearningDashboard
           <div className="chapter-progress-heading"><div><span>{String(chapterIndex + 1).padStart(2, '0')}</span><strong>{chapter.name}</strong></div><div><span>{chapterStats.marked} / {chapterStats.total} 已标记</span><strong>{formatRate(chapterStats.accuracy)}</strong></div></div>
           <div className="section-progress-list">{chapter.sections.map(section => {
             const stats = calculateQuestionStats(section.questions, statuses)
-            return <div className="section-progress-row" key={section.id}>
-              <div><strong>{section.name}</strong><small>{stats.marked} / {stats.total} 道已标记</small></div>
-              <div className="section-progress-bar" aria-label={`${section.name} 学习进度 ${formatRate(stats.completion)}`}><i style={{ width: formatRate(stats.completion) }}/></div>
-              <div className="section-progress-rate"><span>正确率</span><strong>{formatRate(stats.accuracy)}</strong></div>
-              <div className="section-progress-counts"><span className="green-text">{stats.proficient} 正确</span><span className="yellow-text">{stats.vague} 模糊</span><span className="red-text">{stats.wrong} 错误</span></div>
+            const expanded = expandedSectionIds.has(section.id)
+            return <div className="section-progress-item" key={section.id}>
+              <button className="section-progress-row" aria-expanded={expanded} onClick={() => setExpandedSectionIds(previous => { const next = new Set(previous); if (expanded) next.delete(section.id); else next.add(section.id); return next })}>
+                <div><strong>{section.name}<ChevronDown className={expanded ? 'rotated' : ''} size={14}/></strong><small>{stats.marked} / {stats.total} 道已标记</small></div>
+                <div className="section-progress-bar" aria-label={`${section.name} 学习进度 ${formatRate(stats.completion)}`}><i style={{ width: formatRate(stats.completion) }}/></div>
+                <div className="section-progress-rate"><span>正确率</span><strong>{formatRate(stats.accuracy)}</strong></div>
+                <div className="section-progress-counts"><span className="green-text">{stats.proficient} 正确</span><span className="yellow-text">{stats.vague} 模糊</span><span className="red-text">{stats.wrong} 错误</span></div>
+              </button>
+              {expanded && <div className="section-question-details"><div className="section-question-heading"><strong>题号情况</strong><div><span><i/>未标记</span><span><i className="green"/>{selectedBankIsEnglish ? '正确' : '熟练'}</span>{!selectedBankIsEnglish && <span><i className="yellow"/>模糊</span>}<span><i className="red"/>{selectedBankIsEnglish ? '错误' : '错题'}</span></div></div><div className="section-question-grid">{[...section.questions].sort((left, right) => left.number - right.number).map(question => { const rawStatus = statuses[question.id] || 'none'; const status = selectedBankIsEnglish && rawStatus === 'vague' ? 'none' : rawStatus; return <span key={question.id} className={status} title={`第 ${question.number} 题 · ${status === 'proficient' ? selectedBankIsEnglish ? '正确' : '熟练' : status === 'vague' ? '模糊' : status === 'wrong' ? selectedBankIsEnglish ? '错误' : '错题' : '未标记'}`}>{question.number}</span> })}</div></div>}
             </div>
           })}</div>
         </article>
