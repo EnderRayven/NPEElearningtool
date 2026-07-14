@@ -12,6 +12,7 @@ import { mergeImageEntries } from './imageImport'
 import { BUILTIN_ENGLISH_VERSION, chooseWorkspace, clearWorkspaceHandle, createBankFolder, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, readWorkspaceUserData, removeBankFolder, safeFolderName, scanWorkspaceImages, writeDefaultWorkspaceManifest, writeDefaultWorkspaceUserData, writeWorkspaceManifest, writeWorkspaceUserData } from './workspace'
 import { formatPassageParagraphs } from './passageFormatting'
 import { isImageAnswerPlaceholder } from './questionPresentation'
+import { sortBanksForDisplay } from './bankSorting'
 
 const statusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
   none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错题', icon: '×' }
@@ -130,7 +131,7 @@ export default function App() {
 
   const bank = banks.find(b => b.id === bankId) || banks[0]
   const subject = bankSubject(bank)
-  const subjectBanks = banks.filter(item => bankSubject(item) === subject)
+  const subjectBanks = useMemo(() => sortBanksForDisplay(banks.filter(item => bankSubject(item) === subject)), [banks, subject])
   const section: Section | undefined = bank?.chapters.flatMap(c => c.sections).find(s => s.id === sectionId)
   const bankQuestionEntries = useMemo(() => orderedQuestionEntriesForBank(bank), [bank])
   const wrongEntries = useMemo(() => bankQuestionEntries.filter(entry => statuses[entry.question.id] === 'wrong'), [bankQuestionEntries, statuses])
@@ -173,7 +174,7 @@ export default function App() {
     setBankId(next.id); setSectionId(next.chapters[0]?.sections[0]?.id || ''); setExpandedChapterIds(new Set(next.chapters[0] ? [next.chapters[0].id] : [])); setQuestionIndex(0); setAnswerOpen(false); setExpandedPassageAnswers(new Set()); setFilter('all'); setView('section'); setSidebar(false)
   }
   function selectSubject(nextSubject: Subject) {
-    const nextBank = banks.find(item => bankSubject(item) === nextSubject)
+    const nextBank = sortBanksForDisplay(banks.filter(item => bankSubject(item) === nextSubject))[0]
     if (nextBank) selectBank(nextBank)
     else setToast(nextSubject === 'english' ? '还没有英语题库' : '还没有数学题库')
   }
