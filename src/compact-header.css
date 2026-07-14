@@ -80,3 +80,14 @@
   border-top: 0;
   padding-top: 0;
 }
+
+@media screen and (min-width: 901px) {
+  .study-layout > .question-nav,
+  .passage-question-nav {
+    position: sticky;
+    top: 90px;
+    max-height: calc(100vh - 112px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
