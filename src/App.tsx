@@ -17,6 +17,7 @@ import LearningDashboard from './LearningDashboard'
 import { mergeStudyActivities, updateStudyActivity, validateStudyActivities } from './studyActivity'
 import { calculateLearningStats, calculateQuestionStats, formatRate } from './learningStats'
 import { resolveNavigation, resolveProfileBankId, type SavedNavigation } from './navigationRestore'
+import { migrateZhangyuActivities, migrateZhangyuStatuses, removeRetiredBanks } from './bankMigration'
 
 const statusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
   none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错题', icon: '×' }
@@ -414,7 +415,7 @@ export default function App() {
   async function importData(file?: File) {
     if (!file) return
     try {
-      const parsed = JSON.parse(await file.text()); const imported = validateBanks(parsed)
+      const parsed = JSON.parse(await file.text()); const imported = removeRetiredBanks(validateBanks(parsed))
       setBanks(prev => [...prev.filter(b => !imported.some(i => i.id === b.id)), ...imported])
       if (parsed.statuses) setStatuses(prev => ({ ...prev, ...validateStatuses(parsed.statuses) }))
       if (parsed.activities) setActivities(previous => mergeStudyActivities(previous, validateStudyActivities(parsed.activities)))
@@ -439,13 +440,13 @@ export default function App() {
     setWorkspaceState('syncing')
     try {
       const index = await readDefaultWorkspace()
-      let nextBanks = index.manifest ? validateBanks(index.manifest) : structuredClone(banks)
+      let nextBanks = index.manifest ? removeRetiredBanks(validateBanks(index.manifest)) : structuredClone(banks)
       if (index.manifest && index.manifest.builtinEnglishVersion !== BUILTIN_ENGLISH_VERSION) {
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
       const storedStatuses = index.userData?.statuses || index.manifest?.statuses
-      const nextStatuses = storedStatuses ? validateStatuses(storedStatuses) : statuses
-      const nextActivities = index.userData?.activities ? validateStudyActivities(index.userData.activities) : activities
+      const nextStatuses = storedStatuses ? migrateZhangyuStatuses(validateStatuses(storedStatuses)) : statuses
+      const nextActivities = index.userData?.activities ? migrateZhangyuActivities(validateStudyActivities(index.userData.activities)) : activities
       const folders = { ...(index.manifest?.folders || {}) }
       for (const folderName of new Set(index.images.map(item => item.bankFolder).filter(Boolean))) {
         let target = nextBanks.find(item => folders[item.id] === folderName || safeFolderName(item.name) === folderName)
@@ -485,15 +486,15 @@ export default function App() {
     try {
       if (!await hasWorkspacePermission(handle, true)) throw new Error('未获得题库文件夹读写权限')
       const [manifest, userData] = await Promise.all([readWorkspaceManifest(handle), readWorkspaceUserData(handle)])
-      let nextBanks = manifest ? validateBanks(manifest) : structuredClone(banks)
+      let nextBanks = manifest ? removeRetiredBanks(validateBanks(manifest)) : structuredClone(banks)
       let seededEnglishCount = 0
       if (manifest && manifest.builtinEnglishVersion !== BUILTIN_ENGLISH_VERSION) {
         seededEnglishCount = englishBanks.length
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
       const storedStatuses = userData?.statuses || manifest?.statuses
-      const nextStatuses = storedStatuses ? validateStatuses(storedStatuses) : statuses
-      const nextActivities = userData?.activities ? validateStudyActivities(userData.activities) : activities
+      const nextStatuses = storedStatuses ? migrateZhangyuStatuses(validateStatuses(storedStatuses)) : statuses
+      const nextActivities = userData?.activities ? migrateZhangyuActivities(validateStudyActivities(userData.activities)) : activities
       const images = await scanWorkspaceImages(handle, Object.values(manifest?.folders || {}))
       const folders = { ...(manifest?.folders || {}) }
       for (const folderName of new Set(images.map(item => item.bankFolder).filter(Boolean))) {

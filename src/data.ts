@@ -1,12 +1,12 @@
 import type { QuestionBank } from './types'
 import defaultManifestUrl from '../默认题库/题库数据.json?url'
-import { RETIRED_ZHANGYU_COMBINED_BANK_ID } from './bankMigration'
+import { removeRetiredBanks } from './bankMigration'
 
 export let englishBanks: QuestionBank[] = []
 export let builtInBanks: QuestionBank[] = []
 
 export function initializeDefaultBanks(banks: QuestionBank[]) {
-  const activeBanks = banks.filter(bank => bank.id !== RETIRED_ZHANGYU_COMBINED_BANK_ID)
+  const activeBanks = removeRetiredBanks(banks)
   englishBanks = activeBanks.filter(bank => bank.id.startsWith('english-'))
   builtInBanks = [...activeBanks]
 }

@@ -1,7 +1,7 @@
 import type { PartBKind, QuestionBank, QuestionStatus, ReadingQuestionType } from './types'
 import { builtInBanks } from './data'
 import { mergeStudyActivities, validateStudyActivities, type StudyActivity } from './studyActivity'
-import { migrateZhangyuBankId, migrateZhangyuReference, RETIRED_ZHANGYU_COMBINED_BANK_ID } from './bankMigration'
+import { migrateZhangyuActivities, migrateZhangyuBankId, migrateZhangyuReference, migrateZhangyuStatuses, RETIRED_ZHANGYU_COMBINED_BANK_ID } from './bankMigration'
 
 const BANKS_KEY = 'npee:banks:v1'
 const BUILTIN_SEED_KEY = 'npee:builtins:english-exams:v8'
@@ -111,28 +111,13 @@ export function saveBanks(banks: QuestionBank[]) {
 }
 export function loadStatuses(): Record<string, QuestionStatus> {
   try {
-    const statuses = validateStatuses(JSON.parse(localStorage.getItem(STATUS_KEY) || '{}'))
-    const migrated = { ...statuses }
-    Object.entries(statuses).forEach(([questionId, status]) => {
-      const nextId = migrateZhangyuReference(questionId)
-      if (nextId !== questionId) {
-        if (!(nextId in statuses)) migrated[nextId] = status
-        delete migrated[questionId]
-      }
-    })
-    return migrated
+    return migrateZhangyuStatuses(validateStatuses(JSON.parse(localStorage.getItem(STATUS_KEY) || '{}')))
   } catch { return {} }
 }
 export function saveStatuses(statuses: Record<string, QuestionStatus>) { return trySetItem(STATUS_KEY, JSON.stringify(statuses)) }
 export function loadStudyActivities(): StudyActivity[] {
   try {
-    const activities = validateStudyActivities(JSON.parse(localStorage.getItem(ACTIVITY_KEY) || '[]')).map(activity => ({
-      ...activity,
-      bankId: migrateZhangyuBankId(activity.bankId, activity.chapterId, activity.sectionId, activity.questionId),
-      chapterId: activity.chapterId ? migrateZhangyuReference(activity.chapterId) : undefined,
-      sectionId: activity.sectionId ? migrateZhangyuReference(activity.sectionId) : undefined,
-      questionId: migrateZhangyuReference(activity.questionId),
-    }))
+    const activities = migrateZhangyuActivities(validateStudyActivities(JSON.parse(localStorage.getItem(ACTIVITY_KEY) || '[]')))
     return mergeStudyActivities(activities)
   } catch { return [] }
 }
