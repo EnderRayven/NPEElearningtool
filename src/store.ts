@@ -1,6 +1,7 @@
 import type { PartBKind, QuestionBank, QuestionStatus, ReadingQuestionType } from './types'
 import { builtInBanks } from './data'
 import { mergeStudyActivities, validateStudyActivities, type StudyActivity } from './studyActivity'
+import { migrateZhangyuBankId, migrateZhangyuReference, RETIRED_ZHANGYU_COMBINED_BANK_ID } from './bankMigration'
 
 const BANKS_KEY = 'npee:banks:v1'
 const BUILTIN_SEED_KEY = 'npee:builtins:english-exams:v8'
@@ -10,7 +11,7 @@ const ACTIVITY_KEY = 'npee:activity:v1'
 const VALID_STATUSES = new Set<QuestionStatus>(['none', 'proficient', 'vague', 'wrong'])
 const VALID_READING_TYPES = new Set<ReadingQuestionType>(['detail', 'example', 'main-idea', 'attitude', 'inference', 'vocabulary'])
 const VALID_PART_B_KINDS = new Set<PartBKind>(['ordering', 'sentence', 'subheading', 'viewpoint'])
-const REMOVED_BANK_IDS = new Set(['local-calculus', 'local-linear'])
+const REMOVED_BANK_IDS = new Set(['local-calculus', 'local-linear', RETIRED_ZHANGYU_COMBINED_BANK_ID])
 const LEGACY_ENGLISH_BANK_ID = /^english-20\d{2}$/
 const ENGLISH_BANK_ID = 'english-exams'
 
@@ -52,12 +53,12 @@ function decodeStoredBanks(value: unknown): QuestionBank[] {
     throw new Error('题库缓存顺序无效')
   const originalBankOrder = value.bankOrder as string[]
   const firstLegacyEnglishIndex = originalBankOrder.findIndex(id => LEGACY_ENGLISH_BANK_ID.test(id))
-  const bankOrder = originalBankOrder.filter(id => !LEGACY_ENGLISH_BANK_ID.test(id))
+  const bankOrder = originalBankOrder.filter(id => !LEGACY_ENGLISH_BANK_ID.test(id) && !REMOVED_BANK_IDS.has(id))
   if (firstLegacyEnglishIndex >= 0 && !bankOrder.includes(ENGLISH_BANK_ID) && builtInBanks.some(bank => bank.id === ENGLISH_BANK_ID))
     bankOrder.splice(Math.min(firstLegacyEnglishIndex, bankOrder.length), 0, ENGLISH_BANK_ID)
   if (new Set(bankOrder).size !== bankOrder.length) throw new Error('题库缓存顺序包含重复项')
   if (!Array.isArray(value.banks)) throw new Error('题库缓存内容无效')
-  const overrides = value.banks.length ? validateBanks(value.banks).filter(bank => !LEGACY_ENGLISH_BANK_ID.test(bank.id)) : []
+  const overrides = value.banks.length ? validateBanks(value.banks).filter(bank => !LEGACY_ENGLISH_BANK_ID.test(bank.id) && !REMOVED_BANK_IDS.has(bank.id)) : []
   const overrideById = new Map(overrides.map(bank => [bank.id, bank]))
   const builtInBankById = new Map(builtInBanks.map(bank => [bank.id, bank]))
   if (overrides.some(bank => !bankOrder.includes(bank.id))) throw new Error('题库缓存包含无效条目')
@@ -110,12 +111,30 @@ export function saveBanks(banks: QuestionBank[]) {
 }
 export function loadStatuses(): Record<string, QuestionStatus> {
   try {
-    return validateStatuses(JSON.parse(localStorage.getItem(STATUS_KEY) || '{}'))
+    const statuses = validateStatuses(JSON.parse(localStorage.getItem(STATUS_KEY) || '{}'))
+    const migrated = { ...statuses }
+    Object.entries(statuses).forEach(([questionId, status]) => {
+      const nextId = migrateZhangyuReference(questionId)
+      if (nextId !== questionId) {
+        if (!(nextId in statuses)) migrated[nextId] = status
+        delete migrated[questionId]
+      }
+    })
+    return migrated
   } catch { return {} }
 }
 export function saveStatuses(statuses: Record<string, QuestionStatus>) { return trySetItem(STATUS_KEY, JSON.stringify(statuses)) }
 export function loadStudyActivities(): StudyActivity[] {
-  try { return mergeStudyActivities(validateStudyActivities(JSON.parse(localStorage.getItem(ACTIVITY_KEY) || '[]'))) } catch { return [] }
+  try {
+    const activities = validateStudyActivities(JSON.parse(localStorage.getItem(ACTIVITY_KEY) || '[]')).map(activity => ({
+      ...activity,
+      bankId: migrateZhangyuBankId(activity.bankId, activity.chapterId, activity.sectionId, activity.questionId),
+      chapterId: activity.chapterId ? migrateZhangyuReference(activity.chapterId) : undefined,
+      sectionId: activity.sectionId ? migrateZhangyuReference(activity.sectionId) : undefined,
+      questionId: migrateZhangyuReference(activity.questionId),
+    }))
+    return mergeStudyActivities(activities)
+  } catch { return [] }
 }
 export function saveStudyActivities(activities: StudyActivity[]) { return trySetItem(ACTIVITY_KEY, JSON.stringify(activities)) }
 
@@ -134,20 +153,26 @@ export interface NavigationState {
 
 function parseStudyPosition(value: unknown) {
   if (!isRecord(value) || typeof value.bankId !== 'string' || typeof value.sectionId !== 'string' || typeof value.questionId !== 'string') return undefined
-  return { bankId: value.bankId, sectionId: value.sectionId, questionId: value.questionId, view: value.view === 'wrong' ? 'wrong' as const : 'section' as const }
+  return {
+    bankId: migrateZhangyuBankId(value.bankId, value.sectionId, value.questionId),
+    sectionId: migrateZhangyuReference(value.sectionId),
+    questionId: migrateZhangyuReference(value.questionId),
+    view: value.view === 'wrong' ? 'wrong' as const : 'section' as const,
+  }
 }
 
 export function loadNavigation(): NavigationState | null {
   try {
     const value: unknown = JSON.parse(localStorage.getItem(NAVIGATION_KEY) || 'null')
     if (!isRecord(value) || typeof value.bankId !== 'string' || typeof value.sectionId !== 'string' || typeof value.questionId !== 'string') return null
+    const bankId = migrateZhangyuBankId(value.bankId, value.sectionId, value.questionId)
     return {
-      bankId: value.bankId,
-      sectionId: value.sectionId,
-      questionId: value.questionId,
+      bankId,
+      sectionId: migrateZhangyuReference(value.sectionId),
+      questionId: migrateZhangyuReference(value.questionId),
       view: value.view === 'wrong' ? 'wrong' : 'section',
       page: value.page === 'profile' ? 'profile' : 'study',
-      profileBankId: typeof value.profileBankId === 'string' ? value.profileBankId : '',
+      profileBankId: typeof value.profileBankId === 'string' ? migrateZhangyuBankId(value.profileBankId, value.sectionId, value.questionId) : '',
       studyPositions: isRecord(value.studyPositions) ? {
         math: parseStudyPosition(value.studyPositions.math),
         english: parseStudyPosition(value.studyPositions.english),

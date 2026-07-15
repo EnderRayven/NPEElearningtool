@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import defaultManifest from '../默认题库/题库数据.json'
 import { initializeDefaultBanks } from './data'
-import { loadBanks, loadNavigation, loadStatuses, renameBank, renameChapter, saveBanks, saveNavigation, saveStatuses, validateBanks, validateStatuses } from './store'
+import { loadBanks, loadNavigation, loadStatuses, loadStudyActivities, renameBank, renameChapter, saveBanks, saveNavigation, saveStatuses, validateBanks, validateStatuses } from './store'
 import type { QuestionBank } from './types'
 
 class MemoryStorage {
@@ -96,6 +96,20 @@ describe('local storage recovery', () => {
   it('只加载合法学习状态', () => {
     localStorage.setItem('npee:status:v1', JSON.stringify({ q1: 'wrong', q2: 'invalid', q3: 'proficient' }))
     expect(loadStatuses()).toEqual({ q1: 'wrong', q3: 'proficient' })
+  })
+
+  it('淘汰重复的张宇高数线代合并题库并保留独立题库', () => {
+    const banks = loadBanks()
+    expect(banks.some(bank => bank.id === 'default-1783931377861-24')).toBe(false)
+    expect(banks.some(bank => bank.id === 'workspace-1783942778439-28')).toBe(true)
+    expect(banks.some(bank => bank.id === 'workspace-1783942778439-29')).toBe(true)
+  })
+
+  it('迁移合并题库的学习标记和每日记录', () => {
+    localStorage.setItem('npee:status:v1', JSON.stringify({ 'default-1783931377861-24-01-1-01': 'vague', 'default-1783931377861-24-02-1-01': 'wrong' }))
+    expect(loadStatuses()).toEqual({ 'workspace-1783942778439-28-01-1-01': 'vague', 'workspace-1783942778439-29-01-1-01': 'wrong' })
+    localStorage.setItem('npee:activity:v1', JSON.stringify([{ date: '2026-07-15', questionId: 'default-1783931377861-24-02-1-01', bankId: 'default-1783931377861-24', status: 'wrong', updatedAt: '2026-07-15T01:00:00.000Z' }]))
+    expect(loadStudyActivities()[0]).toMatchObject({ questionId: 'workspace-1783942778439-29-01-1-01', bankId: 'workspace-1783942778439-29' })
   })
 
   it('为已有缓存一次性补入合并后的英语真题题库', () => {
