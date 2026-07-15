@@ -152,9 +152,9 @@ export default function App() {
   const currentChapter = bank.chapters.find(chapter => chapter.sections.some(item => item.id === sectionId))
   const currentPaperEntries = currentChapter ? bankQuestionEntries.filter(entry => entry.chapterId === currentChapter.id) : bankQuestionEntries
   const currentNavigationStats = subject === 'english' && view === 'section' && currentChapter ? calculateQuestionStats(currentChapter.sections.flatMap(item => item.questions), statuses) : currentBankStats
-  const wrongEntries = useMemo(() => bankQuestionEntries.filter(entry => statuses[entry.question.id] === 'wrong'), [bankQuestionEntries, statuses])
-  const wrongQuestions = useMemo(() => wrongEntries.map(entry => entry.question), [wrongEntries])
-  const sourceQuestions = view === 'wrong' ? wrongQuestions : (section?.questions || [])
+  const reviewEntries = useMemo(() => bankQuestionEntries.filter(entry => statuses[entry.question.id] === 'vague' || statuses[entry.question.id] === 'wrong'), [bankQuestionEntries, statuses])
+  const reviewQuestions = useMemo(() => reviewEntries.map(entry => entry.question), [reviewEntries])
+  const sourceQuestions = view === 'wrong' ? reviewQuestions : (section?.questions || [])
   const binaryFilterMode = subject === 'english'
   const isPartBSection = view === 'section' && Boolean(section?.questions.length) && section!.questions.every(item => item.type === '阅读理解 Part B')
   const sharedPartBOptions = isPartBSection ? section?.questions[0]?.options || [] : []
@@ -166,7 +166,9 @@ export default function App() {
       : section?.partBKind === 'viewpoint'
         ? { title: '备选观点', description: '以下观点供第 41–45 题共同使用。' }
         : { title: '备选句', description: '以下句子供第 41–45 题共同使用。' }
-  const filterOptions: Array<QuestionStatus | 'all'> = binaryFilterMode ? ['all', 'none', 'wrong', 'proficient'] : ['all', 'none', 'wrong', 'vague', 'proficient']
+  const filterOptions: Array<QuestionStatus | 'all'> = view === 'wrong'
+    ? binaryFilterMode ? ['all', 'wrong'] : ['all', 'vague', 'wrong']
+    : binaryFilterMode ? ['all', 'none', 'wrong', 'proficient'] : ['all', 'none', 'wrong', 'vague', 'proficient']
   const filteredQuestions = useMemo(() => sourceQuestions.filter(q => {
     const matchesStatus = filter === 'all' || effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode) === filter
     const readingLabel = readingTypeMeta.find(item => item.value === q.readingType)?.label || ''
@@ -177,12 +179,21 @@ export default function App() {
   const questionText = question && (question.type === '图片题' || question.imageUrl || question.imageKeys?.length) && question.text === `第 ${question.number} 题` ? '' : question?.text
   const hasAnswerImages = Boolean(question?.answerImageKeys?.length || question?.answerImageUrl)
   const usesImageAnswer = Boolean(question && hasAnswerImages && isImageAnswerPlaceholder(question.answer))
-  const currentQuestionEntry = view === 'wrong' ? wrongEntries.find(entry => entry.question.id === question?.id) : undefined
+  const currentQuestionEntry = view === 'wrong' ? reviewEntries.find(entry => entry.question.id === question?.id) : undefined
   const currentQuestionStatus = effectiveQuestionStatus(question, question ? statuses[question.id] || 'none' : 'none', binaryFilterMode)
   const currentQuestionStatusMeta = questionStatusMeta(question, currentQuestionStatus, binaryFilterMode)
   const counts = bankQuestionEntries.reduce((acc, entry) => { const s = effectiveQuestionStatus(entry.question, statuses[entry.question.id] || 'none', binaryFilterMode); acc[s]++; return acc }, { none: 0, proficient: 0, vague: 0, wrong: 0 })
   const allPassageAnswersOpen = filteredQuestions.length > 0 && filteredQuestions.every(item => expandedPassageAnswers.has(item.id))
   const showFullPaperNavigation = binaryFilterMode && view === 'section'
+  const reviewNavigationGroups = useMemo(() => {
+    if (view !== 'wrong') return []
+    const visibleIds = new Set(filteredQuestions.map(item => item.id))
+    return bank.chapters.flatMap(chapter => chapter.sections.map(itemSection => ({
+      id: itemSection.id,
+      label: `${chapter.name} · ${itemSection.name}`,
+      entries: reviewEntries.filter(entry => entry.sectionId === itemSection.id && visibleIds.has(entry.question.id)),
+    }))).filter(group => group.entries.length)
+  }, [view, filteredQuestions, bank.chapters, reviewEntries])
 
   useEffect(() => {
     if (!navigationReady) return
@@ -235,7 +246,7 @@ export default function App() {
       return next
     })
   }
-  function showWrongBook() { setView('wrong'); setFilter('all'); setQuery(''); setQuestionIndex(0); setAnswerOpen(false); setExpandedPassageAnswers(new Set()); setSidebar(false) }
+  function showReviewBook() { setView('wrong'); setFilter('all'); setQuery(''); setQuestionIndex(0); setAnswerOpen(false); setExpandedPassageAnswers(new Set()); setSidebar(false) }
   function markQuestion(questionId: string, status: QuestionStatus, targetQuestion?: Question) {
     const questionEntry = bankQuestionEntries.find(entry => entry.question.id === questionId)
     const item = targetQuestion || questionEntry?.question
@@ -618,20 +629,20 @@ export default function App() {
         <div className="bank-select-row"><span className="bank-select-icon"><BookOpen size={17}/></span><select aria-label="选择题库" value={bank.id} onChange={event => { const selected = banks.find(item => item.id === event.target.value); if (selected) selectBank(selected) }}>{subjectBanks.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button className="rename-button" aria-label={`重命名题库 ${bank.name}`} onClick={() => openRename('bank', bank.id, bank.name)}><Pencil size={13}/></button></div>
         <div className="selected-bank-meta">{protectedBankIds.has(bank.id) ? '默认题库' : bank.source === 'local' ? '自建题库' : '远程题库'} · {bank.chapters.length} 章 · {bankQuestionEntries.length} 道题</div>
         <button className="new-bank-button" onClick={() => setNewBankOpen(true)}><Plus size={16}/>新建题库</button>
-        <button className={view === 'wrong' ? 'wrong-book active' : 'wrong-book'} onClick={showWrongBook}><AlertCircle size={17}/><span><strong>本题库错题本</strong><small>当前题库中的错题</small></span><em>{counts.wrong}</em></button>
+        <button className={view === 'wrong' ? 'wrong-book active' : 'wrong-book'} onClick={showReviewBook}><AlertCircle size={17}/><span><strong>本题库不熟练题</strong><small>{binaryFilterMode ? '当前题库中的错误题' : '包含模糊和错题'}</small></span><em>{binaryFilterMode ? counts.wrong : counts.vague + counts.wrong}</em></button>
         <div className="divider"/>
         <p className="eyebrow">章节导航</p>
         <div className="chapter-scroll"><div className="chapter-tree">{bank.chapters.map(chapter => <div className="chapter" key={chapter.id}>
           <div className="chapter-title"><button className="chapter-toggle" aria-expanded={expandedChapterIds.has(chapter.id)} onClick={() => toggleChapter(chapter.id)}>{expandedChapterIds.has(chapter.id) ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}<span>{chapter.name}</span><em>{chapter.sections.length}</em></button><button className="rename-button" aria-label={`重命名章节 ${chapter.name}`} onClick={() => openRename('chapter', chapter.id, chapter.name)}><Pencil size={12}/></button></div>
-          {expandedChapterIds.has(chapter.id) && chapter.sections.map(s => <button key={s.id} onClick={() => selectSection(s.id)} className={s.id === sectionId ? 'section active' : 'section'}><span>{s.name}</span><em>{s.questions.length}</em></button>)}
+          {expandedChapterIds.has(chapter.id) && chapter.sections.map(s => <button key={s.id} onClick={() => selectSection(s.id)} className={view === 'section' && s.id === sectionId ? 'section active' : 'section'}><span>{s.name}</span><em>{s.questions.length}</em></button>)}
         </div>)}{bank.chapters.length === 0 && <div className="empty-chapters">还没有章节<br/><small>点击顶部“图片”批量导入</small></div>}</div></div>
         <div className="aside-summary"><strong>学习概览</strong>{binaryFilterMode ? <div className="binary-summary"><span><i/>{counts.none} 未标记</span><span><i className="green"/>{counts.proficient} 正确</span><span><i className="red"/>{counts.wrong} 错误</span></div> : <div><span><i className="green"/>{counts.proficient} 熟练</span><span><i className="yellow"/>{counts.vague} 模糊</span><span><i className="red"/>{counts.wrong} 错题</span></div>}</div>
       </aside></>}
 
       <main className={activePage === 'profile' ? 'profile-main' : ''}>
         {activePage === 'profile' ? <LearningDashboard banks={banks} statuses={statuses} activities={activities} selectedBankId={profileBankId} onSelectedBankIdChange={setProfileBankId} onQuestionStatusChange={markDashboardQuestion}/> : <>
-        <div className="page-head"><div><span className="breadcrumb">{bank.name} <ChevronRight size={13}/>{view === 'section' && currentChapter && <>{currentChapter.name} <ChevronRight size={13}/></>}{view === 'wrong' ? '本题库错题本' : section?.name || '未选择'}</span><h1>{view === 'wrong' ? '本题库错题本' : section?.name || '请选择具体节题目'}</h1><p>{view === 'wrong' ? `按章节和题号排列 · 共 ${wrongQuestions.length} 道错题` : section ? `共 ${section.questions.length} 道题 · 学习进度实时保存` : '从左侧选择一个章节开始学习'}</p></div>
-          <div className="search"><Search size={17}/><input value={query} onChange={e => { setQuery(e.target.value); setQuestionIndex(0) }} placeholder={view === 'wrong' ? '搜索全部错题' : '搜索当前小节'}/></div>
+        <div className="page-head"><div><span className="breadcrumb">{bank.name} <ChevronRight size={13}/>{view === 'section' && currentChapter && <>{currentChapter.name} <ChevronRight size={13}/></>}{view === 'wrong' ? '本题库不熟练题' : section?.name || '未选择'}</span><h1>{view === 'wrong' ? '本题库不熟练题' : section?.name || '请选择具体节题目'}</h1><p>{view === 'wrong' ? `按章节和小节分组 · 共 ${reviewQuestions.length} 道不熟练题` : section ? `共 ${section.questions.length} 道题 · 学习进度实时保存` : '从左侧选择一个章节开始学习'}</p></div>
+          <div className="search"><Search size={17}/><input value={query} onChange={e => { setQuery(e.target.value); setQuestionIndex(0) }} placeholder={view === 'wrong' ? '搜索不熟练题' : '搜索当前小节'}/></div>
         </div>
 
         <div className="filter-row"><Filter size={16}/><span>筛选</span>{filterOptions.map(s => <button key={s} className={filter === s ? 'chip active' : 'chip'} onClick={() => { setFilter(s); setQuestionIndex(0) }}>{s === 'all' ? '全部' : (binaryFilterMode ? binaryStatusMeta[s].label : statusMeta[s].label)}</button>)}</div>
@@ -673,8 +684,13 @@ export default function App() {
             <div className="status-bar"><div className="status-labels">{readingTypePicker(question)}<span>掌握情况</span></div><div>{masteryChoices(question, binaryFilterMode).map(s => { const meta = questionStatusMeta(question, s, binaryFilterMode); return <button key={s} className={currentQuestionStatus === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => mark(currentQuestionStatus === s ? 'none' : s)}><b>{meta.icon}</b>{meta.label}</button> })}</div></div>
             <div className="pager"><button disabled={questionIndex === 0} onClick={() => moveQuestion(-1)}>← 上一题</button><span>{questionIndex + 1} / {filteredQuestions.length}</span><button disabled={questionIndex >= filteredQuestions.length - 1} onClick={() => moveQuestion(1)}>下一题 →</button></div>
           </section>
-          <nav className="question-nav" aria-label={showFullPaperNavigation ? '全卷导航' : '题号导航'}><div><strong>{showFullPaperNavigation ? '全卷导航' : '题号导航'}</strong><small>{view === 'wrong' ? '章-题号' : '点击快速跳转'}</small></div><div className="number-grid">{showFullPaperNavigation ? currentPaperEntries.map(entry => { const q = entry.question; const navStatus = effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode); return <button key={q.id} aria-current={q.id === question.id ? 'true' : undefined} title={`${entry.sectionName} · 第 ${q.number} 题`} className={`${q.id === question.id ? 'selected ' : ''}${navStatus}`} onClick={() => navigateToBankQuestion(entry)}>{q.number}</button> }) : filteredQuestions.map((q, i) => { const entry = view === 'wrong' ? wrongEntries.find(item => item.question.id === q.id) : undefined; const navStatus = effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode); return <button key={q.id} title={entry ? `${entry.chapterName} · 第 ${q.number} 题` : `第 ${q.number} 题`} className={`${i === questionIndex ? 'selected ' : ''}${navStatus}`} onClick={() => { setQuestionIndex(i); setAnswerOpen(false) }}>{entry ? `${entry.chapterIndex + 1}-${q.number}` : q.number}</button> })}</div><div className="legend"><span><i/>未标记</span><span><i className="green"/>{binaryFilterMode ? '正确' : '熟练'}</span>{!binaryFilterMode && <span><i className="yellow"/>模糊</span>}<span><i className="red"/>{binaryFilterMode ? '错误' : '错题'}</span></div><div className="nav-accuracy"><span>当前正确率</span><strong>{formatRate(currentNavigationStats.accuracy)}</strong><small>{currentNavigationStats.marked} 道题已标记</small></div></nav>
-        </div> : <div className="no-results"><Search size={32}/><h2>{view === 'wrong' && wrongQuestions.length === 0 ? '错题已经清空' : '没有符合条件的题目'}</h2><p>{view === 'wrong' && wrongQuestions.length === 0 ? '很好，继续练习其他章节巩固掌握情况。' : '尝试更换筛选条件或清空搜索词。'}</p><button onClick={() => view === 'wrong' && wrongQuestions.length === 0 ? setView('section') : (setFilter('all'), setQuery(''))}><RotateCcw size={16}/>{view === 'wrong' && wrongQuestions.length === 0 ? '返回当前小节' : '重置筛选'}</button></div>}
+          <nav className={view === 'wrong' ? 'question-nav review-question-nav' : 'question-nav'} aria-label={showFullPaperNavigation ? '全卷导航' : view === 'wrong' ? '不熟练题导航' : '题号导航'}>
+            <div><strong>{showFullPaperNavigation ? '全卷导航' : view === 'wrong' ? '不熟练题导航' : '题号导航'}</strong><small>{view === 'wrong' ? `${reviewNavigationGroups.length} 个小节` : '点击快速跳转'}</small></div>
+            {view === 'wrong' ? <div className="review-nav-groups">{reviewNavigationGroups.map(group => <section key={group.id}><span>{group.label}</span><div className="number-grid">{group.entries.map(entry => { const index = filteredQuestions.findIndex(item => item.id === entry.question.id); const navStatus = effectiveQuestionStatus(entry.question, statuses[entry.question.id] || 'none', binaryFilterMode); return <button key={entry.question.id} title={`${group.label} · 第 ${entry.question.number} 题`} className={`${index === questionIndex ? 'selected ' : ''}${navStatus}`} onClick={() => { setQuestionIndex(index); setAnswerOpen(false) }}>{entry.question.number}</button> })}</div></section>)}</div> : <div className="number-grid">{showFullPaperNavigation ? currentPaperEntries.map(entry => { const q = entry.question; const navStatus = effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode); return <button key={q.id} aria-current={q.id === question.id ? 'true' : undefined} title={`${entry.sectionName} · 第 ${q.number} 题`} className={`${q.id === question.id ? 'selected ' : ''}${navStatus}`} onClick={() => navigateToBankQuestion(entry)}>{q.number}</button> }) : filteredQuestions.map((q, i) => { const navStatus = effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode); return <button key={q.id} title={`第 ${q.number} 题`} className={`${i === questionIndex ? 'selected ' : ''}${navStatus}`} onClick={() => { setQuestionIndex(i); setAnswerOpen(false) }}>{q.number}</button> })}</div>}
+            <div className="legend">{view !== 'wrong' && <><span><i/>未标记</span><span><i className="green"/>{binaryFilterMode ? '正确' : '熟练'}</span></>}{!binaryFilterMode && <span><i className="yellow"/>模糊</span>}<span><i className="red"/>{binaryFilterMode ? '错误' : '错题'}</span></div>
+            {view === 'wrong' ? <div className="review-nav-summary">{!binaryFilterMode && <span><i className="yellow"/>模糊 <strong>{counts.vague}</strong></span>}<span><i className="red"/>{binaryFilterMode ? '错误' : '错题'} <strong>{counts.wrong}</strong></span></div> : <div className="nav-accuracy"><span>当前正确率</span><strong>{formatRate(currentNavigationStats.accuracy)}</strong><small>{currentNavigationStats.marked} 道题已标记</small></div>}
+          </nav>
+        </div> : <div className="no-results"><Search size={32}/><h2>{view === 'wrong' && reviewQuestions.length === 0 ? '不熟练题已经清空' : '没有符合条件的题目'}</h2><p>{view === 'wrong' && reviewQuestions.length === 0 ? '很好，当前题库没有模糊或错误的题目。' : '尝试更换筛选条件或清空搜索词。'}</p><button onClick={() => view === 'wrong' && reviewQuestions.length === 0 ? setView('section') : (setFilter('all'), setQuery(''))}><RotateCcw size={16}/>{view === 'wrong' && reviewQuestions.length === 0 ? '返回当前小节' : '重置筛选'}</button></div>}
 
         {printMode && printJob && <section className="print-sheet" aria-hidden="true" ref={printSheetRef}>
           <div className="print-title"><h1>{printJob.title}</h1><p>{printJob.subtitle}</p></div>
