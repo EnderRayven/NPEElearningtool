@@ -1,13 +1,10 @@
 import type { PartBKind, QuestionBank, QuestionStatus, ReadingQuestionType } from './types'
 import { builtInBanks } from './data'
-import { mergeStudyActivities, validateStudyActivities, type StudyActivity } from './studyActivity'
-import { migrateZhangyuActivities, migrateZhangyuBankId, migrateZhangyuReference, migrateZhangyuStatuses, RETIRED_ZHANGYU_COMBINED_BANK_ID } from './bankMigration'
+import { migrateZhangyuBankId, migrateZhangyuReference, RETIRED_ZHANGYU_COMBINED_BANK_ID } from './bankMigration'
 
 const BANKS_KEY = 'npee:banks:v1'
 const BUILTIN_SEED_KEY = 'npee:builtins:english-exams:v8'
-const STATUS_KEY = 'npee:status:v1'
 const NAVIGATION_KEY = 'npee:navigation:v1'
-const ACTIVITY_KEY = 'npee:activity:v1'
 const VALID_STATUSES = new Set<QuestionStatus>(['none', 'proficient', 'vague', 'wrong'])
 const VALID_READING_TYPES = new Set<ReadingQuestionType>(['detail', 'example', 'main-idea', 'attitude', 'inference', 'vocabulary'])
 const VALID_PART_B_KINDS = new Set<PartBKind>(['ordering', 'sentence', 'subheading', 'viewpoint'])
@@ -84,7 +81,10 @@ export function loadBanks(): QuestionBank[] {
       return structuredClone(builtInBanks)
     }
     const cached = decodeStoredBanks(JSON.parse(raw)).filter(bank => !REMOVED_BANK_IDS.has(bank.id))
-    if (localStorage.getItem(BUILTIN_SEED_KEY)) return cached
+    if (localStorage.getItem(BUILTIN_SEED_KEY)) {
+      trySetItem(BANKS_KEY, JSON.stringify(encodeStoredBanks(cached)))
+      return cached
+    }
     const cachedIds = new Set(cached.map(bank => bank.id))
     const missingOtherBuiltIns = builtInBanks.filter(bank => !bank.id.startsWith('english-') && !cachedIds.has(bank.id))
     const refreshedEnglish = builtInBanks.filter(bank => bank.id.startsWith('english-'))
@@ -109,20 +109,6 @@ export function saveBanks(banks: QuestionBank[]) {
   } catch { return false }
   return true
 }
-export function loadStatuses(): Record<string, QuestionStatus> {
-  try {
-    return migrateZhangyuStatuses(validateStatuses(JSON.parse(localStorage.getItem(STATUS_KEY) || '{}')))
-  } catch { return {} }
-}
-export function saveStatuses(statuses: Record<string, QuestionStatus>) { return trySetItem(STATUS_KEY, JSON.stringify(statuses)) }
-export function loadStudyActivities(): StudyActivity[] {
-  try {
-    const activities = migrateZhangyuActivities(validateStudyActivities(JSON.parse(localStorage.getItem(ACTIVITY_KEY) || '[]')))
-    return mergeStudyActivities(activities)
-  } catch { return [] }
-}
-export function saveStudyActivities(activities: StudyActivity[]) { return trySetItem(ACTIVITY_KEY, JSON.stringify(activities)) }
-
 export interface NavigationState {
   bankId: string
   sectionId: string
@@ -148,10 +134,11 @@ function parseStudyPosition(value: unknown) {
 
 export function loadNavigation(): NavigationState | null {
   try {
-    const value: unknown = JSON.parse(localStorage.getItem(NAVIGATION_KEY) || 'null')
+    const raw = localStorage.getItem(NAVIGATION_KEY) || 'null'
+    const value: unknown = JSON.parse(raw)
     if (!isRecord(value) || typeof value.bankId !== 'string' || typeof value.sectionId !== 'string' || typeof value.questionId !== 'string') return null
     const bankId = migrateZhangyuBankId(value.bankId, value.sectionId, value.questionId)
-    return {
+    const migrated: NavigationState = {
       bankId,
       sectionId: migrateZhangyuReference(value.sectionId),
       questionId: migrateZhangyuReference(value.questionId),
@@ -163,6 +150,8 @@ export function loadNavigation(): NavigationState | null {
         english: parseStudyPosition(value.studyPositions.english),
       } : {},
     }
+    if (raw !== JSON.stringify(migrated)) trySetItem(NAVIGATION_KEY, JSON.stringify(migrated))
+    return migrated
   } catch { return null }
 }
 

@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import defaultManifest from '../默认题库/题库数据.json'
 import { initializeDefaultBanks } from './data'
-import { loadBanks, loadNavigation, loadStatuses, loadStudyActivities, renameBank, renameChapter, saveBanks, saveNavigation, saveStatuses, validateBanks, validateStatuses } from './store'
+import { loadBanks, loadNavigation, renameBank, renameChapter, saveBanks, saveNavigation, validateBanks, validateStatuses } from './store'
+import { loadStudyRounds, saveStudyRounds } from './studyRounds'
 import type { QuestionBank } from './types'
 
 class MemoryStorage {
@@ -95,7 +96,7 @@ describe('local storage recovery', () => {
 
   it('只加载合法学习状态', () => {
     localStorage.setItem('npee:status:v1', JSON.stringify({ q1: 'wrong', q2: 'invalid', q3: 'proficient' }))
-    expect(loadStatuses()).toEqual({ q1: 'wrong', q3: 'proficient' })
+    expect(loadStudyRounds()['1'].statuses).toEqual({ q1: 'wrong', q3: 'proficient' })
   })
 
   it('淘汰重复的张宇高数线代合并题库并保留独立题库', () => {
@@ -107,9 +108,10 @@ describe('local storage recovery', () => {
 
   it('迁移合并题库的学习标记和每日记录', () => {
     localStorage.setItem('npee:status:v1', JSON.stringify({ 'default-1783931377861-24-01-1-01': 'vague', 'default-1783931377861-24-02-1-01': 'wrong' }))
-    expect(loadStatuses()).toEqual({ 'workspace-1783942778439-28-01-1-01': 'vague', 'workspace-1783942778439-29-01-1-01': 'wrong' })
     localStorage.setItem('npee:activity:v1', JSON.stringify([{ date: '2026-07-15', questionId: 'default-1783931377861-24-02-1-01', bankId: 'default-1783931377861-24', status: 'wrong', updatedAt: '2026-07-15T01:00:00.000Z' }]))
-    expect(loadStudyActivities()[0]).toMatchObject({ questionId: 'workspace-1783942778439-29-01-1-01', bankId: 'workspace-1783942778439-29' })
+    const migrated = loadStudyRounds()['1']
+    expect(migrated.statuses).toEqual({ 'workspace-1783942778439-28-01-1-01': 'vague', 'workspace-1783942778439-29-01-1-01': 'wrong' })
+    expect(migrated.activities[0]).toMatchObject({ questionId: 'workspace-1783942778439-29-01-1-01', bankId: 'workspace-1783942778439-29' })
   })
 
   it('为已有缓存一次性补入合并后的英语真题题库', () => {
@@ -130,15 +132,22 @@ describe('local storage recovery', () => {
     expect(migrated.filter(bank => bank.id.startsWith('english-')).map(bank => bank.id)).toEqual(['english-exams'])
   })
 
+  it('将旧版完整题库缓存重写为紧凑格式', () => {
+    localStorage.setItem('npee:banks:v1', JSON.stringify([validBank]))
+    localStorage.setItem('npee:builtins:english-exams:v8', '1')
+    expect(loadBanks().map(bank => bank.id)).toEqual(['bank-1'])
+    expect(JSON.parse(localStorage.getItem('npee:banks:v1') || '{}')).toMatchObject({ version: 2, bankOrder: ['bank-1'] })
+  })
+
   it('导入备份时过滤非法学习状态', () => {
     expect(validateStatuses({ q1: 'wrong', q2: 'hacked', q3: 1 })).toEqual({ q1: 'wrong' })
   })
 
   it('可以往返保存题库和状态', () => {
     const banks = validateBanks([validBank])
-    saveBanks(banks); saveStatuses({ 'question-1': 'vague' })
+    saveBanks(banks); saveStudyRounds({ '1': { statuses: { 'question-1': 'vague' }, activities: [] } })
     expect(loadBanks()).toEqual(banks)
-    expect(loadStatuses()).toEqual({ 'question-1': 'vague' })
+    expect(loadStudyRounds()['1'].statuses).toEqual({ 'question-1': 'vague' })
   })
 
   it('内置题库使用紧凑缓存，避免重复占用 localStorage', () => {
@@ -188,6 +197,7 @@ describe('navigation recovery', () => {
   it('兼容未记录我的板块的旧版位置', () => {
     localStorage.setItem('npee:navigation:v1', JSON.stringify({ bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section' }))
     expect(loadNavigation()).toMatchObject({ page: 'study', profileBankId: '', studyPositions: {} })
+    expect(JSON.parse(localStorage.getItem('npee:navigation:v1') || '{}')).toMatchObject({ page: 'study', profileBankId: '', studyPositions: {} })
   })
 
   it('忽略损坏的学科位置并保留有效位置', () => {

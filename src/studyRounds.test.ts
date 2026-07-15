@@ -31,4 +31,17 @@ describe('学习轮次', () => {
     expect(countMarkedQuestions(getStudyRound(rounds, 1))).toBe(1)
     expect(saveStudyRounds(rounds)).toBe(true)
   })
+
+  it('压缩空轮次并清除已迁移的旧键', () => {
+    localStorage.setItem('npee:rounds:v1', JSON.stringify({
+      '1': { statuses: { q1: 'wrong', unused: 'none' }, activities: [] },
+      '2': { statuses: {}, activities: [] },
+    }))
+    localStorage.setItem('npee:status:v1', JSON.stringify({ stale: 'wrong' }))
+    const rounds = loadStudyRounds()
+    expect(rounds).not.toHaveProperty('2')
+    expect(rounds['1'].statuses).not.toHaveProperty('unused')
+    expect(localStorage.getItem('npee:rounds:v1')).not.toContain('"2"')
+    expect(localStorage.getItem('npee:status:v1')).toBeNull()
+  })
 })

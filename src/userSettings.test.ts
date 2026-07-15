@@ -26,4 +26,11 @@ describe('用户设置', () => {
     expect(localStorage.getItem('npee:exam-date:v1')).toBeNull()
     expect(localStorage.getItem('npee:settings:v1')).toContain('2026-12-20')
   })
+
+  it('已有新版设置时清除重复的旧版日期', () => {
+    localStorage.setItem('npee:settings:v1', JSON.stringify({ examDate: '2026-12-19', activeRound: 2, roundCount: 5 }))
+    localStorage.setItem('npee:exam-date:v1', '2026-12-20')
+    expect(loadUserSettings()).toEqual({ examDate: '2026-12-19', activeRound: 2, roundCount: 5 })
+    expect(localStorage.getItem('npee:exam-date:v1')).toBeNull()
+  })
 })

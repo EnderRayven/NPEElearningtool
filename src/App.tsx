@@ -9,7 +9,7 @@ import SettingsDialog from './SettingsDialog'
 import { assetKeysForBank, clearQuestionStatuses, orderedQuestionEntriesForBank, questionIdsForBank, removeBank, resetBankData } from './bankManagement'
 import { builtInBanks, defaultBankIds, englishBanks } from './data'
 import { mergeImageEntries } from './imageImport'
-import { BUILTIN_ENGLISH_VERSION, chooseWorkspace, clearWorkspaceHandle, createBankFolder, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, readWorkspaceUserData, removeBankFolder, safeFolderName, scanWorkspaceImages, writeDefaultWorkspaceManifest, writeDefaultWorkspaceUserData, writeWorkspaceManifest, writeWorkspaceUserData } from './workspace'
+import { BUILTIN_ENGLISH_VERSION, chooseWorkspace, clearWorkspaceHandle, createBankFolder, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, readWorkspaceUserData, removeBankFolder, resolveWorkspaceUserData, safeFolderName, scanWorkspaceImages, writeDefaultWorkspaceManifest, writeDefaultWorkspaceUserData, writeWorkspaceManifest, writeWorkspaceUserData } from './workspace'
 import { formatPassageParagraphs } from './passageFormatting'
 import { isImageAnswerPlaceholder } from './questionPresentation'
 import { sortBanksForDisplay } from './bankSorting'
@@ -17,10 +17,10 @@ import LearningDashboard from './LearningDashboard'
 import { updateStudyActivity } from './studyActivity'
 import { calculateLearningStats, calculateQuestionStats, formatRate } from './learningStats'
 import { resolveNavigation, resolveProfileBankId, type SavedNavigation } from './navigationRestore'
-import { migrateZhangyuActivities, migrateZhangyuStatuses, removeRetiredBanks } from './bankMigration'
+import { removeRetiredBanks } from './bankMigration'
 import { formatExamDateValue, getExamCountdown, parseExamDateValue } from './examCountdown'
 import { DEFAULT_USER_SETTINGS, loadUserSettings, saveUserSettings, validateUserSettings } from './userSettings'
-import { countMarkedQuestions, emptyStudyRound, getStudyRound, loadStudyRounds, saveStudyRounds, updateStudyRound, validateStudyRounds, type StudyRounds } from './studyRounds'
+import { countMarkedQuestions, emptyStudyRound, getStudyRound, loadStudyRounds, migrateStudyRounds, saveStudyRounds, updateStudyRound } from './studyRounds'
 
 const statusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
   none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错题', icon: '×' }
@@ -46,13 +46,6 @@ type Subject = 'math' | 'english'
 type BankQuestionEntry = ReturnType<typeof orderedQuestionEntriesForBank>[number]
 const bankSubject = (item: QuestionBank): Subject => item.id.startsWith('english-') || /英语/i.test(item.name) ? 'english' : 'math'
 const protectedBankIds = new Set<string>(defaultBankIds)
-
-function migrateStudyRounds(value: unknown, legacyStatuses: unknown = {}, legacyActivities: unknown = []): StudyRounds {
-  return Object.fromEntries(Object.entries(validateStudyRounds(value, legacyStatuses, legacyActivities)).map(([round, data]) => [round, {
-    statuses: migrateZhangyuStatuses(data.statuses),
-    activities: migrateZhangyuActivities(data.activities),
-  }]))
-}
 
 export default function App() {
   const [banks, setBanks] = useState(loadBanks)
@@ -507,11 +500,9 @@ export default function App() {
       if (index.manifest && index.manifest.builtinEnglishVersion !== BUILTIN_ENGLISH_VERSION) {
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
-      const nextSettings = index.userData?.settings ? validateUserSettings(index.userData.settings) : userSettings
-      const hasStoredUserData = Boolean(index.userData || index.manifest?.statuses)
-      const nextRounds = hasStoredUserData
-        ? migrateStudyRounds(index.userData?.rounds, index.userData?.statuses || index.manifest?.statuses, index.userData?.activities)
-        : currentStudyRounds()
+      const resolvedUserData = resolveWorkspaceUserData(index.userData, index.manifest?.statuses, currentStudyRounds(), userSettings)
+      const nextSettings = resolvedUserData.settings
+      const nextRounds = resolvedUserData.rounds
       const nextRound = getStudyRound(nextRounds, nextSettings.activeRound)
       const nextStatuses = nextRound.statuses
       const nextActivities = nextRound.activities
@@ -560,11 +551,9 @@ export default function App() {
         seededEnglishCount = englishBanks.length
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
-      const nextSettings = userData?.settings ? validateUserSettings(userData.settings) : userSettings
-      const hasStoredUserData = Boolean(userData || manifest?.statuses)
-      const nextRounds = hasStoredUserData
-        ? migrateStudyRounds(userData?.rounds, userData?.statuses || manifest?.statuses, userData?.activities)
-        : currentStudyRounds()
+      const resolvedUserData = resolveWorkspaceUserData(userData, manifest?.statuses, currentStudyRounds(), userSettings)
+      const nextSettings = resolvedUserData.settings
+      const nextRounds = resolvedUserData.rounds
       const nextRound = getStudyRound(nextRounds, nextSettings.activeRound)
       const nextStatuses = nextRound.statuses
       const nextActivities = nextRound.activities

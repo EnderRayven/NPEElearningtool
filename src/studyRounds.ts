@@ -1,6 +1,7 @@
-import { loadStatuses, loadStudyActivities, validateStatuses } from './store'
-import { validateStudyActivities, type StudyActivity } from './studyActivity'
+import { validateStatuses } from './store'
+import { mergeStudyActivities, validateStudyActivities, type StudyActivity } from './studyActivity'
 import type { QuestionStatus } from './types'
+import { migrateZhangyuActivities, migrateZhangyuStatuses } from './bankMigration'
 
 const ROUNDS_KEY = 'npee:rounds:v1'
 const LEGACY_STATUS_KEY = 'npee:status:v1'
@@ -21,22 +22,29 @@ export function emptyStudyRound(): StudyRoundData {
   return { statuses: {}, activities: [] }
 }
 
+function compactStatuses(value: unknown) {
+  return migrateZhangyuStatuses(Object.fromEntries(Object.entries(validateStatuses(value)).filter(([, status]) => status !== 'none')))
+}
+
+function compactActivities(value: unknown) {
+  return mergeStudyActivities(migrateZhangyuActivities(validateStudyActivities(value)))
+}
+
 export function validateStudyRounds(value: unknown, legacyStatuses: unknown = {}, legacyActivities: unknown = []): StudyRounds {
   const rounds: StudyRounds = {}
   if (isRecord(value)) {
     for (const [key, item] of Object.entries(value)) {
       const round = Number(key)
       if (!Number.isInteger(round) || round < 1 || round > 99 || !isRecord(item)) continue
-      rounds[String(round)] = {
-        statuses: validateStatuses(item.statuses),
-        activities: validateStudyActivities(item.activities),
-      }
+      const statuses = compactStatuses(item.statuses)
+      const activities = compactActivities(item.activities)
+      if (round === 1 || Object.keys(statuses).length || activities.length) rounds[String(round)] = { statuses, activities }
     }
   }
   if (!rounds['1']) {
     rounds['1'] = {
-      statuses: validateStatuses(legacyStatuses),
-      activities: validateStudyActivities(legacyActivities),
+      statuses: compactStatuses(legacyStatuses),
+      activities: compactActivities(legacyActivities),
     }
   }
   return rounds
@@ -54,18 +62,32 @@ export function saveStudyRounds(rounds: StudyRounds) {
   try { localStorage.setItem(ROUNDS_KEY, JSON.stringify(validateStudyRounds(rounds))); return true } catch { return false }
 }
 
+function readLegacyValue(key: string, fallback: unknown) {
+  try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)) } catch { return fallback }
+}
+
+function removeLegacyRoundData() {
+  localStorage.removeItem(LEGACY_STATUS_KEY)
+  localStorage.removeItem(LEGACY_ACTIVITY_KEY)
+}
+
+export function migrateStudyRounds(value: unknown, legacyStatuses: unknown = {}, legacyActivities: unknown = []) {
+  return validateStudyRounds(value, legacyStatuses, legacyActivities)
+}
+
 export function loadStudyRounds(): StudyRounds {
   try {
     const stored = localStorage.getItem(ROUNDS_KEY)
-    if (stored) return validateStudyRounds(JSON.parse(stored))
-    const migrated = validateStudyRounds(null, loadStatuses(), loadStudyActivities())
-    if (saveStudyRounds(migrated)) {
-      localStorage.removeItem(LEGACY_STATUS_KEY)
-      localStorage.removeItem(LEGACY_ACTIVITY_KEY)
+    if (stored) {
+      const migrated = validateStudyRounds(JSON.parse(stored))
+      if (saveStudyRounds(migrated)) removeLegacyRoundData()
+      return migrated
     }
+    const migrated = migrateStudyRounds(null, readLegacyValue(LEGACY_STATUS_KEY, {}), readLegacyValue(LEGACY_ACTIVITY_KEY, []))
+    if (saveStudyRounds(migrated)) removeLegacyRoundData()
     return migrated
   } catch {
-    return validateStudyRounds(null, loadStatuses(), loadStudyActivities())
+    return migrateStudyRounds(null, readLegacyValue(LEGACY_STATUS_KEY, {}), readLegacyValue(LEGACY_ACTIVITY_KEY, []))
   }
 }
 

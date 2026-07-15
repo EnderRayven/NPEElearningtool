@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { QuestionBank } from './types'
-import { createWorkspaceManifest, createWorkspaceUserData, resolveWorkspaceImagePath } from './workspace'
+import { createWorkspaceManifest, createWorkspaceUserData, resolveWorkspaceImagePath, resolveWorkspaceUserData } from './workspace'
 
 const bank: QuestionBank = {
   id: 'bank-1',
@@ -13,8 +13,21 @@ describe('workspace data separation', () => {
   it('keeps project data free of user statuses', () => {
     const manifest = createWorkspaceManifest([bank], { 'bank-1': '题库' })
     expect(manifest.banks).toEqual([bank])
+    expect(manifest.version).toBe(2)
     expect(manifest.folders).toEqual({ 'bank-1': '题库' })
     expect(manifest).not.toHaveProperty('statuses')
+  })
+
+  it('migrates legacy workspace statuses into round one', () => {
+    const resolved = resolveWorkspaceUserData({
+      version: 2,
+      updatedAt: '2026-07-15T00:00:00.000Z',
+      statuses: { 'question-1': 'wrong' },
+      activities: [],
+      settings: { examDate: '2026-12-19', activeRound: 1, roundCount: 5 },
+    }, undefined, { '1': { statuses: {}, activities: [] } }, { activeRound: 1, roundCount: 5 })
+    expect(resolved.rounds['1'].statuses).toEqual({ 'question-1': 'wrong' })
+    expect(resolved.settings.examDate).toBe('2026-12-19')
   })
 
   it('writes isolated study rounds only to user data', () => {

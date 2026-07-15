@@ -1,6 +1,6 @@
 import type { QuestionBank, QuestionStatus } from './types'
 import type { StudyActivity } from './studyActivity'
-import { validateStudyRounds, type StudyRounds } from './studyRounds'
+import { migrateStudyRounds, validateStudyRounds, type StudyRounds } from './studyRounds'
 import { DEFAULT_USER_SETTINGS, validateUserSettings, type UserSettings } from './userSettings'
 
 const DB_NAME = 'npee-workspace'
@@ -25,7 +25,7 @@ export interface WorkspaceImageFile {
 }
 
 export interface WorkspaceManifest {
-  version: 1
+  version: number
   builtinEnglishVersion?: number
   updatedAt: string
   banks: QuestionBank[]
@@ -58,11 +58,19 @@ export async function readDefaultWorkspace(): Promise<DefaultWorkspaceIndex> {
 }
 
 export function createWorkspaceManifest(banks: QuestionBank[], folders: Record<string, string> = {}): WorkspaceManifest {
-  return { version: 1, builtinEnglishVersion: BUILTIN_ENGLISH_VERSION, updatedAt: new Date().toISOString(), banks, folders }
+  return { version: 2, builtinEnglishVersion: BUILTIN_ENGLISH_VERSION, updatedAt: new Date().toISOString(), banks, folders }
 }
 
 export function createWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS): WorkspaceUserData {
   return { version: 3, updatedAt: new Date().toISOString(), rounds: validateStudyRounds(rounds), settings: validateUserSettings(settings) }
+}
+
+export function resolveWorkspaceUserData(userData: WorkspaceUserData | null | undefined, manifestStatuses: unknown, fallbackRounds: StudyRounds, fallbackSettings: UserSettings) {
+  const settings = userData?.settings ? validateUserSettings(userData.settings) : fallbackSettings
+  const rounds = userData || manifestStatuses
+    ? migrateStudyRounds(userData?.rounds, userData?.statuses || manifestStatuses, userData?.activities)
+    : fallbackRounds
+  return { rounds, settings }
 }
 
 export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], folders: Record<string, string> = {}) {

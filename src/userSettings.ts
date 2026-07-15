@@ -31,12 +31,11 @@ export function saveUserSettings(settings: UserSettings) {
 export function loadUserSettings(): UserSettings {
   try {
     const stored = validateUserSettings(JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'))
-    if (stored.examDate) return stored
     const legacyExamDate = localStorage.getItem(LEGACY_EXAM_DATE_KEY)
-    if (!legacyExamDate || !parseExamDateValue(legacyExamDate)) return stored
-    const migrated = { ...stored, examDate: legacyExamDate }
-    saveUserSettings(migrated)
-    localStorage.removeItem(LEGACY_EXAM_DATE_KEY)
+    const migrated = stored.examDate || !legacyExamDate || !parseExamDateValue(legacyExamDate)
+      ? stored
+      : { ...stored, examDate: legacyExamDate }
+    if (saveUserSettings(migrated)) localStorage.removeItem(LEGACY_EXAM_DATE_KEY)
     return migrated
   } catch { return { ...DEFAULT_USER_SETTINGS } }
 }
