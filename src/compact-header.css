@@ -174,12 +174,13 @@
 
 .exam-countdown > strong {
   color: #9f2e25;
-  font: 700 21px/1 'Playfair Display', 'Noto Sans SC', serif;
+  font: 800 29px/.9 'Playfair Display', 'Noto Sans SC', serif;
+  letter-spacing: -.5px;
 }
 
 .exam-countdown > em {
   color: #9f2e25;
-  font-size: 10px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 700;
 }
@@ -333,6 +334,41 @@
   display: block;
 }
 
+.settings-tools-popover .countdown-settings-section > div {
+  display: flex;
+  gap: 8px;
+}
+
+.countdown-settings-section > div > label {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid #ebe5de;
+  border-radius: 10px;
+  background: #fbfaf8;
+}
+
+.countdown-settings-section label > svg {
+  width: 18px;
+  justify-self: center;
+  color: #9f2e25;
+}
+
+.countdown-settings-section label strong,
+.countdown-settings-section label small {
+  display: block;
+}
+
+.countdown-settings-section label strong { font-size: 11px; }
+.countdown-settings-section label small { margin-top: 3px; color: #9b938a; font-size: 8px; }
+.countdown-settings-section input { min-width: 126px; padding: 7px 8px; border: 1px solid #ddd5cd; border-radius: 7px; background: #fff; color: #514a44; font-size: 10px; }
+.countdown-settings-section > div > button { padding: 0 12px; border: 1px solid #e2dad1; border-radius: 9px; background: #fff; color: #7f3b34; font-size: 9px; }
+.countdown-settings-section > small { display: block; margin: 7px 3px 0; color: #a09890; font-size: 8px; line-height: 1.5; }
+
 .settings-tools-popover section button[role='menuitem'] strong {
   font-size: 11px;
 }
@@ -358,4 +394,6 @@
 @media screen and (max-width: 580px) {
   .settings-tools-popover { position: fixed; top: 70px; right: 10px; left: 10px; width: auto; }
   .settings-tools-popover section > div { grid-template-columns: 1fr; }
+  .settings-tools-popover .countdown-settings-section > div { flex-direction: column; }
+  .countdown-settings-section > div > button { min-height: 36px; }
 }

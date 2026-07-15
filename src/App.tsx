@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlertCircle, BookOpen, ChevronDown, ChevronRight, CircleHelp, Download, FileImage, FileText, FileUp, Filter, FolderOpen, FolderSync, Menu, Pencil, Plus, RotateCcw, Search, Settings as SettingsIcon, X } from 'lucide-react'
+import { AlertCircle, BookOpen, CalendarDays, ChevronDown, ChevronRight, CircleHelp, Download, FileImage, FileText, FileUp, Filter, FolderOpen, FolderSync, Menu, Pencil, Plus, RotateCcw, Search, Settings as SettingsIcon, X } from 'lucide-react'
 import type { Question, QuestionBank, QuestionStatus, ReadingQuestionType, Section } from './types'
 import { loadBanks, loadNavigation, loadStatuses, loadStudyActivities, renameBank, renameChapter, saveBanks, saveNavigation, saveStatuses, saveStudyActivities, validateBanks, validateStatuses } from './store'
 import { deleteAssets } from './assets'
@@ -18,7 +18,7 @@ import { mergeStudyActivities, updateStudyActivity, validateStudyActivities } fr
 import { calculateLearningStats, calculateQuestionStats, formatRate } from './learningStats'
 import { resolveNavigation, resolveProfileBankId, type SavedNavigation } from './navigationRestore'
 import { migrateZhangyuActivities, migrateZhangyuStatuses, removeRetiredBanks } from './bankMigration'
-import { getExamCountdown } from './examCountdown'
+import { clearSavedExamDate, formatExamDateValue, getExamCountdown, loadSavedExamDate, parseExamDateValue, saveExamDate } from './examCountdown'
 
 const statusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
   none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错题', icon: '×' }
@@ -71,6 +71,7 @@ export default function App() {
   const [namingHelpOpen, setNamingHelpOpen] = useState(false)
   const [settingsToolsOpen, setSettingsToolsOpen] = useState(false)
   const [countdownNow, setCountdownNow] = useState(() => new Date())
+  const [customExamDate, setCustomExamDate] = useState(loadSavedExamDate)
   const [renameTarget, setRenameTarget] = useState<{ kind: 'bank' | 'chapter'; id: string; name: string } | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [navigationReady, setNavigationReady] = useState(false)
@@ -609,8 +610,20 @@ export default function App() {
 
   if (!bank) return <div className="empty-app"><BookOpen size={42}/><h1>还没有题库</h1><button onClick={() => importRef.current?.click()}>导入题库</button><input ref={importRef} hidden type="file" accept=".json" onChange={e => importData(e.target.files?.[0])}/></div>
 
-  const examCountdown = getExamCountdown(countdownNow)
+  const examCountdown = getExamCountdown(countdownNow, customExamDate)
   const examDateLabel = `${examCountdown.target.getMonth() + 1} 月 ${examCountdown.target.getDate()} 日`
+  const updateExamDate = (value: string) => {
+    const date = parseExamDateValue(value)
+    if (!date) return
+    setCustomExamDate(date)
+    if (!saveExamDate(date)) setToast('日期已修改，但浏览器未能持久保存')
+    else setToast(`考试日期已修改为 ${date.getMonth() + 1} 月 ${date.getDate()} 日`)
+  }
+  const resetExamDate = () => {
+    clearSavedExamDate()
+    setCustomExamDate(null)
+    setToast('已恢复默认考试日期')
+  }
 
   return <div className="app-shell">
     <header>
@@ -621,7 +634,7 @@ export default function App() {
         <button className={activePage === 'study' && subject === 'english' ? 'active' : ''} onClick={() => selectSubject('english')}>英语</button>
         <button className={activePage === 'profile' ? 'active' : ''} onClick={() => { if (!profileBankId) setProfileBankId(bank.id); setActivePage('profile'); setSidebar(false) }}>我的</button>
       </nav>
-      <div className="header-center exam-countdown" title={`${examCountdown.cohortYear} 年考研初试预计日期：${examCountdown.target.getFullYear()} 年 ${examDateLabel}`}><span>{examCountdown.cohortYear} 考研倒计时</span><strong>{examCountdown.days}</strong><em>天</em><small>预计 {examDateLabel}</small></div>
+      <div className="header-center exam-countdown" title={`${examCountdown.cohortYear} 年考研初试日期：${examCountdown.target.getFullYear()} 年 ${examDateLabel}`}><span>{examCountdown.cohortYear} 考研倒计时</span><strong>{examCountdown.days}</strong><em>天</em><small>{examDateLabel}</small></div>
       <div className="header-actions">
         <input ref={importRef} hidden type="file" accept=".json,application/json" onChange={e => importData(e.target.files?.[0])}/>
         <input ref={node => { imageImportRef.current = node; node?.setAttribute('webkitdirectory', '') }} hidden type="file" multiple accept="image/*" onChange={e => importImages(e.target.files)}/>
@@ -629,6 +642,7 @@ export default function App() {
         <div className="settings-tools-module" ref={settingsToolsRef}>
           <button className={settingsToolsOpen ? 'tool-button settings-tools-trigger active' : 'tool-button settings-tools-trigger'} aria-haspopup="menu" aria-expanded={settingsToolsOpen} onClick={() => setSettingsToolsOpen(open => !open)}><SettingsIcon/><span>设置</span><ChevronDown/></button>
           {settingsToolsOpen && <div className="settings-tools-popover" role="menu"><div className="settings-tools-heading"><div><strong>设置与数据</strong><small>题库连接、素材、导出和个人数据统一管理</small></div><button aria-label="关闭设置" onClick={() => setSettingsToolsOpen(false)}><X/></button></div>
+            <section className="countdown-settings-section"><span>考试倒计时</span><div><label><CalendarDays/><span><strong>考试日期</strong><small>修改后倒计时会立即更新</small></span><input aria-label="考试日期" type="date" min={formatExamDateValue(countdownNow)} value={formatExamDateValue(examCountdown.target)} onInput={event => updateExamDate(event.currentTarget.value)}/></label><button type="button" onClick={resetExamDate} disabled={!customExamDate}>恢复默认</button></div><small>日期仅保存在当前浏览器，不会写入题库或学习数据。</small></section>
             <section><span>题库连接</span><div><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); connectWorkspace() }}><FolderSync/><span><strong>{workspaceState === 'connected' ? '重新同步题库' : '连接题库文件夹'}</strong><small>{workspaceState === 'connected' ? '重新读取当前题库与用户数据' : '连接本地目录并启用实时保存'}</small></span></button><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); switchWorkspace() }}><FolderOpen/><span><strong>切换题库文件夹</strong><small>选择另一套本地题库目录</small></span></button></div></section>
             <section><span>导入与素材</span><div><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); importRef.current?.click() }}><FileUp/><span><strong>导入题库</strong><small>载入 JSON 题库或完整备份</small></span></button><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); imageImportRef.current?.click() }}><FileImage/><span><strong>导入图片</strong><small>按命名规则匹配题图与解析图</small></span></button></div></section>
             <section><span>规则与管理</span><div><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); setNamingHelpOpen(true) }}><CircleHelp/><span><strong>图片命名参考</strong><small>查看批量导入的文件命名规范</small></span></button><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); setSettingsOpen(true) }}><SettingsIcon/><span><strong>题库与数据管理</strong><small>清理标记、重置或删除题库</small></span></button></div></section>
