@@ -1,12 +1,14 @@
 import type { QuestionBank } from './types'
 import defaultManifestUrl from '../默认题库/题库数据.json?url'
+import { removeRetiredBanks } from './bankMigration'
 
 export let englishBanks: QuestionBank[] = []
 export let builtInBanks: QuestionBank[] = []
 
 export function initializeDefaultBanks(banks: QuestionBank[]) {
-  englishBanks = banks.filter(bank => bank.id.startsWith('english-'))
-  builtInBanks = [...banks]
+  const activeBanks = removeRetiredBanks(banks)
+  englishBanks = activeBanks.filter(bank => bank.id.startsWith('english-'))
+  builtInBanks = [...activeBanks]
 }
 
 export async function loadDefaultBanks() {
@@ -24,7 +26,6 @@ export const defaultBankIds = [
   'workspace-1783924545931-2',
   'default-1783931377861-22',
   'default-1783931377861-23',
-  'default-1783931377861-24',
   'default-1783931377861-25',
   'default-1783931377861-26',
   'default-kira-linear-basic',

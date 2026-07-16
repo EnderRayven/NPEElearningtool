@@ -142,3 +142,273 @@
     overscroll-behavior: contain;
   }
 }
+
+.settings-tools-module {
+  position: relative;
+}
+
+.header-actions {
+  margin-left: auto;
+}
+
+.exam-countdown {
+  position: absolute;
+  left: 50%;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  padding: 7px 13px;
+  border: 1px solid #e8dfd6;
+  border-radius: 11px;
+  background: rgba(250, 248, 245, .92);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.exam-countdown > span {
+  color: #756e67;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.exam-countdown > strong {
+  color: #9f2e25;
+  font: 800 29px/.9 'Playfair Display', 'Noto Sans SC', serif;
+  letter-spacing: -.5px;
+}
+
+.exam-countdown > em {
+  color: #9f2e25;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.exam-countdown > small {
+  padding-left: 7px;
+  border-left: 1px solid #ded6ce;
+  color: #a09890;
+  font-size: 8px;
+}
+
+.header-sync-status {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: #f6faf6;
+  color: #60806a;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.header-sync-status .source-dot {
+  margin-right: 6px;
+}
+
+.settings-tools-trigger {
+  height: 40px;
+  padding: 0 13px;
+  border: 1px solid #e4ddd5;
+  background: #f8f6f3;
+}
+
+.settings-tools-trigger.active,
+.settings-tools-trigger:hover {
+  border-color: #d5b8b3;
+  background: #fff;
+  color: #8f3028;
+}
+
+.settings-tools-trigger svg:last-child {
+  width: 13px;
+  transition: transform .18s;
+}
+
+.settings-tools-trigger.active svg:last-child {
+  transform: rotate(180deg);
+}
+
+.settings-tools-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 60;
+  width: min(540px, calc(100vw - 24px));
+  max-height: calc(100vh - 92px);
+  overflow-y: auto;
+  padding: 17px;
+  border: 1px solid #e2dad1;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(54, 43, 34, .18);
+}
+
+.settings-tools-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 1px 2px 13px;
+  border-bottom: 1px solid #eee8e1;
+}
+
+.settings-tools-heading strong,
+.settings-tools-heading small {
+  display: block;
+}
+
+.settings-tools-heading strong {
+  font-size: 14px;
+}
+
+.settings-tools-heading small {
+  margin-top: 4px;
+  color: #999087;
+  font-size: 9px;
+}
+
+.settings-tools-heading > button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: #f5f2ee;
+  color: #817970;
+}
+
+.settings-tools-heading > button svg {
+  width: 15px;
+}
+
+.settings-tools-popover section {
+  margin-top: 14px;
+}
+
+.settings-tools-popover section > span {
+  display: block;
+  margin: 0 3px 7px;
+  color: #a15c53;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.settings-tools-popover section > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.settings-tools-popover section button[role='menuitem'] {
+  display: grid;
+  grid-template-columns: 29px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  min-height: 62px;
+  padding: 10px;
+  border: 1px solid #ebe5de;
+  border-radius: 10px;
+  background: #fbfaf8;
+  color: #5c554e;
+  text-align: left;
+}
+
+.settings-tools-popover section button[role='menuitem']:hover {
+  border-color: #d8bcb7;
+  background: #fdf7f5;
+  color: #8f3028;
+}
+
+.settings-tools-popover section button[role='menuitem'] > svg {
+  width: 18px;
+  justify-self: center;
+}
+
+.settings-tools-popover section button[role='menuitem'] strong,
+.settings-tools-popover section button[role='menuitem'] small {
+  display: block;
+}
+
+.settings-tools-popover .countdown-settings-section > div,
+.settings-tools-popover .round-settings-section > div {
+  display: flex;
+  gap: 8px;
+}
+
+.countdown-settings-section > div > label,
+.round-settings-section > div > label {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid #ebe5de;
+  border-radius: 10px;
+  background: #fbfaf8;
+}
+
+.countdown-settings-section label > svg,
+.round-settings-section label > svg {
+  width: 18px;
+  justify-self: center;
+  color: #9f2e25;
+}
+
+.countdown-settings-section label strong,
+.countdown-settings-section label small,
+.round-settings-section label strong,
+.round-settings-section label small {
+  display: block;
+}
+
+.countdown-settings-section label strong,
+.round-settings-section label strong { font-size: 11px; }
+.countdown-settings-section label small,
+.round-settings-section label small { margin-top: 3px; color: #9b938a; font-size: 8px; }
+.countdown-settings-section input { min-width: 126px; padding: 7px 8px; border: 1px solid #ddd5cd; border-radius: 7px; background: #fff; color: #514a44; font-size: 10px; }
+.round-settings-section select { min-width: 154px; padding: 7px 28px 7px 8px; border: 1px solid #ddd5cd; border-radius: 7px; background: #fff; color: #514a44; font-size: 10px; }
+.countdown-settings-section > div > button,
+.round-settings-section > div > button { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 12px; border: 1px solid #e2dad1; border-radius: 9px; background: #fff; color: #7f3b34; font-size: 9px; white-space: nowrap; }
+.round-settings-section > div > button svg { width: 13px; }
+.countdown-settings-section > div > button:disabled,
+.round-settings-section > div > button:disabled { color: #aaa29a; cursor: default; }
+.countdown-settings-section > small,
+.round-settings-section > small { display: block; margin: 7px 3px 0; color: #a09890; font-size: 8px; line-height: 1.5; }
+
+.settings-tools-popover section button[role='menuitem'] strong {
+  font-size: 11px;
+}
+
+.settings-tools-popover section button[role='menuitem'] small {
+  margin-top: 4px;
+  color: #9b938a;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+@media screen and (max-width: 1400px) {
+  .settings-tools-trigger svg:last-child { display: none; }
+  .header-sync-status > span:last-child { display: none; }
+  .header-sync-status { width: 30px; padding: 0; justify-content: center; }
+  .header-sync-status .source-dot { margin: 0; }
+}
+
+@media screen and (max-width: 1180px) {
+  .exam-countdown { display: none; }
+}
+
+@media screen and (max-width: 580px) {
+  .settings-tools-popover { position: fixed; top: 70px; right: 10px; left: 10px; width: auto; }
+  .settings-tools-popover section > div { grid-template-columns: 1fr; }
+  .settings-tools-popover .countdown-settings-section > div,
+  .settings-tools-popover .round-settings-section > div { flex-direction: column; }
+  .countdown-settings-section > div > button,
+  .round-settings-section > div > button { min-height: 36px; }
+}

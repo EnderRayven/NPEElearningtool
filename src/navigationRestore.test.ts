@@ -18,7 +18,7 @@ describe('navigation restore', () => {
   })
 
   it('restores a question in the bank-wide wrong-book order', () => {
-    expect(resolveNavigation([bank], { q1: 'wrong', q3: 'wrong' }, { bankId: 'math', sectionId: 'saved-section', questionId: 'q3', view: 'wrong' })?.questionIndex).toBe(1)
+    expect(resolveNavigation([bank], { q1: 'vague', q3: 'wrong' }, { bankId: 'math', sectionId: 'saved-section', questionId: 'q3', view: 'wrong' })?.questionIndex).toBe(1)
   })
 
   it('finds a migrated bank by its preserved section id', () => {

@@ -1,5 +1,7 @@
 import type { QuestionBank, QuestionStatus } from './types'
 import type { StudyActivity } from './studyActivity'
+import { migrateStudyRounds, validateStudyRounds, type StudyRounds } from './studyRounds'
+import { DEFAULT_USER_SETTINGS, validateUserSettings, type UserSettings } from './userSettings'
 
 const DB_NAME = 'npee-workspace'
 const STORE_NAME = 'handles'
@@ -23,7 +25,7 @@ export interface WorkspaceImageFile {
 }
 
 export interface WorkspaceManifest {
-  version: 1
+  version: number
   builtinEnglishVersion?: number
   updatedAt: string
   banks: QuestionBank[]
@@ -33,10 +35,13 @@ export interface WorkspaceManifest {
 }
 
 export interface WorkspaceUserData {
-  version: 1
+  version: number
   updatedAt: string
-  statuses: Record<string, QuestionStatus>
+  rounds?: StudyRounds
+  /** 兼容 v2 及更早版本，读取后会迁移到第 1 轮。 */
+  statuses?: Record<string, QuestionStatus>
   activities?: StudyActivity[]
+  settings?: UserSettings
 }
 
 export interface DefaultWorkspaceIndex {
@@ -53,11 +58,19 @@ export async function readDefaultWorkspace(): Promise<DefaultWorkspaceIndex> {
 }
 
 export function createWorkspaceManifest(banks: QuestionBank[], folders: Record<string, string> = {}): WorkspaceManifest {
-  return { version: 1, builtinEnglishVersion: BUILTIN_ENGLISH_VERSION, updatedAt: new Date().toISOString(), banks, folders }
+  return { version: 2, builtinEnglishVersion: BUILTIN_ENGLISH_VERSION, updatedAt: new Date().toISOString(), banks, folders }
 }
 
-export function createWorkspaceUserData(statuses: Record<string, QuestionStatus>, activities: StudyActivity[] = []): WorkspaceUserData {
-  return { version: 1, updatedAt: new Date().toISOString(), statuses, activities }
+export function createWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS): WorkspaceUserData {
+  return { version: 3, updatedAt: new Date().toISOString(), rounds: validateStudyRounds(rounds), settings: validateUserSettings(settings) }
+}
+
+export function resolveWorkspaceUserData(userData: WorkspaceUserData | null | undefined, manifestStatuses: unknown, fallbackRounds: StudyRounds, fallbackSettings: UserSettings) {
+  const settings = userData?.settings ? validateUserSettings(userData.settings) : fallbackSettings
+  const rounds = userData || manifestStatuses
+    ? migrateStudyRounds(userData?.rounds, userData?.statuses || manifestStatuses, userData?.activities)
+    : fallbackRounds
+  return { rounds, settings }
 }
 
 export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], folders: Record<string, string> = {}) {
@@ -66,8 +79,8 @@ export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], folde
   if (!response.ok) throw new Error('默认题库数据写入失败')
 }
 
-export async function writeDefaultWorkspaceUserData(statuses: Record<string, QuestionStatus>, activities: StudyActivity[] = []) {
-  const userData = createWorkspaceUserData(statuses, activities)
+export async function writeDefaultWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS) {
+  const userData = createWorkspaceUserData(rounds, settings)
   const response = await fetch('/api/default-workspace/user-data', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(userData, null, 2) })
   if (!response.ok) throw new Error('用户数据写入失败')
 }
@@ -141,10 +154,10 @@ export async function writeWorkspaceManifest(handle: FileSystemDirectoryHandle, 
   await writable.close()
 }
 
-export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, statuses: Record<string, QuestionStatus>, activities: StudyActivity[] = []) {
+export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS) {
   const fileHandle = await handle.getFileHandle(WORKSPACE_USER_DATA, { create: true })
   const writable = await fileHandle.createWritable()
-  await writable.write(JSON.stringify(createWorkspaceUserData(statuses, activities), null, 2))
+  await writable.write(JSON.stringify(createWorkspaceUserData(rounds, settings), null, 2))
   await writable.close()
 }
 

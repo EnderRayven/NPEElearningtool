@@ -29,7 +29,7 @@ export function resolveNavigation(
   const section = chapter?.sections.find(item => item.id === saved.sectionId)
   if (!chapter || !section) return null
   const questions = saved.view === 'wrong'
-    ? orderedQuestionEntriesForBank(bank).map(entry => entry.question).filter(question => statuses[question.id] === 'wrong')
+    ? orderedQuestionEntriesForBank(bank).map(entry => entry.question).filter(question => statuses[question.id] === 'vague' || statuses[question.id] === 'wrong')
     : section.questions
   return {
     bankId: bank.id,
