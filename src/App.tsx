@@ -15,6 +15,7 @@ import { isImageAnswerPlaceholder } from './questionPresentation'
 import { sortBanksForDisplay } from './bankSorting'
 import LearningDashboard from './LearningDashboard'
 import { updateStudyActivity } from './studyActivity'
+import { buildQuestionReviewTimeline, updateQuestionReview } from './questionReview'
 import { calculateLearningStats, calculateQuestionStats, formatRate } from './learningStats'
 import { resolveNavigation, resolveProfileBankId, type SavedNavigation } from './navigationRestore'
 import { removeRetiredBanks } from './bankMigration'
@@ -23,7 +24,7 @@ import { DEFAULT_USER_SETTINGS, loadUserSettings, saveUserSettings, validateUser
 import { countMarkedQuestions, emptyStudyRound, getStudyRound, loadStudyRounds, migrateStudyRounds, saveStudyRounds, updateStudyRound } from './studyRounds'
 
 const statusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
-  none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错题', icon: '×' }
+  none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错误', icon: '×' }
 }
 const binaryStatusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
   none: { label: '未标记', icon: '○' }, proficient: { label: '正确', icon: '✓' }, vague: { label: '未标记', icon: '○' }, wrong: { label: '错误', icon: '×' }
@@ -319,6 +320,31 @@ export default function App() {
     }))
     setToast(`已标记为“${questionStatusMeta(questionEntry.question, status, targetBinaryMode).label}”`)
   }
+  function markDashboardReview(targetBankId: string, questionId: string, status: QuestionStatus, answerRevealed: boolean) {
+    const targetBank = banks.find(item => item.id === targetBankId)
+    if (!targetBank) return
+    const questionEntry = orderedQuestionEntriesForBank(targetBank).find(entry => entry.question.id === questionId)
+    if (!questionEntry) return
+    const targetSubject = bankSubject(targetBank)
+    const targetBinaryMode = targetSubject === 'english'
+    const previousStatus = effectiveQuestionStatus(questionEntry.question, statuses[questionId] || 'none', targetBinaryMode)
+    const result = updateQuestionReview(activities, {
+      questionId,
+      bankId: targetBank.id,
+      previousStatus,
+      chapterId: questionEntry.chapterId,
+      sectionId: questionEntry.sectionId,
+      questionNumber: questionEntry.question.number,
+      questionType: questionEntry.question.type,
+      readingType: questionEntry.question.readingType,
+      subject: targetSubject,
+      source: 'dashboard',
+      answerRevealed,
+    }, status)
+    setActivities(result.activities)
+    setStatuses(previous => ({ ...previous, [questionId]: result.status }))
+    setToast(status === 'none' ? '已取消本次复习记录' : `第 ${buildQuestionReviewTimeline(result.activities, questionId).reviews.length} 次复习已记录为“${questionStatusMeta(questionEntry.question, result.status, targetBinaryMode).label}”`)
+  }
   function mark(status: QuestionStatus) { if (question) markQuestion(question.id, status, question) }
   function togglePassageAnswer(questionId: string) {
     setExpandedPassageAnswers(previous => {
@@ -541,6 +567,11 @@ export default function App() {
   }
 
   async function loadWorkspace(handle: FileSystemDirectoryHandle) {
+    if (handle.name === '默认题库') {
+      await clearWorkspaceHandle().catch(() => {})
+      setWorkspaceHandle(null)
+      return loadDefaultWorkspace()
+    }
     setWorkspaceState('syncing')
     try {
       if (!await hasWorkspacePermission(handle, true)) throw new Error('未获得题库文件夹读写权限')
@@ -718,7 +749,7 @@ export default function App() {
       </aside></>}
 
       <main className={activePage === 'profile' ? 'profile-main' : ''}>
-        {activePage === 'profile' ? <LearningDashboard banks={banks} statuses={statuses} activities={activities} selectedBankId={profileBankId} onSelectedBankIdChange={setProfileBankId} onQuestionStatusChange={markDashboardQuestion}/> : <>
+        {activePage === 'profile' ? <LearningDashboard banks={banks} statuses={statuses} activities={activities} selectedBankId={profileBankId} onSelectedBankIdChange={setProfileBankId} onQuestionStatusChange={markDashboardQuestion} onQuestionReviewStatusChange={markDashboardReview}/> : <>
         <div className="page-head"><div><span className="breadcrumb">{bank.name} <ChevronRight size={13}/>{view === 'section' && currentChapter && <>{currentChapter.name} <ChevronRight size={13}/></>}{view === 'wrong' ? '本题库不熟练题' : section?.name || '未选择'}</span><h1>{view === 'wrong' ? '本题库不熟练题' : section?.name || '请选择具体节题目'}</h1><p>{view === 'wrong' ? `按章节和小节分组 · 共 ${reviewQuestions.length} 道不熟练题` : section ? `共 ${section.questions.length} 道题 · 学习进度实时保存` : '从左侧选择一个章节开始学习'}</p></div>
           <div className="search"><Search size={17}/><input value={query} onChange={e => { setQuery(e.target.value); setQuestionIndex(0) }} placeholder={view === 'wrong' ? '搜索不熟练题' : '搜索当前小节'}/></div>
         </div>

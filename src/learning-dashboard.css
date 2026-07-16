@@ -257,14 +257,25 @@
 
 .dashboard-question-dialog {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  width: min(1040px, 100%);
-  max-height: min(88vh, 900px);
+  grid-template-columns: minmax(0, 1fr) 304px;
+  grid-template-rows: minmax(0, 1fr);
+  width: min(1320px, 100%);
+  height: min(88dvh, 900px);
+  max-height: calc(100dvh - 56px);
   overflow: hidden;
   border: 1px solid #e2d8cf;
   border-radius: 19px;
   background: #fff;
   box-shadow: 0 28px 80px rgba(36, 28, 23, .25);
+}
+
+.dashboard-question-main {
+  display: grid;
+  grid-row: 1;
+  grid-column: 1;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  min-height: 0;
 }
 
 .dashboard-question-dialog-head {
@@ -282,7 +293,7 @@
 .dashboard-question-dialog-head small { display: block; margin-top: 5px; overflow: hidden; color: #a39a91; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
 .dashboard-question-dialog-head > button { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #e3dbd3; border-radius: 9px; background: #fff; color: #716962; }
 .dashboard-question-dialog-head > button:hover { border-color: #c99e98; color: #8f3028; }
-.dashboard-question-dialog-scroll { padding: 24px 28px 28px; overflow: auto; }
+.dashboard-question-dialog-scroll { min-height: 0; padding: 24px 28px 28px; overflow: auto; overscroll-behavior: contain; }
 .dashboard-question-title-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .dashboard-question-title-row > div { display: flex; align-items: center; gap: 10px; }
 .dashboard-question-title-row .number { color: #9f2e25; font: 700 26px/1 'Playfair Display', 'Noto Sans SC', serif; }
@@ -310,6 +321,61 @@
 
 .dashboard-question-status > span { color: #918a81; font-size: 10px; }
 .dashboard-question-status > div { display: flex; gap: 8px; }
+
+.dashboard-question-review {
+  position: static;
+  top: auto;
+  display: flex;
+  grid-row: 1;
+  grid-column: 2;
+  width: auto;
+  height: auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 22px 18px 18px;
+  overflow: auto;
+  border-left: 1px solid #eadfd6;
+  border-right: 0;
+  background: #f8f5f1;
+}
+
+.dashboard-review-heading { padding: 2px 3px 17px; border-bottom: 1px solid #e7ddd4; }
+.dashboard-review-heading > div { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.dashboard-review-heading span { color: #b69a91; font-size: 8px; font-weight: 800; letter-spacing: .16em; }
+.dashboard-review-heading h2 { display: flex; align-items: center; gap: 7px; margin: 5px 0 0; color: #4e4842; font-size: 17px; }
+.dashboard-review-heading h2 svg { color: #9f2e25; }
+.dashboard-review-heading small { display: block; margin-top: 8px; color: #968e86; font-size: 9px; line-height: 1.6; }
+.dashboard-review-baseline { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; padding: 10px 11px; border: 1px solid #e2d8cf; border-radius: 10px; background: rgba(255, 255, 255, .5); }
+.dashboard-review-baseline > div { min-width: 0; }
+.dashboard-review-baseline strong { display: block; color: #625a54; font-size: 10px; }
+.dashboard-review-baseline span { display: block; margin-top: 4px; overflow: hidden; color: #a0978f; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.dashboard-review-baseline em { flex: 0 0 auto; padding: 5px 8px; border-radius: 7px; font-size: 8px; font-style: normal; }
+.dashboard-review-baseline em.proficient { background: #eaf5ed; color: #3f7c58; }
+.dashboard-review-baseline em.vague { background: #fff5dc; color: #966714; }
+.dashboard-review-baseline em.wrong { background: #fdecea; color: #a6352d; }
+.dashboard-review-list { display: grid; gap: 11px; padding: 15px 0; }
+.dashboard-review-card { padding: 13px; border: 1px solid #e4d9cf; border-radius: 12px; background: rgba(255, 255, 255, .82); }
+.dashboard-review-card.pending { border-style: dashed; background: rgba(255, 255, 255, .42); }
+.dashboard-review-card > div:first-child { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.dashboard-review-card > div:first-child strong { color: #5c544e; font-size: 11px; }
+.dashboard-review-card > div:first-child > div { display: flex; align-items: center; gap: 6px; }
+.dashboard-review-card > div:first-child span { color: #9f2e25; font-size: 8px; }
+.dashboard-review-card > div:first-child button { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 1px solid #ead3cf; border-radius: 7px; background: #fff; color: #a8473f; }
+.dashboard-review-card > div:first-child button:hover { border-color: #d99d96; background: #fcecea; }
+.dashboard-review-card time { display: block; margin-top: 7px; color: #8e867e; font-size: 9px; }
+.dashboard-review-card > p { margin: 8px 0 0; color: #aaa199; font-size: 8px; }
+.dashboard-review-statuses { display: flex; gap: 5px; margin-top: 11px; }
+.dashboard-review-statuses span, .dashboard-review-statuses button { flex: 1; padding: 6px 3px; border: 1px solid #e3dbd3; border-radius: 7px; background: transparent; color: #aaa199; font: inherit; font-size: 8px; line-height: normal; text-align: center; }
+.dashboard-review-statuses button:not(:disabled) { cursor: pointer; transition: border-color .16s ease, background .16s ease, color .16s ease, transform .16s ease; }
+.dashboard-review-statuses button:not(:disabled):hover { border-color: #cbb9aa; color: #655b54; transform: translateY(-1px); }
+.dashboard-review-statuses button:disabled { cursor: not-allowed; opacity: .58; }
+.dashboard-review-statuses .proficient.active { border-color: #b4d5c0; background: #eaf5ed; color: #3f7c58; }
+.dashboard-review-statuses .vague.active { border-color: #ead195; background: #fff5dc; color: #966714; }
+.dashboard-review-statuses .wrong.active { border-color: #edb2ac; background: #fdecea; color: #a6352d; }
+.dashboard-review-add { display: flex; justify-content: center; align-items: center; gap: 6px; width: 100%; min-height: 34px; border: 1px solid #dccfc4; border-radius: 9px; background: #fff; color: #8f3028; font-size: 9px; }
+.dashboard-review-add:hover { border-color: #c99e98; background: #fcf3f1; }
+.dashboard-review-note { margin: 12px 3px 0; color: #a39b93; font-size: 8px; line-height: 1.65; }
 
 .learning-metrics article {
   min-height: 132px;
@@ -508,6 +574,10 @@
   .month-summary, .selected-day-summary { padding: 0; border-bottom: 0; }
   .selected-day-summary { padding-left: 20px; border-left: 1px solid #e8e1d9; }
   .day-bank-breakdown, .calendar-start-note { grid-column: 1 / -1; }
+  .dashboard-question-dialog { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; }
+  .dashboard-question-main { grid-row: 1; grid-column: 1; }
+  .dashboard-question-review { grid-row: 2; grid-column: 1; max-height: 290px; overflow-x: hidden; overflow-y: auto; border-top: 1px solid #eadfd6; border-left: 0; }
+  .dashboard-review-list { grid-auto-columns: minmax(180px, 1fr); grid-auto-flow: column; grid-template-columns: none; overflow-x: auto; overscroll-behavior-inline: contain; }
 }
 
 @media (max-width: 580px) {
@@ -542,7 +612,7 @@
   .calendar-summary { grid-template-columns: 1fr; padding: 18px; }
   .selected-day-summary { padding: 16px 0 0; border-top: 1px solid #e8e1d9; border-left: 0; }
   .dashboard-question-backdrop { padding: 10px; }
-  .dashboard-question-dialog { max-height: 94vh; border-radius: 14px; }
+  .dashboard-question-dialog { height: 94dvh; max-height: calc(100dvh - 20px); border-radius: 14px; }
   .dashboard-question-dialog-head { min-height: 58px; padding: 11px 14px; }
   .dashboard-question-dialog-scroll { padding: 18px 14px 20px; }
   .dashboard-question-content { padding: 24px 2px 16px; }
@@ -551,4 +621,6 @@
   .dashboard-question-status { align-items: flex-start; flex-direction: column; gap: 10px; padding: 13px 14px; }
   .dashboard-question-status > div { width: 100%; }
   .dashboard-question-status .status-button { flex: 1; justify-content: center; }
+  .dashboard-question-review { max-height: 250px; padding: 16px 14px; }
+  .dashboard-review-list { grid-auto-columns: minmax(170px, 1fr); }
 }

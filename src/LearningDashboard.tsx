@@ -13,6 +13,7 @@ interface LearningDashboardProps {
   selectedBankId: string
   onSelectedBankIdChange: (bankId: string) => void
   onQuestionStatusChange: (bankId: string, questionId: string, status: QuestionStatus, answerRevealed: boolean) => void
+  onQuestionReviewStatusChange: (bankId: string, questionId: string, status: QuestionStatus, answerRevealed: boolean) => void
 }
 
 interface DashboardQuestionPreview {
@@ -35,7 +36,7 @@ function MasteryProgressBar({ stats, label, binaryMode }: { stats: ReturnType<ty
   </div>
 }
 
-export default function LearningDashboard({ banks, statuses, activities, selectedBankId, onSelectedBankIdChange, onQuestionStatusChange }: LearningDashboardProps) {
+export default function LearningDashboard({ banks, statuses, activities, selectedBankId, onSelectedBankIdChange, onQuestionStatusChange, onQuestionReviewStatusChange }: LearningDashboardProps) {
   const orderedBanks = [...sortBanksForDisplay(banks.filter(bank => bankSubject(bank) === '数学')), ...sortBanksForDisplay(banks.filter(bank => bankSubject(bank) === '英语'))]
   const [expandedSectionIds, setExpandedSectionIds] = useState<Set<string>>(() => new Set())
   const [questionMenuId, setQuestionMenuId] = useState<string | null>(null)
@@ -137,6 +138,6 @@ export default function LearningDashboard({ banks, statuses, activities, selecte
         </article>
       })}{selectedBank.chapters.length === 0 && <div className="section-progress-empty">该题库还没有章节数据</div>}</div>
     </section>}
-    {questionPreview && <DashboardQuestionDialog bankName={questionPreview.bank.name} chapterName={questionPreview.chapterName} sectionName={questionPreview.sectionName} question={questionPreview.question} status={statuses[questionPreview.question.id] || 'none'} binaryMode={bankSubject(questionPreview.bank) === '英语'} onStatusChange={(status, answerRevealed) => onQuestionStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onClose={() => setQuestionPreview(null)}/>}
+    {questionPreview && <DashboardQuestionDialog bankName={questionPreview.bank.name} chapterName={questionPreview.chapterName} sectionName={questionPreview.sectionName} question={questionPreview.question} status={statuses[questionPreview.question.id] || 'none'} activities={activities} binaryMode={bankSubject(questionPreview.bank) === '英语'} onStatusChange={(status, answerRevealed) => onQuestionStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => onQuestionReviewStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onClose={() => setQuestionPreview(null)}/>}
   </section>
 }

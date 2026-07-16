@@ -2,6 +2,12 @@ import type { QuestionStatus, ReadingQuestionType } from './types'
 
 export type StudyActivitySource = 'study' | 'wrong-book' | 'dashboard' | 'bulk-clear'
 
+export interface QuestionReviewEvent {
+  status: Exclude<QuestionStatus, 'none'>
+  previousStatus: QuestionStatus
+  reviewedAt: string
+}
+
 export interface StudyActivity {
   /** Version 2 records contain a daily mastery transition and collection context. */
   schemaVersion?: 2
@@ -24,6 +30,8 @@ export interface StudyActivity {
   subject?: 'math' | 'english'
   source?: StudyActivitySource
   answerRevealed?: boolean
+  /** Explicit review attempts remain independent from the once-per-day activity summary. */
+  reviews?: QuestionReviewEvent[]
 }
 
 export type StudyActivityUpdate = Pick<StudyActivity, 'questionId' | 'bankId' | 'status'>
@@ -69,6 +77,11 @@ export function validateStudyActivities(value: unknown): StudyActivity[] {
       && (activity.subject === undefined || activity.subject === 'math' || activity.subject === 'english')
       && (activity.source === undefined || activity.source === 'study' || activity.source === 'wrong-book' || activity.source === 'dashboard' || activity.source === 'bulk-clear')
       && (activity.answerRevealed === undefined || typeof activity.answerRevealed === 'boolean')
+      && (activity.reviews === undefined || Array.isArray(activity.reviews) && activity.reviews.every(review => review
+        && (review.status === 'proficient' || review.status === 'vague' || review.status === 'wrong')
+        && (review.previousStatus === 'none' || review.previousStatus === 'proficient' || review.previousStatus === 'vague' || review.previousStatus === 'wrong')
+        && typeof review.reviewedAt === 'string'
+        && !Number.isNaN(Date.parse(review.reviewedAt))))
   })
 }
 
