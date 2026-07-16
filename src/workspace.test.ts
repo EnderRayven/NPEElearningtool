@@ -30,13 +30,37 @@ describe('workspace data separation', () => {
     expect(resolved.settings.examDate).toBe('2026-12-19')
   })
 
+  it('keeps notes outside study rounds and preserves browser notes for legacy files', () => {
+    const fallbackNotes = {
+      'question-1': {
+        text: '跨轮次保留',
+        drawing: { version: 1 as const, aspectRatio: 1.5, strokes: [] },
+        updatedAt: '2026-07-16T08:00:00.000Z',
+      },
+    }
+    const resolved = resolveWorkspaceUserData(
+      { version: 3, updatedAt: '2026-07-15T00:00:00.000Z', rounds: { '1': { statuses: {}, activities: [] } } },
+      undefined,
+      { '1': { statuses: {}, activities: [] } },
+      { activeRound: 1, roundCount: 5 },
+      fallbackNotes,
+    )
+    expect(resolved.notes).toEqual(fallbackNotes)
+    expect(resolved.rounds['1']).not.toHaveProperty('notes')
+  })
+
   it('writes isolated study rounds only to user data', () => {
     const activities = [{ date: '2026-07-14', questionId: 'question-1', bankId: 'bank-1', status: 'wrong' as const, updatedAt: '2026-07-14T02:00:00.000Z' }]
-    const userData = createWorkspaceUserData({ '1': { statuses: { 'question-1': 'wrong' }, activities } }, { examDate: '2026-12-19', activeRound: 1, roundCount: 5 })
-    expect(userData.version).toBe(3)
+    const userData = createWorkspaceUserData(
+      { '1': { statuses: { 'question-1': 'wrong' }, activities } },
+      { examDate: '2026-12-19', activeRound: 1, roundCount: 5 },
+      { 'question-1': { text: '复盘笔记', drawing: { version: 1, aspectRatio: 1.5, strokes: [] }, updatedAt: '2026-07-16T08:00:00.000Z' } },
+    )
+    expect(userData.version).toBe(4)
     expect(userData.rounds?.['1'].statuses).toEqual({ 'question-1': 'wrong' })
     expect(userData.rounds?.['1'].activities).toEqual(activities)
     expect(userData.settings).toEqual({ examDate: '2026-12-19', activeRound: 1, roundCount: 5 })
+    expect(userData.notes?.['question-1'].text).toBe('复盘笔记')
     expect(userData).not.toHaveProperty('statuses')
     expect(userData).not.toHaveProperty('activities')
     expect(userData).not.toHaveProperty('banks')

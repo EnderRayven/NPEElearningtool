@@ -1,4 +1,4 @@
-import type { QuestionStatus, ReadingQuestionType } from './types'
+import type { QuestionStatus, ReadingQuestionType, Subject } from './types'
 
 export type StudyActivitySource = 'study' | 'wrong-book' | 'dashboard' | 'bulk-clear'
 
@@ -27,7 +27,7 @@ export interface StudyActivity {
   questionNumber?: number
   questionType?: string
   readingType?: ReadingQuestionType
-  subject?: 'math' | 'english'
+  subject?: Subject
   source?: StudyActivitySource
   answerRevealed?: boolean
   /** Explicit review attempts remain independent from the once-per-day activity summary. */
@@ -74,7 +74,7 @@ export function validateStudyActivities(value: unknown): StudyActivity[] {
       && (activity.questionNumber === undefined || Number.isFinite(activity.questionNumber))
       && (activity.questionType === undefined || typeof activity.questionType === 'string')
       && (activity.readingType === undefined || readingTypes.has(activity.readingType))
-      && (activity.subject === undefined || activity.subject === 'math' || activity.subject === 'english')
+      && (activity.subject === undefined || activity.subject === 'math' || activity.subject === 'english' || activity.subject === 'professional')
       && (activity.source === undefined || activity.source === 'study' || activity.source === 'wrong-book' || activity.source === 'dashboard' || activity.source === 'bulk-clear')
       && (activity.answerRevealed === undefined || typeof activity.answerRevealed === 'boolean')
       && (activity.reviews === undefined || Array.isArray(activity.reviews) && activity.reviews.every(review => review

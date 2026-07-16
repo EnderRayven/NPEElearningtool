@@ -1,4 +1,4 @@
-import type { PartBKind, QuestionBank, QuestionStatus, ReadingQuestionType } from './types'
+import type { PartBKind, Question, QuestionBank, QuestionStatus, ReadingQuestionType, Section, Subject } from './types'
 import { builtInBanks } from './data'
 import { migrateZhangyuBankId, migrateZhangyuReference, RETIRED_ZHANGYU_COMBINED_BANK_ID } from './bankMigration'
 
@@ -8,6 +8,7 @@ const NAVIGATION_KEY = 'npee:navigation:v1'
 const VALID_STATUSES = new Set<QuestionStatus>(['none', 'proficient', 'vague', 'wrong'])
 const VALID_READING_TYPES = new Set<ReadingQuestionType>(['detail', 'example', 'main-idea', 'attitude', 'inference', 'vocabulary'])
 const VALID_PART_B_KINDS = new Set<PartBKind>(['ordering', 'sentence', 'subheading', 'viewpoint'])
+const VALID_SUBJECTS = new Set<Subject>(['math', 'english', 'professional'])
 const REMOVED_BANK_IDS = new Set(['local-calculus', 'local-linear', RETIRED_ZHANGYU_COMBINED_BANK_ID])
 const LEGACY_ENGLISH_BANK_ID = /^english-20\d{2}$/
 const ENGLISH_BANK_ID = 'english-exams'
@@ -119,6 +120,7 @@ export interface NavigationState {
   studyPositions: {
     math?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
     english?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
+    professional?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
   }
 }
 
@@ -148,6 +150,7 @@ export function loadNavigation(): NavigationState | null {
       studyPositions: isRecord(value.studyPositions) ? {
         math: parseStudyPosition(value.studyPositions.math),
         english: parseStudyPosition(value.studyPositions.english),
+        professional: parseStudyPosition(value.studyPositions.professional),
       } : {},
     }
     if (raw !== JSON.stringify(migrated)) trySetItem(NAVIGATION_KEY, JSON.stringify(migrated))
@@ -188,10 +191,9 @@ export function validateBanks(value: unknown): QuestionBank[] {
     const path = `题库 ${bankIndex + 1}`
     if (!isRecord(rawBank)) throw new Error(`${path} 格式不正确`)
     if (!Array.isArray(rawBank.chapters)) throw new Error(`${path}.chapters 必须是数组`)
-    return {
+    const bank: QuestionBank = {
       id: uniqueId(rawBank.id, `${path}.id`),
       name: requiredString(rawBank.name, `${path}.name`),
-      description: optionalString(rawBank.description, `${path}.description`),
       source: rawBank.source === 'remote' ? 'remote' : 'local',
       chapters: rawBank.chapters.map((rawChapter, chapterIndex) => {
         const chapterPath = `${path}.chapters[${chapterIndex}]`
@@ -202,13 +204,9 @@ export function validateBanks(value: unknown): QuestionBank[] {
           sections: rawChapter.sections.map((rawSection, sectionIndex) => {
             const sectionPath = `${chapterPath}.sections[${sectionIndex}]`
             if (!isRecord(rawSection) || !Array.isArray(rawSection.questions)) throw new Error(`${sectionPath} 缺少 questions 数组`)
-            return {
+            const section: Section = {
               id: uniqueId(rawSection.id, `${sectionPath}.id`),
               name: requiredString(rawSection.name, `${sectionPath}.name`),
-              passage: optionalString(rawSection.passage, `${sectionPath}.passage`),
-              passageImageUrls: optionalStringArray(rawSection.passageImageUrls, `${sectionPath}.passageImageUrls`),
-              partBKind: VALID_PART_B_KINDS.has(rawSection.partBKind as PartBKind) ? rawSection.partBKind as PartBKind : undefined,
-              partBSequence: optionalString(rawSection.partBSequence, `${sectionPath}.partBSequence`),
               questions: rawSection.questions.map((rawQuestion, questionIndex) => {
                 const questionPath = `${sectionPath}.questions[${questionIndex}]`
                 if (!isRecord(rawQuestion)) throw new Error(`${questionPath} 格式不正确`)
@@ -223,26 +221,42 @@ export function validateBanks(value: unknown): QuestionBank[] {
                 const text = typeof rawQuestion.text === 'string' && rawQuestion.text.trim() === '' && (type === '图片题' || imageUrl || imageKeys?.length || answerImageUrl || answerImageKeys?.length)
                   ? ''
                   : requiredString(rawQuestion.text, `${questionPath}.text`)
-                return {
+                const question: Question = {
                   id: uniqueId(rawQuestion.id, `${questionPath}.id`),
                   number: rawQuestion.number as number,
-                  type,
                   text,
-                  options: rawQuestion.options as string[] | undefined,
                   answer: requiredString(rawQuestion.answer, `${questionPath}.answer`),
                   analysis: requiredString(rawQuestion.analysis, `${questionPath}.analysis`),
-                  imageUrl,
-                  answerImageUrl,
-                  imageKeys,
-                  answerImageKeys,
-                  videoUrl: optionalString(rawQuestion.videoUrl, `${questionPath}.videoUrl`),
-                  readingType: VALID_READING_TYPES.has(rawQuestion.readingType as ReadingQuestionType) ? rawQuestion.readingType as ReadingQuestionType : undefined
                 }
+                if (type !== undefined) question.type = type
+                if (rawQuestion.options !== undefined) question.options = rawQuestion.options as string[]
+                if (imageUrl !== undefined) question.imageUrl = imageUrl
+                if (answerImageUrl !== undefined) question.answerImageUrl = answerImageUrl
+                if (imageKeys !== undefined) question.imageKeys = imageKeys
+                if (answerImageKeys !== undefined) question.answerImageKeys = answerImageKeys
+                const videoUrl = optionalString(rawQuestion.videoUrl, `${questionPath}.videoUrl`)
+                if (videoUrl !== undefined) question.videoUrl = videoUrl
+                if (VALID_READING_TYPES.has(rawQuestion.readingType as ReadingQuestionType)) question.readingType = rawQuestion.readingType as ReadingQuestionType
+                return question
               })
             }
+            const passage = optionalString(rawSection.passage, `${sectionPath}.passage`)
+            const passageImageUrls = optionalStringArray(rawSection.passageImageUrls, `${sectionPath}.passageImageUrls`)
+            const partBKind = VALID_PART_B_KINDS.has(rawSection.partBKind as PartBKind) ? rawSection.partBKind as PartBKind : undefined
+            const partBSequence = optionalString(rawSection.partBSequence, `${sectionPath}.partBSequence`)
+            if (passage !== undefined) section.passage = passage
+            if (passageImageUrls !== undefined) section.passageImageUrls = passageImageUrls
+            if (partBKind !== undefined) section.partBKind = partBKind
+            if (partBSequence !== undefined) section.partBSequence = partBSequence
+            return section
           })
         }
       })
     }
+    const description = optionalString(rawBank.description, `${path}.description`)
+    const subject = VALID_SUBJECTS.has(rawBank.subject as Subject) ? rawBank.subject as Subject : undefined
+    if (description !== undefined) bank.description = description
+    if (subject !== undefined) bank.subject = subject
+    return bank
   })
 }

@@ -33,4 +33,11 @@ export const defaultBankIds = [
   'workspace-1783942778439-29',
   'default-880-calculus',
   'english-exams',
+  'default-mechanical-theory-lecture-exercises',
+  'default-mechanical-design-lecture-exercises',
+  'default-mechanical-theory-basic-450',
+  'default-mechanical-theory-intensive-220',
+  'default-mechanical-design-basic-600',
+  'default-mechanical-design-pass-680',
+  'default-mechanical-design-intensive-notes',
 ] as const

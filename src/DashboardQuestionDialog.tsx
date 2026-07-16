@@ -5,6 +5,8 @@ import { isImageAnswerPlaceholder } from './questionPresentation'
 import { buildQuestionReviewTimeline } from './questionReview'
 import { localDateKey, type StudyActivity } from './studyActivity'
 import type { Question, QuestionStatus } from './types'
+import QuestionNotePanel from './QuestionNotePanel'
+import type { QuestionNote } from './questionNotes'
 
 interface DashboardQuestionDialogProps {
   bankName: string
@@ -13,9 +15,11 @@ interface DashboardQuestionDialogProps {
   question: Question
   status: QuestionStatus
   activities: StudyActivity[]
+  note?: QuestionNote
   binaryMode: boolean
   onStatusChange: (status: QuestionStatus, answerRevealed: boolean) => void
   onReviewStatusChange: (status: QuestionStatus, answerRevealed: boolean) => void
+  onNoteChange: (note: QuestionNote) => void
   onClose: () => void
 }
 
@@ -33,7 +37,7 @@ const formatMarkedAt = (value: string) => {
   }).format(date)
 }
 
-export default function DashboardQuestionDialog({ bankName, chapterName, sectionName, question, status, activities, binaryMode, onStatusChange, onReviewStatusChange, onClose }: DashboardQuestionDialogProps) {
+export default function DashboardQuestionDialog({ bankName, chapterName, sectionName, question, status, activities, note, binaryMode, onStatusChange, onReviewStatusChange, onNoteChange, onClose }: DashboardQuestionDialogProps) {
   const [answerOpen, setAnswerOpen] = useState(false)
   const timeline = buildQuestionReviewTimeline(activities, question.id)
   const effectiveStatus = binaryMode && status === 'vague' ? 'none' : status
@@ -77,7 +81,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
       </header>
       <div className="dashboard-question-dialog-scroll">
         <div className="dashboard-question-title-row">
-          <div><span className="number">{String(question.number).padStart(2, '0')}</span>{question.type && <span className="type">{question.type}</span>}</div>
+          <div><span className="number">{String(question.number).padStart(2, '0')}</span></div>
           <span className={`current-status ${effectiveStatus}`}>{statusMeta[effectiveStatus].icon} {labelFor(effectiveStatus)}</span>
         </div>
         <div className="dashboard-question-content" id="dashboard-question-title">
@@ -98,6 +102,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
           </div>
           {question.videoUrl && <a href={question.videoUrl} target="_blank" rel="noreferrer">观看视频解析 →</a>}
         </div>}
+        <QuestionNotePanel questionId={question.id} note={note} onChange={onNoteChange}/>
       </div>
       <footer className="dashboard-question-status">
         <span>掌握情况</span>

@@ -1,6 +1,7 @@
 export type QuestionStatus = 'none' | 'proficient' | 'vague' | 'wrong'
 export type ReadingQuestionType = 'detail' | 'example' | 'main-idea' | 'attitude' | 'inference' | 'vocabulary'
 export type PartBKind = 'ordering' | 'sentence' | 'subheading' | 'viewpoint'
+export type Subject = 'math' | 'english' | 'professional'
 
 export interface Question {
   id: string
@@ -28,5 +29,5 @@ export interface Section {
   partBSequence?: string
 }
 export interface Chapter { id: string; name: string; sections: Section[] }
-export interface QuestionBank { id: string; name: string; description?: string; source: 'local' | 'remote'; chapters: Chapter[] }
+export interface QuestionBank { id: string; name: string; description?: string; subject?: Subject; source: 'local' | 'remote'; chapters: Chapter[] }
 export interface BankExport { version: 1; banks: QuestionBank[] }

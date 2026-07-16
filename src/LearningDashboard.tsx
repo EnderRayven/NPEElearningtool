@@ -5,15 +5,19 @@ import { sortBanksForDisplay } from './bankSorting'
 import { calculateLearningStats, calculateQuestionStats, formatRate } from './learningStats'
 import { calculateDailyActivity, localDateKey, type StudyActivity } from './studyActivity'
 import DashboardQuestionDialog from './DashboardQuestionDialog'
+import { bankSubject, subjectOrder } from './subjects'
+import type { QuestionNote, QuestionNotes } from './questionNotes'
 
 interface LearningDashboardProps {
   banks: QuestionBank[]
   statuses: Record<string, QuestionStatus>
   activities: StudyActivity[]
+  notes: QuestionNotes
   selectedBankId: string
   onSelectedBankIdChange: (bankId: string) => void
   onQuestionStatusChange: (bankId: string, questionId: string, status: QuestionStatus, answerRevealed: boolean) => void
   onQuestionReviewStatusChange: (bankId: string, questionId: string, status: QuestionStatus, answerRevealed: boolean) => void
+  onQuestionNoteChange: (questionId: string, note: QuestionNote) => void
 }
 
 interface DashboardQuestionPreview {
@@ -22,8 +26,6 @@ interface DashboardQuestionPreview {
   sectionName: string
   question: Question
 }
-
-const bankSubject = (bank: QuestionBank) => bank.id.startsWith('english-') || /英语/i.test(bank.name) ? '英语' : '数学'
 
 function MasteryProgressBar({ stats, label, binaryMode }: { stats: ReturnType<typeof calculateQuestionStats>; label: string; binaryMode: boolean }) {
   const share = (count: number) => stats.total ? `${count / stats.total * 100}%` : '0%'
@@ -36,8 +38,8 @@ function MasteryProgressBar({ stats, label, binaryMode }: { stats: ReturnType<ty
   </div>
 }
 
-export default function LearningDashboard({ banks, statuses, activities, selectedBankId, onSelectedBankIdChange, onQuestionStatusChange, onQuestionReviewStatusChange }: LearningDashboardProps) {
-  const orderedBanks = [...sortBanksForDisplay(banks.filter(bank => bankSubject(bank) === '数学')), ...sortBanksForDisplay(banks.filter(bank => bankSubject(bank) === '英语'))]
+export default function LearningDashboard({ banks, statuses, activities, notes, selectedBankId, onSelectedBankIdChange, onQuestionStatusChange, onQuestionReviewStatusChange, onQuestionNoteChange }: LearningDashboardProps) {
+  const orderedBanks = subjectOrder.flatMap(subject => sortBanksForDisplay(banks.filter(bank => bankSubject(bank) === subject)))
   const [expandedSectionIds, setExpandedSectionIds] = useState<Set<string>>(() => new Set())
   const [questionMenuId, setQuestionMenuId] = useState<string | null>(null)
   const [questionPreview, setQuestionPreview] = useState<DashboardQuestionPreview | null>(null)
@@ -45,8 +47,9 @@ export default function LearningDashboard({ banks, statuses, activities, selecte
   const [calendarMonth, setCalendarMonth] = useState(today.slice(0, 7))
   const [selectedDate, setSelectedDate] = useState(today)
   const selectedBank = orderedBanks.find(bank => bank.id === selectedBankId) || orderedBanks[0]
-  const selectedBankIsEnglish = selectedBank ? bankSubject(selectedBank) === '英语' : false
+  const selectedBankIsEnglish = selectedBank ? bankSubject(selectedBank) === 'english' : false
   const selectedStats = selectedBank ? calculateLearningStats([selectedBank], statuses) : null
+  const overallStats = calculateLearningStats(orderedBanks, statuses)
   const [calendarYear, calendarMonthNumber] = calendarMonth.split('-').map(Number)
   const firstDay = new Date(calendarYear, calendarMonthNumber - 1, 1)
   const leadingDays = (firstDay.getDay() + 6) % 7
@@ -55,7 +58,6 @@ export default function LearningDashboard({ banks, statuses, activities, selecte
   const markedActivities = activities.filter(item => item.status !== 'none')
   const todayActivities = markedActivities.filter(item => item.date === today)
   const todayStats = calculateDailyActivity(todayActivities)
-  const todayBankCount = new Set(todayActivities.map(item => item.bankId)).size
   const todayReviewCount = todayStats.vague + todayStats.wrong
   const monthActivities = markedActivities.filter(item => item.date.startsWith(`${calendarMonth}-`))
   const dailyActivities = new Map<string, StudyActivity[]>()
@@ -116,10 +118,9 @@ export default function LearningDashboard({ banks, statuses, activities, selecte
       </div>
     </section>
     <div className="learning-metrics">
-      <article><span>今日练习</span><strong>{todayStats.total}<em>题</em></strong><small>{todayStats.total ? `涉及 ${todayBankCount} 个题库 · ${todayStats.proficient} 题正确` : '今天还没有学习记录'}</small></article>
-      <article><span>今日正确率</span><strong>{formatRate(todayStats.accuracy)}</strong><small>{todayStats.total ? `${todayStats.proficient} / ${todayStats.total} 道今日练习` : '完成今日练习后开始统计'}</small></article>
       <article><span>今日待复盘</span><strong>{todayReviewCount}<em>题</em></strong><small>{todayStats.total ? `${todayStats.wrong} 错误 · ${todayStats.vague} 模糊` : '今日暂无待复盘题目'}</small></article>
-      <article className="learning-metric-placeholder" aria-hidden="true"/>
+      <article><span>总体进度</span><strong>{formatRate(overallStats.completion)}</strong><small>{overallStats.marked} / {overallStats.total} 道题已标记 · 所有题库</small></article>
+      <article><span>总体正确率</span><strong>{formatRate(overallStats.accuracy)}</strong><small>{overallStats.proficient} 正确 · {overallStats.vague} 模糊 · {overallStats.wrong} 错误</small></article>
     </div>
     {selectedBank && selectedStats && <section className="section-progress-panel">
       <div className="section-progress-heading"><div><span>BANK DETAILS</span><div className="section-progress-title"><h2>{selectedBank.name}</h2><label className="dashboard-bank-switch"><span>切换题库</span><ChevronDown size={12}/><select aria-label="切换题库" value={selectedBank.id} onChange={event => onSelectedBankIdChange(event.target.value)}>{orderedBanks.map(bank => <option key={bank.id} value={bank.id}>{bank.name}</option>)}</select></label></div><p>{selectedBank.chapters.length} 个章节 · {selectedStats.marked} / {selectedStats.total} 道题已标记</p></div><div className="section-progress-overview"><div><span>当前题库进度</span><strong>{formatRate(selectedStats.completion)}</strong></div><div><span>题库正确率</span><strong>{formatRate(selectedStats.accuracy)}</strong></div></div></div>
@@ -150,6 +151,6 @@ export default function LearningDashboard({ banks, statuses, activities, selecte
         </article>
       })}{selectedBank.chapters.length === 0 && <div className="section-progress-empty">该题库还没有章节数据</div>}</div>
     </section>}
-    {questionPreview && <DashboardQuestionDialog bankName={questionPreview.bank.name} chapterName={questionPreview.chapterName} sectionName={questionPreview.sectionName} question={questionPreview.question} status={statuses[questionPreview.question.id] || 'none'} activities={activities} binaryMode={bankSubject(questionPreview.bank) === '英语'} onStatusChange={(status, answerRevealed) => onQuestionStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => onQuestionReviewStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onClose={() => setQuestionPreview(null)}/>}
+    {questionPreview && <DashboardQuestionDialog bankName={questionPreview.bank.name} chapterName={questionPreview.chapterName} sectionName={questionPreview.sectionName} question={questionPreview.question} status={statuses[questionPreview.question.id] || 'none'} activities={activities} note={notes[questionPreview.question.id]} binaryMode={bankSubject(questionPreview.bank) === 'english'} onStatusChange={(status, answerRevealed) => onQuestionStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => onQuestionReviewStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onNoteChange={note => onQuestionNoteChange(questionPreview.question.id, note)} onClose={() => setQuestionPreview(null)}/>}
   </section>
 }

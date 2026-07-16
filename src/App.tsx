@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, BookOpen, CalendarDays, ChevronDown, ChevronRight, CircleHelp, Download, FileImage, FileText, FileUp, Filter, FolderOpen, FolderSync, Menu, Pencil, Plus, RotateCcw, Search, Settings as SettingsIcon, X } from 'lucide-react'
-import type { Question, QuestionBank, QuestionStatus, ReadingQuestionType, Section } from './types'
+import type { Question, QuestionBank, QuestionStatus, ReadingQuestionType, Section, Subject } from './types'
 import { loadBanks, loadNavigation, renameBank, renameChapter, saveBanks, saveNavigation, validateBanks } from './store'
 import { deleteAssets } from './assets'
 import AssetGallery from './AssetGallery'
@@ -22,6 +22,9 @@ import { removeRetiredBanks } from './bankMigration'
 import { formatExamDateValue, getExamCountdown, parseExamDateValue } from './examCountdown'
 import { DEFAULT_USER_SETTINGS, loadUserSettings, saveUserSettings, validateUserSettings } from './userSettings'
 import { countMarkedQuestions, emptyStudyRound, getStudyRound, loadStudyRounds, migrateStudyRounds, saveStudyRounds, updateStudyRound } from './studyRounds'
+import QuestionNotePanel from './QuestionNotePanel'
+import { hasQuestionNote, loadQuestionNotes, saveQuestionNotes, validateQuestionNotes, type QuestionNote, type QuestionNotes } from './questionNotes'
+import { bankSubject, subjectLabels } from './subjects'
 
 const statusMeta: Record<QuestionStatus, { label: string; icon: string }> = {
   none: { label: '未标记', icon: '○' }, proficient: { label: '熟练', icon: '✓' }, vague: { label: '模糊', icon: '?' }, wrong: { label: '错误', icon: '×' }
@@ -43,9 +46,7 @@ const effectiveQuestionStatus = (item: Question | undefined, status: QuestionSta
 const questionStatusMeta = (item: Question | undefined, status: QuestionStatus, binaryMode = isBinaryMasteryQuestion(item)) => binaryMode ? binaryStatusMeta[status] : statusMeta[status]
 const masteryChoices = (item?: Question, binaryMode = isBinaryMasteryQuestion(item)): QuestionStatus[] => binaryMode ? ['proficient', 'wrong'] : ['proficient', 'vague', 'wrong']
 
-type Subject = 'math' | 'english'
 type BankQuestionEntry = ReturnType<typeof orderedQuestionEntriesForBank>[number]
-const bankSubject = (item: QuestionBank): Subject => item.id.startsWith('english-') || /英语/i.test(item.name) ? 'english' : 'math'
 const protectedBankIds = new Set<string>(defaultBankIds)
 
 export default function App() {
@@ -55,6 +56,8 @@ export default function App() {
   const initialRound = getStudyRound(studyRounds, userSettings.activeRound)
   const [statuses, setStatuses] = useState(() => initialRound.statuses)
   const [activities, setActivities] = useState(() => initialRound.activities)
+  const [questionNotes, setQuestionNotes] = useState<QuestionNotes>({})
+  const [notesReady, setNotesReady] = useState(false)
   const [bankId, setBankId] = useState(banks[0]?.id || '')
   const [sectionId, setSectionId] = useState(banks[0]?.chapters[0]?.sections[0]?.id || '')
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -74,6 +77,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [newBankOpen, setNewBankOpen] = useState(false)
   const [newBankName, setNewBankName] = useState('')
+  const [newBankSubject, setNewBankSubject] = useState<Subject>('math')
   const [namingHelpOpen, setNamingHelpOpen] = useState(false)
   const [settingsToolsOpen, setSettingsToolsOpen] = useState(false)
   const [countdownNow, setCountdownNow] = useState(() => new Date())
@@ -85,6 +89,7 @@ export default function App() {
   const [workspaceFolders, setWorkspaceFolders] = useState<Record<string, string>>({})
   const [defaultWorkspaceConnected, setDefaultWorkspaceConnected] = useState(false)
   const workspaceReady = useRef(false)
+  const notesLoaded = useRef(false)
   const studyPositions = useRef<Partial<Record<Subject, SavedNavigation>>>({})
   const importRef = useRef<HTMLInputElement>(null)
   const imageImportRef = useRef<HTMLInputElement>(null)
@@ -97,6 +102,23 @@ export default function App() {
     if (!saveStudyRounds(rounds)) setToast('学习轮次保存失败，请先导出备份后检查浏览器存储空间')
   }, [studyRounds, userSettings.activeRound, statuses, activities])
   useEffect(() => { if (!saveUserSettings(userSettings)) setToast('用户设置保存失败，请检查浏览器存储空间') }, [userSettings])
+  useEffect(() => {
+    let cancelled = false
+    loadQuestionNotes().then(savedNotes => {
+      if (cancelled || notesLoaded.current) return
+      notesLoaded.current = true
+      setQuestionNotes(savedNotes)
+      setNotesReady(true)
+    }).catch(() => setToast('笔记读取失败，请检查浏览器存储空间'))
+    return () => { cancelled = true }
+  }, [])
+  useEffect(() => {
+    if (!notesReady) return
+    const timer = window.setTimeout(() => {
+      saveQuestionNotes(questionNotes).catch(() => setToast('笔记保存失败，请先导出完整备份'))
+    }, 350)
+    return () => window.clearTimeout(timer)
+  }, [questionNotes, notesReady])
   useEffect(() => { const timer = window.setInterval(() => setCountdownNow(new Date()), 60 * 60 * 1000); return () => window.clearInterval(timer) }, [])
   useEffect(() => {
     if (!settingsToolsOpen) return
@@ -134,12 +156,12 @@ export default function App() {
     const timer = window.setTimeout(() => {
       const rounds = updateStudyRound(studyRounds, userSettings.activeRound, statuses, activities)
       const save = defaultWorkspaceConnected
-        ? writeDefaultWorkspaceUserData(rounds, userSettings)
-        : workspaceHandle ? writeWorkspaceUserData(workspaceHandle, rounds, userSettings) : Promise.resolve()
+        ? writeDefaultWorkspaceUserData(rounds, userSettings, questionNotes)
+        : workspaceHandle ? writeWorkspaceUserData(workspaceHandle, rounds, userSettings, questionNotes) : Promise.resolve()
       save.catch(() => setWorkspaceState('error'))
     }, 450)
     return () => window.clearTimeout(timer)
-  }, [studyRounds, statuses, activities, userSettings, workspaceHandle, workspaceState, defaultWorkspaceConnected])
+  }, [studyRounds, statuses, activities, userSettings, questionNotes, workspaceHandle, workspaceState, defaultWorkspaceConnected])
   useEffect(() => {
     restoreSavedNavigation(banks, statuses)
     setNavigationReady(true)
@@ -260,7 +282,11 @@ export default function App() {
     }
     const nextBank = sortBanksForDisplay(banks.filter(item => bankSubject(item) === nextSubject))[0]
     if (nextBank) { setActivePage('study'); selectBank(nextBank) }
-    else setToast(nextSubject === 'english' ? '还没有英语题库' : '还没有数学题库')
+    else {
+      setNewBankSubject(nextSubject)
+      setNewBankOpen(true)
+      setToast(`还没有${subjectLabels[nextSubject]}题库，可以先新建一个`)
+    }
   }
   function selectSection(id: string) {
     const owner = bank.chapters.find(chapter => chapter.sections.some(item => item.id === id))
@@ -394,6 +420,17 @@ export default function App() {
   function currentStudyRounds() {
     return updateStudyRound(studyRounds, userSettings.activeRound, statuses, activities)
   }
+  function updateQuestionNote(questionId: string, note: QuestionNote) {
+    setQuestionNotes(previous => {
+      if (!hasQuestionNote(note)) {
+        if (!previous[questionId]) return previous
+        const next = { ...previous }
+        delete next[questionId]
+        return next
+      }
+      return { ...previous, [questionId]: note }
+    })
+  }
   function switchStudyRound(nextRound: number) {
     if (nextRound === userSettings.activeRound) return
     const rounds = currentStudyRounds()
@@ -416,7 +453,7 @@ export default function App() {
     return round === userSettings.activeRound ? { statuses, activities } : getStudyRound(studyRounds, round)
   }
   function exportData() {
-    const blob = new Blob([JSON.stringify({ version: 3, banks, rounds: currentStudyRounds(), settings: userSettings }, null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify({ version: 4, banks, rounds: currentStudyRounds(), settings: userSettings, notes: questionNotes }, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `考研学习空间备份-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url)
   }
   function exportSingleBank(targetBank: QuestionBank) {
@@ -480,7 +517,7 @@ export default function App() {
     const removableBanks = banks.filter(item => !protectedBankIds.has(item.id))
     await deleteAssets(removableBanks.flatMap(assetKeysForBank))
     const defaults = [...structuredClone(protectedBanks), ...structuredClone(builtInBanks).filter(item => !protectedBankIds.has(item.id))]
-    setBanks(defaults); setStudyRounds({ '1': emptyStudyRound() }); setStatuses({}); setActivities([]); setUserSettings({ ...DEFAULT_USER_SETTINGS }); setBankId(defaults[0].id); setSectionId(defaults[0].chapters[0]?.sections[0]?.id || ''); setQuestionIndex(0); setView('section'); setSettingsOpen(false); setToast('已恢复出厂设置，默认题库已保留')
+    setBanks(defaults); setStudyRounds({ '1': emptyStudyRound() }); setStatuses({}); setActivities([]); setQuestionNotes({}); setUserSettings({ ...DEFAULT_USER_SETTINGS }); setBankId(defaults[0].id); setSectionId(defaults[0].chapters[0]?.sections[0]?.id || ''); setQuestionIndex(0); setView('section'); setSettingsOpen(false); setToast('已恢复出厂设置，默认题库已保留')
   }
   function printExport(job: ExportJob) {
     if (!job.questions.length) { setToast('当前条件下没有可导出的题目'); return }
@@ -501,6 +538,11 @@ export default function App() {
         const targetRound = getStudyRound(importedRounds, importedSettings.activeRound)
         setStudyRounds(importedRounds); setStatuses(targetRound.statuses); setActivities(targetRound.activities); setUserSettings(importedSettings)
       } else if (parsed.settings) setUserSettings(validateUserSettings(parsed.settings))
+      if (parsed.version >= 4 || parsed.notes) {
+        notesLoaded.current = true
+        setNotesReady(true)
+        setQuestionNotes(validateQuestionNotes(parsed.notes))
+      }
       setToast(`成功导入 ${imported.length} 个题库`)
     } catch (e) { setToast(e instanceof Error ? e.message : '导入失败') }
     if (importRef.current) importRef.current.value = ''
@@ -526,9 +568,10 @@ export default function App() {
       if (index.manifest && index.manifest.builtinEnglishVersion !== BUILTIN_ENGLISH_VERSION) {
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
-      const resolvedUserData = resolveWorkspaceUserData(index.userData, index.manifest?.statuses, currentStudyRounds(), userSettings)
+      const resolvedUserData = resolveWorkspaceUserData(index.userData, index.manifest?.statuses, currentStudyRounds(), userSettings, await loadQuestionNotes())
       const nextSettings = resolvedUserData.settings
       const nextRounds = resolvedUserData.rounds
+      const nextNotes = resolvedUserData.notes
       const nextRound = getStudyRound(nextRounds, nextSettings.activeRound)
       const nextStatuses = nextRound.statuses
       const nextActivities = nextRound.activities
@@ -554,7 +597,9 @@ export default function App() {
         }
       }
       workspaceReady.current = false
-      setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(null); setDefaultWorkspaceConnected(true); setWorkspaceState('connected')
+      notesLoaded.current = true
+      setNotesReady(true)
+      setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(null); setDefaultWorkspaceConnected(true); setWorkspaceState('connected')
       window.setTimeout(() => {
         workspaceReady.current = true
       }, 0)
@@ -582,9 +627,10 @@ export default function App() {
         seededEnglishCount = englishBanks.length
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
-      const resolvedUserData = resolveWorkspaceUserData(userData, manifest?.statuses, currentStudyRounds(), userSettings)
+      const resolvedUserData = resolveWorkspaceUserData(userData, manifest?.statuses, currentStudyRounds(), userSettings, await loadQuestionNotes())
       const nextSettings = resolvedUserData.settings
       const nextRounds = resolvedUserData.rounds
+      const nextNotes = resolvedUserData.notes
       const nextRound = getStudyRound(nextRounds, nextSettings.activeRound)
       const nextStatuses = nextRound.statuses
       const nextActivities = nextRound.activities
@@ -616,7 +662,9 @@ export default function App() {
         }
       }
       workspaceReady.current = false
-      setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(handle); setDefaultWorkspaceConnected(false)
+      notesLoaded.current = true
+      setNotesReady(true)
+      setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(handle); setDefaultWorkspaceConnected(false)
       setWorkspaceState('connected')
       window.setTimeout(() => {
         workspaceReady.current = true
@@ -656,7 +704,7 @@ export default function App() {
   async function switchWorkspace() {
     try {
       if (workspaceHandle && workspaceState === 'connected') {
-        void Promise.all([writeWorkspaceManifest(workspaceHandle, banks, workspaceFolders), writeWorkspaceUserData(workspaceHandle, currentStudyRounds(), userSettings)]).catch(() => {})
+        void Promise.all([writeWorkspaceManifest(workspaceHandle, banks, workspaceFolders), writeWorkspaceUserData(workspaceHandle, currentStudyRounds(), userSettings, questionNotes)]).catch(() => {})
       }
       const handle = await chooseWorkspace()
       await loadWorkspace(handle)
@@ -668,7 +716,7 @@ export default function App() {
   async function createBank() {
     const name = newBankName.trim()
     if (!name) { setToast('请输入题库名称'); return }
-    const created: QuestionBank = { id: `local-${Date.now()}`, name, description: '自建本地题库', source: 'local', chapters: [] }
+    const created: QuestionBank = { id: `local-${Date.now()}`, name, description: '自建本地题库', subject: newBankSubject, source: 'local', chapters: [] }
     if (workspaceHandle && workspaceState === 'connected') {
       const folderName = await createBankFolder(workspaceHandle, Object.values(workspaceFolders).includes(safeFolderName(name)) ? `${name}-${Date.now()}` : name)
       setWorkspaceFolders(previous => ({ ...previous, [created.id]: folderName }))
@@ -709,6 +757,7 @@ export default function App() {
       <nav className="subject-nav" aria-label="学科导航">
         <button className={activePage === 'study' && subject === 'math' ? 'active' : ''} onClick={() => selectSubject('math')}>数学</button>
         <button className={activePage === 'study' && subject === 'english' ? 'active' : ''} onClick={() => selectSubject('english')}>英语</button>
+        <button className={activePage === 'study' && subject === 'professional' ? 'active' : ''} onClick={() => selectSubject('professional')}>专业课</button>
         <button className={activePage === 'profile' ? 'active' : ''} onClick={() => { if (!profileBankId) setProfileBankId(bank.id); setActivePage('profile'); setSidebar(false) }}>我的</button>
       </nav>
       <div className="header-center exam-countdown" title={`${examCountdown.cohortYear} 年考研初试日期：${examCountdown.target.getFullYear()} 年 ${examDateLabel}`}><span>{examCountdown.cohortYear} 考研倒计时</span><strong>{examCountdown.days}</strong><em>天</em><small>{examDateLabel}</small></div>
@@ -725,7 +774,7 @@ export default function App() {
             <section><span>题库连接</span><div><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); connectWorkspace() }}><FolderSync/><span><strong>{workspaceState === 'connected' ? '重新同步题库' : '连接题库文件夹'}</strong><small>{workspaceState === 'connected' ? '重新读取当前题库与用户数据' : '连接本地目录并启用实时保存'}</small></span></button><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); switchWorkspace() }}><FolderOpen/><span><strong>切换题库文件夹</strong><small>选择另一套本地题库目录</small></span></button></div></section>
             <section><span>导入与素材</span><div><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); importRef.current?.click() }}><FileUp/><span><strong>导入题库</strong><small>载入 JSON 题库或完整备份</small></span></button><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); imageImportRef.current?.click() }}><FileImage/><span><strong>导入图片</strong><small>按命名规则匹配题图与解析图</small></span></button></div></section>
             <section><span>规则与管理</span><div><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); setNamingHelpOpen(true) }}><CircleHelp/><span><strong>图片命名参考</strong><small>查看批量导入的文件命名规范</small></span></button><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); setSettingsOpen(true) }}><SettingsIcon/><span><strong>题库与数据管理</strong><small>清理标记、重置或删除题库</small></span></button></div></section>
-            <section><span>导出与备份</span><div><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); setExportOpen(true) }}><FileText/><span><strong>导出题目</strong><small>按当前范围生成 PDF 或图片</small></span></button><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); exportData() }}><Download/><span><strong>完整备份</strong><small>保存题库、标记和每日学习记录</small></span></button></div></section>
+            <section><span>导出与备份</span><div><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); setExportOpen(true) }}><FileText/><span><strong>导出题目</strong><small>按当前范围生成 PDF 或图片</small></span></button><button role="menuitem" onClick={() => { setSettingsToolsOpen(false); exportData() }}><Download/><span><strong>完整备份</strong><small>保存题库、学习记录和题目笔记</small></span></button></div></section>
           </div>}
         </div>
       </div>
@@ -738,7 +787,7 @@ export default function App() {
         <p className="eyebrow">题库类型</p>
         <div className="bank-select-row"><span className="bank-select-icon"><BookOpen size={17}/></span><select aria-label="选择题库" value={bank.id} onChange={event => { const selected = banks.find(item => item.id === event.target.value); if (selected) selectBank(selected) }}>{subjectBanks.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button className="rename-button" aria-label={`重命名题库 ${bank.name}`} onClick={() => openRename('bank', bank.id, bank.name)}><Pencil size={13}/></button></div>
         <div className="selected-bank-meta">{protectedBankIds.has(bank.id) ? '默认题库' : bank.source === 'local' ? '自建题库' : '远程题库'} · {bank.chapters.length} 章 · {bankQuestionEntries.length} 道题</div>
-        <button className="new-bank-button" onClick={() => setNewBankOpen(true)}><Plus size={16}/>新建题库</button>
+        <button className="new-bank-button" onClick={() => { setNewBankSubject(subject); setNewBankOpen(true) }}><Plus size={16}/>新建题库</button>
         <button className={view === 'wrong' ? 'wrong-book active' : 'wrong-book'} onClick={showReviewBook}><AlertCircle size={17}/><span><strong>本题库不熟练题</strong><small>{binaryFilterMode ? '当前题库中的错误题' : '包含模糊和错题'}</small></span><em>{binaryFilterMode ? counts.wrong : counts.vague + counts.wrong}</em></button>
         <div className="divider"/>
         <p className="eyebrow">章节导航</p>
@@ -750,7 +799,7 @@ export default function App() {
       </aside></>}
 
       <main className={activePage === 'profile' ? 'profile-main' : ''}>
-        {activePage === 'profile' ? <LearningDashboard banks={banks} statuses={statuses} activities={activities} selectedBankId={profileBankId} onSelectedBankIdChange={setProfileBankId} onQuestionStatusChange={markDashboardQuestion} onQuestionReviewStatusChange={markDashboardReview}/> : <>
+        {activePage === 'profile' ? <LearningDashboard banks={banks} statuses={statuses} activities={activities} notes={questionNotes} selectedBankId={profileBankId} onSelectedBankIdChange={setProfileBankId} onQuestionStatusChange={markDashboardQuestion} onQuestionReviewStatusChange={markDashboardReview} onQuestionNoteChange={updateQuestionNote}/> : <>
         <div className="page-head"><div><span className="breadcrumb">{bank.name} <ChevronRight size={13}/>{view === 'section' && currentChapter && <>{currentChapter.name} <ChevronRight size={13}/></>}{view === 'wrong' ? '本题库不熟练题' : section?.name || '未选择'}</span><h1>{view === 'wrong' ? '本题库不熟练题' : section?.name || '请选择具体节题目'}</h1><p>{view === 'wrong' ? `按章节和小节分组 · 共 ${reviewQuestions.length} 道不熟练题` : section ? `共 ${section.questions.length} 道题` : '从左侧选择一个章节开始学习'}</p></div>
           <div className="search"><Search size={17}/><input value={query} onChange={e => { setQuery(e.target.value); setQuestionIndex(0) }} placeholder={view === 'wrong' ? '搜索不熟练题' : '搜索当前小节'}/></div>
         </div>
@@ -776,6 +825,7 @@ export default function App() {
                 {item.options && !isPartBSection && <div className="passage-options">{item.options.map((option, index) => <div key={index}>{option}</div>)}</div>}
                 <button className="passage-answer-toggle" aria-expanded={itemAnswerOpen} onClick={() => togglePassageAnswer(item.id)}><CircleHelp size={16}/>{itemAnswerOpen ? '收起答案与解析' : '查看答案与解析'}<ChevronDown className={itemAnswerOpen ? 'rotated' : ''} size={15}/></button>
                 {itemAnswerOpen && <div className="passage-answer">{!itemUsesImageAnswer && <div className="answer-result"><span>参考答案</span><strong>{item.answer}</strong></div>}<div className={itemUsesImageAnswer ? 'answer-analysis combined-image-answer' : 'answer-analysis'}><span>{itemUsesImageAnswer ? '参考答案和解析' : '原版解析'}</span>{itemHasAnswerImages ? <AssetGallery keys={item.answerImageKeys} urls={item.answerImageUrl ? [item.answerImageUrl] : []} alt={itemUsesImageAnswer ? '参考答案和解析' : '原版解析截图'}/> : <p className="analysis-missing">原版解析截图暂未收录</p>}</div></div>}
+                <QuestionNotePanel questionId={item.id} note={questionNotes[item.id]} onChange={note => updateQuestionNote(item.id, note)}/>
                 <div className="passage-status"><div className="passage-markers">{readingTypePicker(item)}<span>掌握情况</span></div><div>{masteryChoices(item, binaryFilterMode).map(s => { const meta = questionStatusMeta(item, s, binaryFilterMode); return <button key={s} className={itemStatus === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => markQuestion(item.id, itemStatus === s ? 'none' : s, item)}><b>{meta.icon}</b>{meta.label}</button> })}</div></div>
               </article>
             })}
@@ -787,10 +837,11 @@ export default function App() {
           </article>}
         </div><nav className="question-nav passage-question-nav" aria-label={showFullPaperNavigation ? '全卷导航' : '题号导航'}><div><strong>{showFullPaperNavigation ? '全卷导航' : '题号导航'}</strong><small>点击快速跳转</small></div><div className="number-grid">{showFullPaperNavigation ? currentPaperEntries.map(entry => { const item = entry.question; const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={item.id === question.id ? 'true' : undefined} title={`${entry.sectionName} · 第 ${item.number} 题`} className={`${item.id === question.id ? 'selected ' : ''}${itemStatus}`} onClick={() => navigateToBankQuestion(entry)}>{item.number}</button> }) : filteredQuestions.map((item, index) => { const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={index === questionIndex ? 'true' : undefined} title={`第 ${item.number} 题`} className={`${index === questionIndex ? 'selected ' : ''}${itemStatus}`} onClick={() => jumpToPassageQuestion(item.id, index)}>{item.number}</button> })}</div><div className="legend"><span><i/>未标记</span><span><i className="green"/>正确</span><span><i className="red"/>错误</span></div><div className="nav-accuracy"><span>本卷正确率</span><strong>{formatRate(currentNavigationStats.accuracy)}</strong><small>{currentNavigationStats.marked} 道题已标记</small></div></nav></div> : question ? <div className="study-layout">
           <section className="question-card">
-            <div className="question-top"><div><span className="number">{String(question.number).padStart(2,'0')}</span>{question.type && <span className="type">{question.type}</span>}{currentQuestionEntry && <span className="wrong-context">{currentQuestionEntry.chapterName} · {currentQuestionEntry.sectionName}</span>}</div><nav className="question-top-pager" aria-label="上下题切换"><button disabled={questionIndex === 0} onClick={() => moveQuestion(-1)}><span>←</span> 上一题</button><em>{questionIndex + 1} / {filteredQuestions.length}</em><button disabled={questionIndex >= filteredQuestions.length - 1} onClick={() => moveQuestion(1)}>下一题 <span>→</span></button></nav><span className={`current-status ${currentQuestionStatus}`}>{currentQuestionStatusMeta.icon} {currentQuestionStatusMeta.label}</span></div>
+            <div className="question-top"><div><span className="number">{String(question.number).padStart(2,'0')}</span>{currentQuestionEntry && <span className="wrong-context">{currentQuestionEntry.chapterName} · {currentQuestionEntry.sectionName}</span>}</div><nav className="question-top-pager" aria-label="上下题切换"><button disabled={questionIndex === 0} onClick={() => moveQuestion(-1)}><span>←</span> 上一题</button><em>{questionIndex + 1} / {filteredQuestions.length}</em><button disabled={questionIndex >= filteredQuestions.length - 1} onClick={() => moveQuestion(1)}>下一题 <span>→</span></button></nav><span className={`current-status ${currentQuestionStatus}`}>{currentQuestionStatusMeta.icon} {currentQuestionStatusMeta.label}</span></div>
             <div className="question-content">{questionText && <p>{questionText}</p>}<AssetGallery keys={question.imageKeys} urls={question.imageUrl ? [question.imageUrl] : []} alt="题目配图"/>{question.options && <div className="options">{question.options.map((o, i) => <div key={i}>{o}</div>)}</div>}</div>
             <button className="answer-toggle passage-answer-toggle standard-answer-toggle" onClick={() => setAnswerOpen(v => !v)}><CircleHelp size={19}/>{answerOpen ? '收起答案与解析' : '查看答案与解析'}<ChevronDown className={answerOpen ? 'rotated' : ''} size={18}/></button>
             {answerOpen && <div className={`${hasAnswerImages ? 'answer answer-with-images' : 'answer'} passage-answer standard-answer-panel`}>{!usesImageAnswer && <div className="answer-result"><span>参考答案</span><strong>{question.answer}</strong></div>}<div className={usesImageAnswer ? 'answer-analysis combined-image-answer' : 'answer-analysis'}><span>{usesImageAnswer ? '参考答案和解析' : '原版解析'}</span>{hasAnswerImages ? <AssetGallery keys={question.answerImageKeys} urls={question.answerImageUrl ? [question.answerImageUrl] : []} alt={usesImageAnswer ? '参考答案和解析' : '原版解析截图'}/> : <p className="analysis-missing">原版解析截图暂未收录</p>}</div>{question.videoUrl && <a href={question.videoUrl} target="_blank" rel="noreferrer">观看视频解析 →</a>}</div>}
+            <QuestionNotePanel questionId={question.id} note={questionNotes[question.id]} onChange={note => updateQuestionNote(question.id, note)}/>
             <div className="status-bar"><div className="status-labels">{readingTypePicker(question)}<span>掌握情况</span></div><div>{masteryChoices(question, binaryFilterMode).map(s => { const meta = questionStatusMeta(question, s, binaryFilterMode); return <button key={s} className={currentQuestionStatus === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => mark(currentQuestionStatus === s ? 'none' : s)}><b>{meta.icon}</b>{meta.label}</button> })}</div></div>
             <div className="pager"><button disabled={questionIndex === 0} onClick={() => moveQuestion(-1)}>← 上一题</button><span>{questionIndex + 1} / {filteredQuestions.length}</span><button disabled={questionIndex >= filteredQuestions.length - 1} onClick={() => moveQuestion(1)}>下一题 →</button></div>
           </section>
@@ -810,7 +861,7 @@ export default function App() {
       </main>
     </div>
     {toast && <div className="toast">{toast}</div>}
-    {newBankOpen && <div className="modal-backdrop" onClick={() => setNewBankOpen(false)}><section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="new-bank-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setNewBankOpen(false)}><X/></button><span className="modal-icon"><BookOpen/></span><h2 id="new-bank-title">新建题库</h2><p>先起一个名字，再点击顶部“图片”选择素材目录，章节和题目会自动生成。</p><label>题库名称<input autoFocus value={newBankName} onChange={event => setNewBankName(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') createBank() }} placeholder="例如：线性代数强化题"/></label><button className="primary-button" onClick={createBank}>创建并开始导入</button></section></div>}
+    {newBankOpen && <div className="modal-backdrop" onClick={() => setNewBankOpen(false)}><section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="new-bank-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setNewBankOpen(false)}><X/></button><span className="modal-icon"><BookOpen/></span><h2 id="new-bank-title">新建题库</h2><p>先选择学科并起一个名字，再点击顶部“图片”选择素材目录，章节和题目会自动生成。</p><label>所属学科<select value={newBankSubject} onChange={event => setNewBankSubject(event.target.value as Subject)}><option value="math">数学</option><option value="english">英语</option><option value="professional">专业课</option></select></label><label>题库名称<input autoFocus value={newBankName} onChange={event => setNewBankName(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') createBank() }} placeholder={newBankSubject === 'professional' ? '例如：计算机专业基础综合' : '例如：线性代数强化题'}/></label><button className="primary-button" onClick={createBank}>创建并开始导入</button></section></div>}
     {namingHelpOpen && <div className="modal-backdrop" onClick={() => setNamingHelpOpen(false)}><section className="modal-card naming-card" role="dialog" aria-modal="true" aria-labelledby="naming-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setNamingHelpOpen(false)}><X/></button><span className="modal-icon"><FileImage/></span><h2 id="naming-title">图片命名标准</h2><p>Q 表示题目，A 表示答案；后面依次是章号－小节号－题号。</p><div className="naming-example"><code>Q-01-1-01.png</code><span>单张题目图</span><code>Q-01-1-01.1.png</code><span>多图组成时的第 1 张</span><code>Q-01-1-01.2.png</code><span>多图组成时的第 2 张</span><code>A-01-1-01.png</code><span>单张答案图</span><code>A-01-1-01.1.png</code><span>多张答案中的第 1 张</span><code>A-01-1-01.2.png</code><span>多张答案中的第 2 张</span></div><h3>文件夹命名标准</h3><code className="folder-example">01 行列式 1-基础</code><p>自动生成“行列式”章节和“基础”小节。未按以上标准命名的图片会被跳过。</p><button className="primary-button" onClick={() => setNamingHelpOpen(false)}>我知道了</button></section></div>}
     {exportOpen && <ExportDialog banks={banks} statuses={statuses} defaultBankId={bank.id} defaultSectionId={sectionId} onClose={() => setExportOpen(false)} onPdf={printExport} onNotice={setToast}/>}
     {renameTarget && <div className="modal-backdrop" onClick={() => setRenameTarget(null)}><section className="modal-card rename-card" role="dialog" aria-modal="true" aria-labelledby="rename-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setRenameTarget(null)}><X/></button><span className="modal-icon"><Pencil/></span><h2 id="rename-title">重命名{renameTarget.kind === 'bank' ? '题库' : '章节'}</h2><p>只修改显示名称，不会改变题目、图片或学习状态。</p><label>新名称<input autoFocus value={renameValue} onChange={event => setRenameValue(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') applyRename() }} placeholder={renameTarget.name}/></label><button className="primary-button" onClick={applyRename}>保存名称</button></section></div>}

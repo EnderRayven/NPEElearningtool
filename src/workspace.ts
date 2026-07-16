@@ -2,6 +2,7 @@ import type { QuestionBank, QuestionStatus } from './types'
 import type { StudyActivity } from './studyActivity'
 import { migrateStudyRounds, validateStudyRounds, type StudyRounds } from './studyRounds'
 import { DEFAULT_USER_SETTINGS, validateUserSettings, type UserSettings } from './userSettings'
+import { validateQuestionNotes, type QuestionNotes } from './questionNotes'
 
 const DB_NAME = 'npee-workspace'
 const STORE_NAME = 'handles'
@@ -42,6 +43,7 @@ export interface WorkspaceUserData {
   statuses?: Record<string, QuestionStatus>
   activities?: StudyActivity[]
   settings?: UserSettings
+  notes?: QuestionNotes
 }
 
 export interface DefaultWorkspaceIndex {
@@ -61,16 +63,17 @@ export function createWorkspaceManifest(banks: QuestionBank[], folders: Record<s
   return { version: 2, builtinEnglishVersion: BUILTIN_ENGLISH_VERSION, updatedAt: new Date().toISOString(), banks, folders }
 }
 
-export function createWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS): WorkspaceUserData {
-  return { version: 3, updatedAt: new Date().toISOString(), rounds: validateStudyRounds(rounds), settings: validateUserSettings(settings) }
+export function createWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}): WorkspaceUserData {
+  return { version: 4, updatedAt: new Date().toISOString(), rounds: validateStudyRounds(rounds), settings: validateUserSettings(settings), notes: validateQuestionNotes(notes) }
 }
 
-export function resolveWorkspaceUserData(userData: WorkspaceUserData | null | undefined, manifestStatuses: unknown, fallbackRounds: StudyRounds, fallbackSettings: UserSettings) {
+export function resolveWorkspaceUserData(userData: WorkspaceUserData | null | undefined, manifestStatuses: unknown, fallbackRounds: StudyRounds, fallbackSettings: UserSettings, fallbackNotes: QuestionNotes = {}) {
   const settings = userData?.settings ? validateUserSettings(userData.settings) : fallbackSettings
   const rounds = userData || manifestStatuses
     ? migrateStudyRounds(userData?.rounds, userData?.statuses || manifestStatuses, userData?.activities)
     : fallbackRounds
-  return { rounds, settings }
+  const notes = { ...validateQuestionNotes(fallbackNotes), ...validateQuestionNotes(userData?.notes) }
+  return { rounds, settings, notes }
 }
 
 export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], folders: Record<string, string> = {}) {
@@ -79,8 +82,8 @@ export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], folde
   if (!response.ok) throw new Error('默认题库数据写入失败')
 }
 
-export async function writeDefaultWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS) {
-  const userData = createWorkspaceUserData(rounds, settings)
+export async function writeDefaultWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}) {
+  const userData = createWorkspaceUserData(rounds, settings, notes)
   const response = await fetch('/api/default-workspace/user-data', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(userData, null, 2) })
   if (!response.ok) throw new Error('用户数据写入失败')
 }
@@ -154,10 +157,10 @@ export async function writeWorkspaceManifest(handle: FileSystemDirectoryHandle, 
   await writable.close()
 }
 
-export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS) {
+export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}) {
   const fileHandle = await handle.getFileHandle(WORKSPACE_USER_DATA, { create: true })
   const writable = await fileHandle.createWritable()
-  await writable.write(JSON.stringify(createWorkspaceUserData(rounds, settings), null, 2))
+  await writable.write(JSON.stringify(createWorkspaceUserData(rounds, settings, notes), null, 2))
   await writable.close()
 }
 

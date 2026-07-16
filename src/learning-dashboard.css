@@ -33,7 +33,7 @@
 
 .learning-metrics {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-top: 28px;
 }
@@ -373,12 +373,6 @@
   border-radius: 15px;
 }
 
-.learning-metrics .learning-metric-placeholder {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-
 .learning-metrics article > span,
 .bank-progress-state span {
   display: block;
@@ -590,7 +584,7 @@
 @media (max-width: 580px) {
   .learning-top { display: block; }
   .learning-heading h1 { font-size: 27px; }
-  .learning-metrics { grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 20px; }
+  .learning-metrics { grid-template-columns: 1fr; gap: 9px; margin-top: 20px; }
   .learning-metrics article { min-height: 120px; padding: 16px; }
   .learning-status-summary { grid-template-columns: 1fr 1fr; gap: 13px 0; }
   .learning-status-summary > div:nth-child(2) { border-right: 0; }

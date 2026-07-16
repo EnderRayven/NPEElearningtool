@@ -9,7 +9,7 @@
 
   .page-head > div:first-child {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: max-content max-content;
     column-gap: 13px;
     align-items: baseline;
   }
