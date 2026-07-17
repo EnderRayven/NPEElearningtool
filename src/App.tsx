@@ -46,6 +46,11 @@ const effectiveQuestionStatus = (item: Question | undefined, status: QuestionSta
 const questionStatusMeta = (item: Question | undefined, status: QuestionStatus, binaryMode = isBinaryMasteryQuestion(item)) => binaryMode ? binaryStatusMeta[status] : statusMeta[status]
 const masteryChoices = (item?: Question, binaryMode = isBinaryMasteryQuestion(item)): QuestionStatus[] => binaryMode ? ['proficient', 'wrong'] : ['proficient', 'vague', 'wrong']
 
+function navigationProgress(questions: Question[], statuses: Record<string, QuestionStatus>, binaryMode: boolean) {
+  const marked = questions.reduce((count, question) => count + (effectiveQuestionStatus(question, statuses[question.id] || 'none', binaryMode) === 'none' ? 0 : 1), 0)
+  return { marked, total: questions.length, label: questions.length ? `${marked}/${questions.length}` : '—' }
+}
+
 type BankQuestionEntry = ReturnType<typeof orderedQuestionEntriesForBank>[number]
 const protectedBankIds = new Set<string>(defaultBankIds)
 
@@ -791,10 +796,16 @@ export default function App() {
         <button className={view === 'wrong' ? 'wrong-book active' : 'wrong-book'} onClick={showReviewBook}><AlertCircle size={17}/><span><strong>本题库不熟练题</strong><small>{binaryFilterMode ? '当前题库中的错误题' : '包含模糊和错题'}</small></span><em>{binaryFilterMode ? counts.wrong : counts.vague + counts.wrong}</em></button>
         <div className="divider"/>
         <p className="eyebrow">章节导航</p>
-        <div className="chapter-scroll"><div className="chapter-tree">{bank.chapters.map(chapter => <div className={bank.chapters.length === 1 ? 'chapter single-chapter' : 'chapter'} key={chapter.id}>
-          {bank.chapters.length > 1 && <div className="chapter-title"><button className="chapter-toggle" aria-expanded={expandedChapterIds.has(chapter.id)} onClick={() => toggleChapter(chapter.id)}>{expandedChapterIds.has(chapter.id) ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}<span>{chapter.name}</span><em>{chapter.sections.length}</em></button><button className="rename-button" aria-label={`重命名章节 ${chapter.name}`} onClick={() => openRename('chapter', chapter.id, chapter.name)}><Pencil size={12}/></button></div>}
-          {(bank.chapters.length === 1 || expandedChapterIds.has(chapter.id)) && chapter.sections.map(s => <button key={s.id} onClick={() => selectSection(s.id)} className={view === 'section' && s.id === sectionId ? 'section active' : 'section'}><span>{s.name}</span><em>{s.questions.length}</em></button>)}
-        </div>)}{bank.chapters.length === 0 && <div className="empty-chapters">还没有章节<br/><small>点击顶部“图片”批量导入</small></div>}</div></div>
+        <div className="chapter-scroll"><div className="chapter-tree">{bank.chapters.map(chapter => {
+          const chapterProgress = navigationProgress(chapter.sections.flatMap(sectionItem => sectionItem.questions), statuses, binaryFilterMode)
+          return <div className={bank.chapters.length === 1 ? 'chapter single-chapter' : 'chapter'} key={chapter.id}>
+            {bank.chapters.length > 1 && <div className="chapter-title"><button className="chapter-toggle" aria-expanded={expandedChapterIds.has(chapter.id)} onClick={() => toggleChapter(chapter.id)}>{expandedChapterIds.has(chapter.id) ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}<span>{chapter.name}</span><em>{chapter.sections.length}</em><small className="nav-progress" title={`已标记 ${chapterProgress.marked}/${chapterProgress.total} 题`}>{chapterProgress.label}</small></button><button className="rename-button" aria-label={`重命名章节 ${chapter.name}`} onClick={() => openRename('chapter', chapter.id, chapter.name)}><Pencil size={12}/></button></div>}
+            {(bank.chapters.length === 1 || expandedChapterIds.has(chapter.id)) && chapter.sections.map(s => {
+              const sectionProgress = navigationProgress(s.questions, statuses, binaryFilterMode)
+              return <button key={s.id} onClick={() => selectSection(s.id)} className={view === 'section' && s.id === sectionId ? 'section active' : 'section'}><span>{s.name}</span><small className="nav-progress" title={`已标记 ${sectionProgress.marked}/${sectionProgress.total} 题`}>{sectionProgress.label}</small></button>
+            })}
+          </div>
+        })}{bank.chapters.length === 0 && <div className="empty-chapters">还没有章节<br/><small>点击顶部“图片”批量导入</small></div>}</div></div>
         <div className="aside-summary"><strong>学习概览</strong>{binaryFilterMode ? <div className="binary-summary"><span><i/>{counts.none} 未标记</span><span><i className="green"/>{counts.proficient} 正确</span><span><i className="red"/>{counts.wrong} 错误</span></div> : <div><span><i className="green"/>{counts.proficient} 熟练</span><span><i className="yellow"/>{counts.vague} 模糊</span><span><i className="red"/>{counts.wrong} 错题</span></div>}</div>
       </aside></>}
 

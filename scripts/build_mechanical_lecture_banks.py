@@ -116,6 +116,14 @@ MANUAL_SLICE_MASKS = {
     ("theory", 4, 2, 1): [(0.0, 0.0, 0.52, 0.52)],
 }
 
+# Exercise 4-2's answer text is on one page, while its referenced answer
+# figures (a) and (b) begin at the top of the following page. Keep that
+# figure page as an additional answer image instead of silently dropping it
+# at the page boundary. Coordinates are zero-based in the 180 dpi render.
+MANUAL_EXTRA_ANSWER_SLICES = {
+    ("theory", 4, 2): [(5, 0, 780)],
+}
+
 
 @dataclass(frozen=True)
 class BankSpec:
@@ -424,6 +432,14 @@ def build_chapter(spec: BankSpec, chapter: int, name: str) -> tuple[dict, dict]:
     )
     question_images = apply_manual_slice_masks(spec.style, chapter, question_images)
     answer_images = slices_for(pages, answers)
+    for (extra_style, extra_chapter, number), slices in MANUAL_EXTRA_ANSWER_SLICES.items():
+        if (extra_style, extra_chapter) != (spec.style, chapter):
+            continue
+        for page_index, top, bottom in slices:
+            with Image.open(pages[page_index]) as source:
+                answer_images.setdefault(number, []).append(
+                    source.crop((0, top, source.width, bottom)).copy()
+                )
 
     bank_root = DEFAULT_ROOT / spec.name
     section_dir = bank_root / f"{chapter:02d} {name} 1-课后习题"

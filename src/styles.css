@@ -45,6 +45,8 @@ header{gap:20px}.brand{flex:0 0 260px}.header-center{white-space:nowrap}.header-
 /* Collapsible subject groups keep long course directories compact. */
 .chapter-title{margin:0 4px 7px;gap:3px}.chapter-toggle{min-width:0;flex:1;border:0;background:transparent;color:#403b37;border-radius:8px;padding:6px 5px;display:grid;grid-template-columns:18px minmax(0,1fr) auto;align-items:center;gap:7px;text-align:left}.chapter-toggle:hover{background:#f4f0eb}.chapter-toggle>span{min-width:0;line-height:1.4}.chapter-toggle>em{font-style:normal;font-size:9px;font-weight:500;color:#9b938a;background:#f0ece7;border-radius:10px;padding:2px 7px}.chapter-toggle svg{transition:transform .16s}.chapter .section>span{text-align:left;line-height:1.45;padding-right:8px}
 
+.chapter-toggle{grid-template-columns:18px minmax(0,1fr) auto auto}.nav-progress{min-width:32px;color:#aaa199;font-size:9px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}.chapter-toggle .nav-progress{font-weight:500}.section{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}.section>.nav-progress{padding-right:0}.section.active>.nav-progress{color:inherit;opacity:.78}
+
 /* Keep the two-question export layout inside one physical A4 page. */
 .export-options{grid-template-columns:1fr 1fr}
 .export-question-title .export-mastery{font-size:10px;font-weight:600;border-radius:12px;padding:4px 9px}.export-mastery.none{color:#777;background:#f0efed}.export-mastery.proficient{color:#397851;background:#eaf4ed}.export-mastery.vague{color:#946819;background:#fbf2df}.export-mastery.wrong{color:#9d342b;background:#f8e8e5}
