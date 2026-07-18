@@ -6,7 +6,7 @@ interface Props { keys?: string[]; urls?: string[]; alt: string; className?: str
 // Default-workspace files are served with long-lived immutable caching. Keep a
 // small explicit version on direct image URLs so regenerated crops cannot be
 // hidden behind an older browser-cached image with the same path.
-const DEFAULT_WORKSPACE_ASSET_VERSION = '20260716-2'
+const DEFAULT_WORKSPACE_ASSET_VERSION = '20260718-1'
 
 function versionDefaultWorkspaceUrl(source: string) {
   if (!source.includes('/api/default-workspace/file?') || source.includes('assetVersion=')) return source
