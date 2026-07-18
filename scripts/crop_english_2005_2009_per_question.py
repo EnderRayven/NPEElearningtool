@@ -11,6 +11,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 import pdfplumber
+from PIL import Image
 
 from crop_english_analysis_images import LINE_NUMBER, crop_between, find_anchors, page_lines
 
@@ -167,17 +168,99 @@ def first_marker_between(
     return min(matches, key=lambda position: scalar(pdf, position)) if matches else None
 
 
+def blue_passage_starts(
+    pdf: pdfplumber.PDF,
+    first_page: int,
+    last_page: int,
+    resolution: int = 80,
+) -> list[tuple[int, float]]:
+    """Locate the start of each bilingual source-paragraph panel.
+
+    The 2005-2009 analysis books interleave content in this order::
+
+        source paragraph N -> sentence analysis -> question N explanation
+
+    The old cropper started at ``question N`` and stopped at ``question N+1``.
+    That put the source analysis for N+1 at the end of N's image.  Every source
+    paragraph begins with a wide cyan translation panel, which is much more
+    reliable than its decorative Roman numeral in the PDF text layer.
+    """
+    starts: list[tuple[int, float]] = []
+    scale = resolution / 72
+    for page_index in range(max(0, first_page - 1), min(last_page, len(pdf.pages))):
+        image = pdf.pages[page_index].to_image(resolution=resolution).original.convert("RGB")
+        pixels = image.load()
+        active_rows: list[int] = []
+
+        def finish_band() -> None:
+            if not active_rows:
+                return
+            height = active_rows[-1] - active_rows[0] + 1
+            if height >= image.height * 0.07:
+                starts.append((page_index, active_rows[0] / scale))
+            active_rows.clear()
+
+        for y in range(image.height):
+            blue_pixels = 0
+            for x in range(image.width):
+                red, green, blue = pixels[x, y]
+                if green - red > 10 and blue - red > 10 and blue > 130:
+                    blue_pixels += 1
+            if blue_pixels >= image.width * 0.12:
+                active_rows.append(y)
+            else:
+                finish_band()
+        finish_band()
+    return starts
+
+
+def reading_starts(
+    pdf: pdfplumber.PDF,
+    question_anchors: dict[int, tuple[int, float]],
+    panel_starts: list[tuple[int, float]],
+) -> dict[int, tuple[int, float]]:
+    """Associate each question with its nearest preceding source panel.
+
+    A paragraph can have more than one question. Those questions intentionally
+    share the paragraph panel, but each gets only its own question explanation.
+    """
+    output: dict[int, tuple[int, float]] = {}
+    for number in range(21, 41):
+        upper = question_anchors[number]
+        candidates = [position for position in panel_starts if scalar(pdf, position) < scalar(pdf, upper)]
+        if candidates:
+            output[number] = max(candidates, key=lambda position: scalar(pdf, position))
+    return output
+
+
+def stack_images(images: list[Image.Image]) -> Image.Image:
+    images = [image.convert("RGB") for image in images if image.height > 0]
+    width = max(image.width for image in images)
+    canvas = Image.new("RGB", (width, sum(image.height for image in images) + 8 * (len(images) - 1)), "white")
+    y = 0
+    for image in images:
+        canvas.paste(image, (0, y))
+        y += image.height + 8
+    return canvas
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
     parser.add_argument("analysis_dir", type=Path)
     parser.add_argument("default_root", type=Path, nargs="?", default=Path("默认题库"))
+    parser.add_argument("--years", default="2005-2009")
     args = parser.parse_args()
+    if "-" in args.years:
+        first_year, last_year = map(int, args.years.split("-", 1))
+        years = range(first_year, last_year + 1)
+    else:
+        years = [int(value) for value in args.years.split(",")]
     payload = json.loads(args.manifest.read_text(encoding="utf-8"))
     bank = next(bank for bank in payload["banks"] if bank["id"] == "english-exams")
     chapters = {int(chapter["id"].rsplit("-", 1)[1]): chapter for chapter in bank["chapters"]}
 
-    for year in range(2005, 2010):
+    for year in years:
         chapter = chapters[year]
         questions = {q["number"]: q for section in chapter["sections"] for q in section["questions"]}
         resource_dir = args.default_root / "英语一真题" / f"{year}年考研英语真题" / "资源"
@@ -185,6 +268,7 @@ def main() -> None:
         with pdfplumber.open(source) as pdf:
             candidates = candidate_positions(pdf)
             preferred = find_anchors(pdf)
+            passage_panels = blue_passage_starts(pdf, 7, 46)
             for numbers, first_page, last_page in GROUPS:
                 anchors = anchors_for_group(
                     pdf,
@@ -194,14 +278,21 @@ def main() -> None:
                     last_page,
                     preferred if numbers.start == 1 else None,
                 )
+                content_starts = reading_starts(pdf, anchors, passage_panels) if numbers.start == 21 else {}
+                if numbers.start == 21:
+                    missing = [number for number in numbers if number not in content_starts]
+                    print(json.dumps({"year": year, "mappedReadingQuestions": len(content_starts), "fallbackQuestions": missing}), flush=True)
                 ordered = list(numbers)
                 # crop_between reserves 12 pt before a real following anchor.
                 # At document/section end, offset that reserve so only the
                 # intended 4 pt physical page edge is removed.
                 group_end = (min(last_page, len(pdf.pages)) - 1, pdf.pages[min(last_page, len(pdf.pages)) - 1].height + 8)
                 for index, number in enumerate(ordered):
-                    start = anchors[number]
-                    end = anchors[ordered[index + 1]] if index + 1 < len(ordered) else group_end
+                    start = content_starts.get(number, anchors[number])
+                    next_question = anchors[ordered[index + 1]] if index + 1 < len(ordered) else group_end
+                    later_panels = [panel for panel in passage_panels if scalar(pdf, panel) > scalar(pdf, anchors[number])]
+                    next_panel = min(later_panels, key=lambda panel: scalar(pdf, panel)) if later_panels else group_end
+                    end = min((next_question, next_panel), key=lambda position: scalar(pdf, position)) if numbers.start == 21 else next_question
                     if numbers.start == 21 and number in (25, 30, 35):
                         next_text = number // 5 - 3
                         marker = first_marker_between(
@@ -215,7 +306,16 @@ def main() -> None:
                     if scalar(pdf, end) - scalar(pdf, start) < 0.04:
                         end = from_scalar(pdf, min(scalar(pdf, start) + 0.08, float(last_page) - 0.01))
                     filename = f"analysis-{year}-q{number:02d}.webp"
-                    image = crop_between(pdf, start, end, 125)
+                    first_for_panel = min(
+                        (candidate for candidate, panel in content_starts.items() if panel == start),
+                        default=number,
+                    )
+                    if numbers.start == 21 and first_for_panel != number:
+                        source = crop_between(pdf, start, anchors[first_for_panel], 125)
+                        explanation = crop_between(pdf, anchors[number], end, 125)
+                        image = stack_images([source, explanation])
+                    else:
+                        image = crop_between(pdf, start, end, 125)
                     image.save(resource_dir / filename, "WEBP", quality=84, method=6)
                     questions[number]["answerImageUrl"] = url(year, filename)
 

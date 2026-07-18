@@ -33,16 +33,30 @@ def resolve_asset(default_root: Path, url: str) -> Path:
     return default_root / relative
 
 
-def inspect(item: tuple[int, int, str, Path]) -> dict[str, object]:
-    year, number, stem, path = item
+def number_set(specification: str) -> set[int]:
+    output: set[int] = set()
+    for part in specification.split(","):
+        if "-" in part:
+            first, last = map(int, part.split("-", 1))
+            output.update(range(first, last + 1))
+        else:
+            output.add(int(part))
+    return output
+
+
+def inspect(item: tuple[int, int, str, str, Path]) -> dict[str, object]:
+    year, number, stem, next_stem, path = item
     if not path.exists():
         return {"year": year, "number": number, "status": "missing", "path": str(path)}
     image = Image.open(path).convert("RGB")
-    top = image.crop((0, 0, image.width, min(image.height, 900)))
+    # The repaired image begins with the source paragraph and ends with the
+    # question-specific explanation. OCR the lower portion so the two-column
+    # paragraph panel does not dominate Tesseract's page segmentation.
+    image = image.crop((0, int(image.height * 0.38), image.width, image.height))
     stream = io.BytesIO()
-    top.save(stream, "PNG")
+    image.save(stream, "PNG")
     result = subprocess.run(
-        ["tesseract", "stdin", "stdout", "-l", "eng", "--psm", "6"],
+        ["tesseract", "stdin", "stdout", "-l", "eng", "--psm", "11"],
         input=stream.getvalue(),
         capture_output=True,
         check=True,
@@ -51,11 +65,14 @@ def inspect(item: tuple[int, int, str, Path]) -> dict[str, object]:
     recognized = words(result.stdout.decode("utf-8", errors="ignore"))
     overlap = ordered_overlap(expected, recognized)
     score = overlap / max(1, len(expected))
+    following = words(next_stem)[:8]
+    following_score = ordered_overlap(following, recognized) / max(1, len(following)) if following else 0.0
     return {
         "year": year,
         "number": number,
-        "status": "ok" if score >= 0.5 else "review",
+        "status": "ok" if score >= 0.5 and following_score < 0.75 else "review",
         "score": round(score, 3),
+        "followingScore": round(following_score, 3),
         "expected": " ".join(expected),
         "recognized": " ".join(recognized[:40]),
         "width": image.width,
@@ -69,26 +86,34 @@ def main() -> None:
     parser.add_argument("manifest", type=Path)
     parser.add_argument("default_root", type=Path, nargs="?", default=Path("默认题库"))
     parser.add_argument("--years", default="2005-2024")
+    parser.add_argument("--questions", default="21-40,46-50")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--report", type=Path, default=Path("tmp/pdfs/english-crop-audit.json"))
     args = parser.parse_args()
 
     first, last = map(int, args.years.split("-", 1))
+    selected_questions = number_set(args.questions)
     payload = json.loads(args.manifest.read_text(encoding="utf-8"))
     bank = next(bank for bank in payload["banks"] if bank["id"] == "english-exams")
-    items: list[tuple[int, int, str, Path]] = []
+    items: list[tuple[int, int, str, str, Path]] = []
     for chapter in bank["chapters"]:
         year = int(chapter["id"].rsplit("-", 1)[1])
         if not first <= year <= last:
             continue
+        chapter_questions = {
+            int(question["number"]): question
+            for section in chapter["sections"]
+            for question in section["questions"]
+        }
         for section in chapter["sections"]:
             for question in section["questions"]:
                 number = int(question["number"])
-                if not (21 <= number <= 40 or 46 <= number <= 50):
+                if number not in selected_questions:
                     continue
                 url = question.get("answerImageUrl")
                 if url:
-                    items.append((year, number, question.get("text", ""), resolve_asset(args.default_root, url)))
+                    next_stem = chapter_questions.get(number + 1, {}).get("text", "")
+                    items.append((year, number, question.get("text", ""), next_stem, resolve_asset(args.default_root, url)))
 
     with ThreadPoolExecutor(max_workers=args.workers) as executor:
         results = list(executor.map(inspect, items))

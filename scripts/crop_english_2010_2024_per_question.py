@@ -14,6 +14,7 @@ import json
 import re
 import shutil
 import subprocess
+import sys
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -22,6 +23,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 import pdfplumber
+import numpy as np
 from PIL import Image, ImageChops
 
 
@@ -38,6 +40,10 @@ class Anchor:
 def command_path(name: str) -> str:
     path = shutil.which(name)
     if not path:
+        bundled = Path(sys.executable).parents[2] / "bin" / "override" / name
+        if bundled.exists():
+            path = str(bundled)
+    if not path:
         raise RuntimeError(f"Missing required command: {name}")
     return path
 
@@ -48,7 +54,7 @@ def render_pdf(pdf: Path, output_dir: Path, dpi: int) -> list[Path]:
     if existing:
         return existing
     subprocess.run(
-        [command_path("pdftoppm"), "-r", str(dpi), "-gray", "-png", str(pdf), str(output_dir / "page")],
+        [command_path("pdftoppm"), "-r", str(dpi), "-png", str(pdf), str(output_dir / "page")],
         check=True,
     )
     return sorted(output_dir.glob("page-*.png"))
@@ -366,6 +372,56 @@ def find_anchors(
     return selected, ends, writing_start, audit
 
 
+def blue_passage_starts(pages: list[Path]) -> list[Anchor]:
+    """Locate the cyan bilingual panels that begin source paragraphs.
+
+    These analysis books place a source paragraph and its sentence analysis
+    *before* the corresponding multiple-choice explanation. Question-number
+    anchors therefore cannot also serve as crop starts.
+    """
+    starts: list[Anchor] = []
+    for page_index, path in enumerate(pages):
+        array = np.asarray(Image.open(path).convert("RGB"), dtype=np.int16)
+        red, green, blue = array[:, :, 0], array[:, :, 1], array[:, :, 2]
+        cyan = (green - red > 10) & (blue - red > 10) & (blue > 130)
+        active = cyan.sum(axis=1) >= array.shape[1] * 0.12
+        band_start: int | None = None
+        for y, is_active in enumerate(active):
+            if is_active and band_start is None:
+                band_start = y
+            elif not is_active and band_start is not None:
+                if y - band_start >= array.shape[0] * 0.07:
+                    starts.append(Anchor(page_index, band_start))
+                band_start = None
+        if band_start is not None and len(active) - band_start >= array.shape[0] * 0.07:
+            starts.append(Anchor(page_index, band_start))
+    return starts
+
+
+def reading_starts(anchors: dict[int, Anchor], panels: list[Anchor]) -> dict[int, Anchor]:
+    """Associate each question with its nearest preceding source panel."""
+    output: dict[int, Anchor] = {}
+    for number in range(21, 41):
+        if number not in anchors:
+            continue
+        upper = anchors[number]
+        candidates = [panel for panel in panels if panel < upper]
+        if candidates:
+            output[number] = max(candidates)
+    return output
+
+
+def stack_images(images: list[Image.Image]) -> Image.Image:
+    images = [image.convert("RGB") for image in images if image.height > 0]
+    width = max(image.width for image in images)
+    canvas = Image.new("RGB", (width, sum(image.height for image in images) + 10 * (len(images) - 1)), "white")
+    y = 0
+    for image in images:
+        canvas.paste(image, (0, y))
+        y += image.height + 10
+    return canvas
+
+
 def trim_white(image: Image.Image, padding: int = 18) -> Image.Image:
     rgb = image.convert("RGB")
     background = Image.new("RGB", rgb.size, "white")
@@ -454,10 +510,11 @@ def main() -> None:
     parser.add_argument("bank_json", type=Path)
     parser.add_argument("analysis_dir", type=Path)
     parser.add_argument("default_root", type=Path)
-    parser.add_argument("--temp-root", type=Path, default=Path("tmp/pdfs/english-analysis-ocr"))
+    parser.add_argument("--temp-root", type=Path, default=Path("tmp/pdfs/english-analysis-color-v2"))
     parser.add_argument("--dpi", type=int, default=160)
     parser.add_argument("--workers", type=int, default=3)
     parser.add_argument("--secondary-ocr", action="store_true")
+    parser.add_argument("--reading-only", action="store_true")
     parser.add_argument("--years", default="2010-2024")
     args = parser.parse_args()
 
@@ -482,11 +539,18 @@ def main() -> None:
         anchors, translation_ends, writing_start, audit = find_anchors(
             pages, args.workers, pdf, args.dpi, args.secondary_ocr
         )
+        passage_panels = blue_passage_starts(pages)
+        content_starts = reading_starts(anchors, passage_panels)
         # Part B is a coupled five-question item and may lack a literal "41"
         # heading. When absent, keep its already generated complete shared crop.
-        required = [*range(1, 41), *range(46, 51)]
+        required = list(range(21, 41))
         missing = [number for number in required if number not in anchors]
-        report[year] = {"pages": len(pages), "anchors": audit, "missing": missing}
+        optional_missing = [number for number in range(46, 51) if number not in anchors]
+        report[year] = {
+            "pages": len(pages), "anchors": audit, "missing": missing,
+            "readingPanelStarts": len(set(content_starts.values())),
+            "optionalMissing": optional_missing,
+        }
         print(json.dumps({"year": year, "pages": len(pages), "found": len(anchors), "missing": missing}), flush=True)
         if missing:
             continue
@@ -498,22 +562,63 @@ def main() -> None:
 
         # Questions 1-40 are independent. Part B (41-45) is one coupled item,
         # so all five deliberately share the complete 41-to-46 crop.
-        ranges: dict[int, tuple[Anchor, Anchor]] = {
-            number: (anchors[number], translation_ends.get(number, anchors[number + 1]))
-            for number in range(1, 40)
-        }
-        ranges[20] = (anchors[20], translation_ends.get(20, anchors[21]))
-        ranges[40] = (anchors[40], anchors.get(41, translation_ends.get(41, anchors[46])))
-        if 41 in anchors:
+        ranges: dict[int, tuple[Anchor, Anchor]] = {}
+        if not args.reading_only:
+            ranges.update({
+                number: (anchors[number], translation_ends.get(number, anchors[number + 1]))
+                for number in range(1, 21)
+                if number in anchors and number + 1 in anchors
+            })
+        source_parts: dict[int, tuple[Anchor, Anchor]] = {}
+        for number in range(21, 40):
+            panel = content_starts.get(number, anchors[number])
+            later_panels = [candidate for candidate in passage_panels if candidate > anchors[number]]
+            next_panel = min(later_panels) if later_panels else anchors[number + 1]
+            default_end = min(anchors[number + 1], next_panel)
+            end = min(default_end, translation_ends.get(number, default_end))
+            first_for_panel = min(
+                (candidate for candidate, candidate_panel in content_starts.items() if candidate_panel == panel),
+                default=number,
+            )
+            if first_for_panel == number:
+                ranges[number] = (panel, end)
+            else:
+                source_parts[number] = (panel, anchors[first_for_panel])
+                ranges[number] = (anchors[number], end)
+        if not args.reading_only and 20 in anchors:
+            ranges[20] = (anchors[20], translation_ends.get(20, anchors[21]))
+        q40_panel = content_starts.get(40, anchors[40])
+        q40_boundary = (
+            anchors.get(41)
+            or translation_ends.get(41)
+            or anchors.get(46)
+            or Anchor(len(pages) - 1, Image.open(pages[-1]).height - 4)
+        )
+        q40_later_panels = [candidate for candidate in passage_panels if candidate > anchors[40]]
+        if q40_later_panels:
+            q40_boundary = min(q40_boundary, min(q40_later_panels))
+        q40_first_for_panel = min(
+            (candidate for candidate, candidate_panel in content_starts.items() if candidate_panel == q40_panel),
+            default=40,
+        )
+        if q40_first_for_panel == 40:
+            ranges[40] = (q40_panel, q40_boundary)
+        else:
+            source_parts[40] = (q40_panel, anchors[q40_first_for_panel])
+            ranges[40] = (anchors[40], q40_boundary)
+        if not args.reading_only and 41 in anchors and 46 in anchors:
             for number in range(41, 46):
                 ranges[number] = (anchors[41], translation_ends.get(41, anchors[46]))
-        for number in range(46, 50):
-            ranges[number] = (anchors[number], translation_ends.get(number, anchors[number + 1]))
-        # Prefer the writing-section boundary; only fall back to document end.
-        last_image = Image.open(pages[-1])
-        # crop_between keeps an 18 px safety gap before a following anchor.
-        # Compensate when the physical document end itself is the boundary.
-        ranges[50] = (anchors[50], writing_start or Anchor(len(pages) - 1, last_image.height + 14))
+        if not args.reading_only:
+            for number in range(46, 50):
+                if number in anchors and number + 1 in anchors:
+                    ranges[number] = (anchors[number], translation_ends.get(number, anchors[number + 1]))
+            # Prefer the writing-section boundary; only fall back to document end.
+            last_image = Image.open(pages[-1])
+            # crop_between keeps an 18 px safety gap before a following anchor.
+            # Compensate when the physical document end itself is the boundary.
+            if 50 in anchors:
+                ranges[50] = (anchors[50], writing_start or Anchor(len(pages) - 1, last_image.height + 14))
 
         generated: dict[tuple[Anchor, Anchor], str] = {}
         for number, bounds in ranges.items():
@@ -521,7 +626,10 @@ def main() -> None:
             if not filename:
                 suffix = "part-b-complete" if 41 <= number <= 45 else f"q{number:02d}"
                 filename = f"analysis-{year}-{suffix}.webp"
-                crop_between(pages, *bounds).save(asset_dir / filename, "WEBP", quality=86, method=6)
+                image = crop_between(pages, *bounds)
+                if number in source_parts:
+                    image = stack_images([crop_between(pages, *source_parts[number]), image])
+                image.save(asset_dir / filename, "WEBP", quality=86, method=6)
                 generated[bounds] = filename
             relative = f"英语一真题/{chapter['name']}/资源/{filename}"
             questions[number]["answerImageUrl"] = f"/api/default-workspace/file?path={quote(relative, safe='')}"
