@@ -12,6 +12,27 @@ const IMAGE_CONTENT_TYPES: Record<string, string> = {
   '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp',
   '.gif': 'image/gif', '.bmp': 'image/bmp', '.avif': 'image/avif'
 }
+const MATH_MODULE_FOLDERS = new Set(['高数', '线代', '真题'])
+const GROUPING_FOLDERS = new Set(['数学', '英语', '专业课'])
+
+function bankFoldersFromDirectoryPaths(directoryPaths: string[]) {
+  const folders = new Set<string>()
+  for (const rawPath of directoryPaths) {
+    const parts = rawPath.replaceAll('\\', '/').split('/').filter(Boolean)
+    if (!parts.length) continue
+    if (parts[0] === '数学') {
+      if (MATH_MODULE_FOLDERS.has(parts[1] || '') && parts[2]) folders.add(parts.slice(0, 3).join('/'))
+      else if (parts[1] && !MATH_MODULE_FOLDERS.has(parts[1])) folders.add(parts.slice(0, 2).join('/'))
+      continue
+    }
+    if (GROUPING_FOLDERS.has(parts[0])) {
+      if (parts[1]) folders.add(parts.slice(0, 2).join('/'))
+      continue
+    }
+    folders.add(parts[0])
+  }
+  return [...folders].sort()
+}
 
 function defaultWorkspacePlugin(): Plugin {
   const root = path.resolve(process.cwd(), '默认题库')
@@ -41,6 +62,15 @@ function defaultWorkspacePlugin(): Plugin {
     }
     return output
   }
+  async function collectDirectories(directory = root, prefix = ''): Promise<string[]> {
+    const output: string[] = []
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (entry.name.startsWith('.') || entry.name === MANIFEST || !entry.isDirectory()) continue
+      const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name
+      output.push(relativePath, ...await collectDirectories(path.join(directory, entry.name), relativePath))
+    }
+    return output
+  }
   const configureWorkspaceServer = (server: { middlewares: Connect.Server }) => {
       server.middlewares.use('/api/default-workspace/index', async (_request, response) => {
         try {
@@ -48,9 +78,12 @@ function defaultWorkspacePlugin(): Plugin {
           let userData = null
           try { manifest = JSON.parse(await readFile(path.join(root, MANIFEST), 'utf8')) } catch {}
           try { userData = JSON.parse(await readFile(path.join(userDataRoot, USER_DATA), 'utf8')) } catch {}
+          const directoryPaths = await collectDirectories()
+          const discoveredBankFolders = bankFoldersFromDirectoryPaths(directoryPaths)
+          const manifestBankFolders = Object.values((manifest as { folders?: Record<string, string> } | null)?.folders || {})
           response.setHeader('Content-Type', 'application/json; charset=utf-8')
-          const bankFolders = Object.values((manifest as { folders?: Record<string, string> } | null)?.folders || {})
-          response.end(JSON.stringify({ name: '默认题库', manifest, userData, images: await scan(bankFolders) }))
+          const bankFolders = [...new Set([...manifestBankFolders, ...discoveredBankFolders])]
+          response.end(JSON.stringify({ name: '默认题库', manifest, userData, bankFolders: discoveredBankFolders, images: await scan(bankFolders) }))
         } catch (error) { response.statusCode = 500; response.end(error instanceof Error ? error.message : '默认题库扫描失败') }
       })
       server.middlewares.use('/api/default-workspace/file', async (request, response) => {

@@ -154,6 +154,9 @@ SPECS = (
     ),
 )
 
+def workspace_bank_path(name: str) -> Path:
+    return DEFAULT_ROOT / "专业课" / name
+
 
 def chapter_pdf(spec: BankSpec, chapter: int) -> Path:
     prefix = f"{chapter}.5 " if spec.style == "theory" else f"{chapter} "
@@ -387,7 +390,7 @@ def save_pieces(
     directory.mkdir(parents=True, exist_ok=True)
     keys = []
     for index, image in enumerate(pieces, 1):
-        suffix = f".{index}" if len(pieces) > 1 else ""
+        suffix = f".{index}"
         filename = f"{prefix}{suffix}.png"
         path = directory / filename
         image.save(path, optimize=True)
@@ -441,8 +444,8 @@ def build_chapter(spec: BankSpec, chapter: int, name: str) -> tuple[dict, dict]:
                     source.crop((0, top, source.width, bottom)).copy()
                 )
 
-    bank_root = DEFAULT_ROOT / spec.name
-    section_dir = bank_root / f"{chapter:02d} {name} 1-课后习题"
+    bank_root = workspace_bank_path(spec.name)
+    section_dir = bank_root / f"{chapter:02d} {name} 01-课后习题"
     section_dir.mkdir(parents=True, exist_ok=True)
     questions_json = []
     for number in sorted(set(q_numbers) | set(a_numbers)):
@@ -500,7 +503,7 @@ def main() -> None:
     audits = []
     built_banks = []
     for spec in SPECS:
-        target = DEFAULT_ROOT / spec.name
+        target = workspace_bank_path(spec.name)
         if target.exists():
             shutil.rmtree(target)
         jobs = [(spec, chapter, name) for chapter, name in spec.chapter_names.items()]

@@ -118,7 +118,7 @@ def main() -> None:
     report = {}
 
     for year in range(2010, 2025):
-        asset_dir = args.default_root / "英语一真题" / banks[year]["name"] / "资源"
+        asset_dir = args.default_root / "英语" / "英语一真题" / banks[year]["name"] / "资源"
         asset_dir.mkdir(parents=True, exist_ok=True)
         source = args.local_dir / f"{year}年考研英语一真题解析.pdf" if year in (2022, 2024) else args.clean_dir / f"{year}.pdf"
         with pdfplumber.open(source) as pdf:
@@ -152,7 +152,7 @@ def main() -> None:
                     image.save(asset_dir / filename, "WEBP", quality=82, method=6)
                     generated[key] = filename
                 question = next(q for c in banks[year]["chapters"] for s in c["sections"] for q in s["questions"] if q["number"] == number)
-                relative = f'英语一真题/{banks[year]["name"]}/资源/{filename}'
+                relative = f'英语/英语一真题/{banks[year]["name"]}/资源/{filename}'
                 question["answerImageUrl"] = f"/api/default-workspace/file?path={quote(relative, safe='')}"
             report[year] = {"anchors": len(anchors), "fallbackQuestions": missing, "images": len(generated)}
 

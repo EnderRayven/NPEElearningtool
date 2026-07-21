@@ -26,7 +26,7 @@ describe('English exam bank data', () => {
     resources.forEach(url => {
       expect(url).toMatch(/^\/api\/default-workspace\/file\?path=/)
       const relative = new URL(url, 'http://localhost').searchParams.get('path') || ''
-      expect(relative.startsWith('英语一真题/')).toBe(true)
+      expect(relative.startsWith('英语/英语一真题/')).toBe(true)
     })
   })
 

@@ -110,6 +110,10 @@
   background: #fff;
 }
 
+.handwriting-editor:focus {
+  outline: none;
+}
+
 .handwriting-editor.expanded {
   display: flex;
   min-height: 0;

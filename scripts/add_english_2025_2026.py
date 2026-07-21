@@ -115,7 +115,7 @@ def fix_part_b(bank: dict, year: int, paper_text: str) -> None:
 
 
 def asset_url(year: int, filename: str) -> str:
-    relative = f"英语一真题/{year}年考研英语一真题/资源/{filename}"
+    relative = f"英语/英语一真题/{year}年考研英语一真题/资源/{filename}"
     return f"/api/default-workspace/file?path={quote(relative, safe='')}"
 
 
@@ -157,7 +157,7 @@ def main() -> None:
     parser.add_argument("paper_2026", type=Path)
     parser.add_argument("analysis_2025", type=Path)
     parser.add_argument("--bank", type=Path, default=Path("默认题库/题库数据.json"))
-    parser.add_argument("--assets", type=Path, default=Path("默认题库/英语一真题"))
+    parser.add_argument("--assets", type=Path, default=Path("默认题库/英语/英语一真题"))
     args = parser.parse_args()
 
     legacy.ANSWER_KEYS.update(ANSWER_KEYS)

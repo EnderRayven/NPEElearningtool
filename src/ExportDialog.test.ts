@@ -23,7 +23,7 @@ describe('export selection', () => {
 
   it('为原图复制生成稳定的日期目录和原始文件名', () => {
     expect(dateFolderName(new Date(2026, 6, 14))).toBe('2026-07-14')
-    expect(originalAssetName('bank/question/1-Q-02-3-06.png')).toBe('Q-02-3-06.png')
+    expect(originalAssetName('bank/question/1-Q-02-3-06.1.png')).toBe('Q-02-3-06.1.png')
     expect(imageExportFolderName('880/线代', '02 矩阵', '综合', new Date(2026, 6, 14))).toBe('2026-07-14-880-线代-02 矩阵-综合')
   })
 

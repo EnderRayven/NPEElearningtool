@@ -176,7 +176,7 @@ def render(
 
     for index, ((chapter, section, number), (start_page, start_top)) in enumerate(ordered):
         end_page, end_top = ordered[index + 1][1] if index + 1 < len(ordered) else (len(document), 0.0)
-        folder = output / f"{chapter:02d} 第{chapter}章 {section}-第{section}板块"
+        folder = output / f"{chapter:02d} 第{chapter}章 {section:02d}-第{section}板块"
         folder.mkdir(parents=True, exist_ok=True)
         parts = []
         for page_index in range(start_page, min(end_page, len(document) - 1) + 1):
@@ -188,7 +188,7 @@ def render(
             if bottom > top + 10:
                 parts.append(image.crop((0, top, image.width, bottom)))
         for part_index, image in enumerate(parts, 1):
-            suffix = f".{part_index}" if len(parts) > 1 else ""
+            suffix = f".{part_index}"
             image.save(folder / f"A-{chapter:02d}-{section}-{number:02d}{suffix}.png", "PNG")
 
 

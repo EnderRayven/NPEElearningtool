@@ -215,6 +215,42 @@
   margin-right: 6px;
 }
 
+.workspace-sync-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #e4ddd5;
+  border-radius: 9px;
+  background: #fff;
+  color: #65806c;
+  flex: 0 0 34px;
+  transition: background .16s, border-color .16s, color .16s, transform .16s;
+}
+
+.workspace-sync-button:hover:not(:disabled) {
+  border-color: #b9d5c0;
+  background: #f3faf4;
+  color: #3f8154;
+  transform: translateY(-1px);
+}
+
+.workspace-sync-button:focus-visible {
+  outline: 2px solid #5e9d72;
+  outline-offset: 2px;
+}
+
+.workspace-sync-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.workspace-sync-button:disabled {
+  cursor: wait;
+}
+
 .github-link {
   display: inline-flex;
   align-items: center;
@@ -457,4 +493,35 @@
   .settings-tools-popover .round-settings-section > div { flex-direction: column; }
   .countdown-settings-section > div > button,
   .round-settings-section > div > button { min-height: 36px; }
+}
+
+.settings-tools-popover .bank-settings-section {
+  margin-top: 11px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid #eee8e1;
+}
+
+.settings-tools-popover .bank-settings-section > span {
+  color: #8f3028;
+}
+
+.settings-tools-popover .bank-settings-section button[role='menuitem'] {
+  min-height: 68px;
+  background: #fff9f7;
+  border-color: #ead7d2;
+}
+
+.settings-tools-popover .bank-settings-section button[role='menuitem']:first-child {
+  border-color: #c98d85;
+  background: #9f2e25;
+  color: #fff;
+}
+
+.settings-tools-popover .bank-settings-section button[role='menuitem']:first-child:hover {
+  border-color: #84261f;
+  background: #84261f;
+}
+
+.settings-tools-popover .bank-settings-section button[role='menuitem']:first-child small {
+  color: #f7deda;
 }

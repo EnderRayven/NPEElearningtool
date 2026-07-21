@@ -557,7 +557,7 @@ def main() -> None:
 
         chapter = chapters[year]
         questions = question_map(chapter)
-        asset_dir = args.default_root / "英语一真题" / chapter["name"] / "资源"
+        asset_dir = args.default_root / "英语" / "英语一真题" / chapter["name"] / "资源"
         asset_dir.mkdir(parents=True, exist_ok=True)
 
         # Questions 1-40 are independent. Part B (41-45) is one coupled item,
@@ -631,7 +631,7 @@ def main() -> None:
                     image = stack_images([crop_between(pages, *source_parts[number]), image])
                 image.save(asset_dir / filename, "WEBP", quality=86, method=6)
                 generated[bounds] = filename
-            relative = f"英语一真题/{chapter['name']}/资源/{filename}"
+            relative = f"英语/英语一真题/{chapter['name']}/资源/{filename}"
             questions[number]["answerImageUrl"] = f"/api/default-workspace/file?path={quote(relative, safe='')}"
 
     args.bank_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

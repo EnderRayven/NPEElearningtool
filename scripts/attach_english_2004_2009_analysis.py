@@ -63,7 +63,7 @@ def group_for(section: dict) -> str:
 
 def asset_url(year: int, filename: str) -> str:
     folder = f"{year}年考研英语真题"
-    relative = f"英语一真题/{folder}/资源/{filename}"
+    relative = f"英语/英语一真题/{folder}/资源/{filename}"
     return f"/api/default-workspace/file?path={quote(relative, safe='')}"
 
 
@@ -79,7 +79,7 @@ def main() -> None:
     chapters = {int(chapter["id"].rsplit("-", 1)[1]): chapter for chapter in bank["chapters"]}
 
     for year, groups in PAGE_GROUPS.items():
-        resource_dir = args.default_root / "英语一真题" / f"{year}年考研英语真题" / "资源"
+        resource_dir = args.default_root / "英语" / "英语一真题" / f"{year}年考研英语真题" / "资源"
         source = args.analysis_dir / f"{year}年考研英语真题解析.pdf"
         with pdfplumber.open(source) as pdf:
             for name, (first, last) in groups.items():

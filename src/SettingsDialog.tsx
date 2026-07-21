@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Database, Download, Eraser, HardDrive, RefreshCcw, RotateCcw, Trash2, X } from 'lucide-react'
+import { BookOpen, Database, Download, Eraser, HardDrive, Plus, RefreshCcw, RotateCcw, Trash2, X } from 'lucide-react'
 import type { QuestionBank, QuestionStatus } from './types'
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
   builtInIds: Set<string>
   protectedBankIds: Set<string>
   onClose: () => void
+  onOpenNewBank: () => void
   onClearMarks: (bankId: string | 'all', status: QuestionStatus | 'all') => void
   onExportBank: (bank: QuestionBank) => void
   onResetBank: (bank: QuestionBank) => Promise<void>
@@ -33,6 +34,11 @@ export default function SettingsDialog(props: Props) {
     <section className="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title" onClick={event => event.stopPropagation()}>
       <button className="modal-close" aria-label="关闭" onClick={props.onClose}><X/></button>
       <div className="settings-heading"><span><Database/></span><div><h2 id="settings-title">设置与数据管理</h2><p>批量管理标注、题库和本地数据</p></div></div>
+
+      <section className="settings-section settings-create-bank">
+        <div className="settings-section-title"><BookOpen/><div><h3>题库管理</h3><p>从这里新建、导出、重置或删除题库</p></div></div>
+        <button className="settings-create-bank-action" onClick={props.onOpenNewBank}><span><Plus/></span><div><strong>新建题库</strong><small>选择学科和数学板块，自动建立清晰的目录结构</small></div><span className="settings-create-bank-arrow">›</span></button>
+      </section>
 
       <section className="settings-section">
         <div className="settings-section-title"><Eraser/><div><h3>批量删除标注</h3><p>清除掌握状态，不会删除任何题目或图片</p></div></div>

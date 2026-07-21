@@ -1,3 +1,5 @@
+import { migrateZhangyuQuestionNotes } from './bankMigration'
+
 export interface HandwritingPoint {
   x: number
   y: number
@@ -62,7 +64,7 @@ function validateStroke(value: unknown, index: number): HandwritingStroke | null
   const points = value.points.slice(0, MAX_POINTS_PER_STROKE).map(validatePoint).filter((point): point is HandwritingPoint => Boolean(point))
   if (!points.length) return null
   const color = typeof value.color === 'string' && /^#[0-9a-f]{6}$/i.test(value.color) ? value.color.toLowerCase() : '#8f3028'
-  const size = clamp(finiteNumber(value.size, 3), 1, 18)
+  const size = clamp(finiteNumber(value.size, 2), 1, 18)
   const id = typeof value.id === 'string' && value.id ? value.id : `stroke-${index}`
   return { id, color, size, input: value.input, points }
 }
@@ -93,7 +95,7 @@ export function validateQuestionNotes(value: unknown): QuestionNotes {
       updatedAt: typeof rawNote.updatedAt === 'string' ? rawNote.updatedAt : '',
     }
   }
-  return notes
+  return migrateZhangyuQuestionNotes(notes)
 }
 
 export function hasQuestionNote(note: QuestionNote | undefined) {

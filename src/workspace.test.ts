@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { QuestionBank } from './types'
-import { createWorkspaceManifest, createWorkspaceUserData, resolveWorkspaceImagePath, resolveWorkspaceUserData } from './workspace'
+import { createWorkspaceManifest, createWorkspaceUserData, resolveWorkspaceImagePath, resolveWorkspaceUserData, workspaceBankFoldersFromDirectoryPaths } from './workspace'
 
 const bank: QuestionBank = {
   id: 'bank-1',
@@ -69,11 +69,23 @@ describe('workspace data separation', () => {
 
   it('recognizes a bank stored below a grouping folder', () => {
     expect(resolveWorkspaceImagePath(
-      '英语一真题/2024年考研英语一真题/资源/analysis.webp',
-      ['英语一真题/2024年考研英语一真题'],
+      '英语/英语一真题/2024年考研英语一真题/资源/analysis.webp',
+      ['英语/英语一真题/2024年考研英语一真题'],
     )).toEqual({
-      bankFolder: '英语一真题/2024年考研英语一真题',
+      bankFolder: '英语/英语一真题/2024年考研英语一真题',
       relativePath: '资源/analysis.webp',
     })
+  })
+
+  it('recognizes math modules and direct English/professional banks from folders', () => {
+    expect(workspaceBankFoldersFromDirectoryPaths([
+      '数学', '数学/高数', '数学/高数/27数二1000A-高数', '数学/高数/27数二1000A-高数/01 章节',
+      '数学/线代', '数学/真题', '英语', '英语/英语一真题', '英语/英语一真题/2024年真题',
+      '专业课', '专业课/机械原理-基础过关450题', '专业课/机械原理-基础过关450题/01 章节',
+    ])).toEqual([
+      '专业课/机械原理-基础过关450题',
+      '数学/高数/27数二1000A-高数',
+      '英语/英语一真题',
+    ])
   })
 })

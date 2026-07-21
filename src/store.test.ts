@@ -134,7 +134,7 @@ describe('local storage recovery', () => {
 
   it('将旧版完整题库缓存重写为紧凑格式', () => {
     localStorage.setItem('npee:banks:v1', JSON.stringify([validBank]))
-    localStorage.setItem('npee:builtins:english-exams:v8', '1')
+    localStorage.setItem('npee:builtins:math-split-v2', '1')
     expect(loadBanks().map(bank => bank.id)).toEqual(['bank-1'])
     expect(JSON.parse(localStorage.getItem('npee:banks:v1') || '{}')).toMatchObject({ version: 2, bankOrder: ['bank-1'] })
   })
@@ -192,6 +192,13 @@ describe('navigation recovery', () => {
     const studyPositions = { math: { bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section' as const } }
     saveNavigation({ bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section', page: 'profile', profileBankId: 'english-exams', studyPositions })
     expect(loadNavigation()).toEqual({ bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section', page: 'profile', profileBankId: 'english-exams', studyPositions })
+  })
+
+  it('分别保存高数和线代的最后学习位置', () => {
+    const calculus = { bankId: 'default-math-1000a-calculus', sectionId: 'calculus-section', questionId: 'calculus-question', view: 'section' as const }
+    const linear = { bankId: 'default-math-1000a-linear', sectionId: 'linear-section', questionId: 'linear-question', view: 'wrong' as const }
+    saveNavigation({ ...linear, page: 'study', profileBankId: '', studyPositions: { math: linear }, mathStudyPositions: { calculus, linear } })
+    expect(loadNavigation()?.mathStudyPositions).toEqual({ calculus, linear })
   })
 
   it('兼容未记录我的板块的旧版位置', () => {

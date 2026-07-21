@@ -17,6 +17,7 @@ OCR_PAGES = Path("/private/tmp/kira-answer-pages")
 WORKSPACE = ROOT / "默认题库"
 BANK_NAME = "Kira线代基础"
 BANK_ID = "default-kira-linear-basic"
+BANK_FOLDER = Path("数学/线代") / BANK_NAME
 
 CHAPTERS = {
     1: ("行列式", 14),
@@ -101,7 +102,7 @@ def crop_answer(chapter: int, start: tuple[int, float], end: tuple[int, float], 
 
 def write_answer(parts: list[Image.Image], folder: Path, chapter: int, number: int) -> list[Path]:
     stem = f"A-{chapter:02d}-1-{number:02d}"
-    paths = [folder / (f"{stem}.png" if len(parts) == 1 else f"{stem}.{index}.png") for index in range(1, len(parts) + 1)]
+    paths = [folder / f"{stem}.{index}.png" for index in range(1, len(parts) + 1)]
     for image, path in zip(parts, paths):
         image.save(path, optimize=True)
     return paths
@@ -112,7 +113,7 @@ def asset_keys(question_id: str, kind: str, paths: list[Path]) -> list[str]:
 
 
 def main() -> None:
-    destination = WORKSPACE / BANK_NAME
+    destination = WORKSPACE / BANK_FOLDER
     if destination.exists():
         raise SystemExit(f"目标题库已存在，未覆盖：{destination}")
 
@@ -135,7 +136,7 @@ def main() -> None:
         question_sources = sorted(source_folder.glob("*.png"))
         if len(question_sources) != question_count:
             raise SystemExit(f"第{chapter}章题目数量异常：{len(question_sources)} != {question_count}")
-        folder = destination / f"{chapter:02d} {name} 1-习题"
+        folder = destination / f"{chapter:02d} {name} 01-习题"
         folder.mkdir()
 
         all_starts = starts_by_chapter[chapter]
@@ -150,7 +151,7 @@ def main() -> None:
 
         questions = []
         for number, (source_path, answer_index) in enumerate(zip(question_sources, selected_indices), 1):
-            question_path = folder / f"Q-{chapter:02d}-1-{number:02d}.png"
+            question_path = folder / f"Q-{chapter:02d}-1-{number:02d}.1.png"
             shutil.copy2(source_path, question_path)
             start, end = intervals[answer_index]
             parts = crop_answer(chapter, start, end, headings_by_chapter[chapter])
@@ -181,7 +182,7 @@ def main() -> None:
     if any(item["id"] == BANK_ID or item["name"] == BANK_NAME for item in manifest["banks"]):
         raise SystemExit("清单中已存在 Kira 题库，未重复写入")
     manifest["banks"].append(bank)
-    manifest.setdefault("folders", {})[BANK_ID] = BANK_NAME
+    manifest.setdefault("folders", {})[BANK_ID] = BANK_FOLDER.as_posix()
     manifest["updatedAt"] = datetime.now(timezone.utc).isoformat()
     backup = Path("/private/tmp/default-question-bank-manifest-before-kira.json")
     shutil.copy2(manifest_path, backup)

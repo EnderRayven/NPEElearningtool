@@ -50,7 +50,39 @@ export interface DefaultWorkspaceIndex {
   name: string
   manifest: WorkspaceManifest | null
   userData: WorkspaceUserData | null
+  bankFolders?: string[]
   images: Array<{ name: string; relativePath: string; bankFolder: string; url: string }>
+}
+
+const MATH_MODULE_FOLDERS = new Set(['高数', '线代', '真题'])
+const GROUPING_FOLDERS = new Set(['数学', '英语', '专业课'])
+
+function normalizeWorkspacePath(value: string) {
+  return value.replaceAll('\\', '/').replace(/^\/|\/$/g, '')
+}
+
+export function workspaceBankName(folder: string) {
+  const normalized = normalizeWorkspacePath(folder)
+  return normalized.split('/').at(-1) || normalized
+}
+
+export function workspaceBankFoldersFromDirectoryPaths(directoryPaths: string[]) {
+  const folders = new Set<string>()
+  for (const rawPath of directoryPaths) {
+    const parts = normalizeWorkspacePath(rawPath).split('/').filter(Boolean)
+    if (!parts.length) continue
+    if (parts[0] === '数学') {
+      if (MATH_MODULE_FOLDERS.has(parts[1] || '') && parts[2]) folders.add(parts.slice(0, 3).join('/'))
+      else if (parts[1] && !MATH_MODULE_FOLDERS.has(parts[1])) folders.add(parts.slice(0, 2).join('/'))
+      continue
+    }
+    if (GROUPING_FOLDERS.has(parts[0])) {
+      if (parts[1]) folders.add(parts.slice(0, 2).join('/'))
+      continue
+    }
+    folders.add(parts[0])
+  }
+  return [...folders].sort()
 }
 
 export async function readDefaultWorkspace(): Promise<DefaultWorkspaceIndex> {
@@ -210,6 +242,21 @@ async function collectImages(directory: FileSystemDirectoryHandle, prefix: strin
   }
 }
 
+async function collectDirectoryPaths(directory: FileSystemDirectoryHandle, prefix: string, output: string[]) {
+  for await (const [name, handle] of directory.entries()) {
+    if (name.startsWith('.') || name === WORKSPACE_MANIFEST || name === WORKSPACE_USER_DATA || handle.kind !== 'directory') continue
+    const relativePath = prefix ? `${prefix}/${name}` : name
+    output.push(relativePath)
+    await collectDirectoryPaths(handle, relativePath, output)
+  }
+}
+
+export async function scanWorkspaceBankFolders(handle: FileSystemDirectoryHandle) {
+  const directoryPaths: string[] = []
+  await collectDirectoryPaths(handle, '', directoryPaths)
+  return workspaceBankFoldersFromDirectoryPaths(directoryPaths)
+}
+
 export async function scanWorkspaceImages(handle: FileSystemDirectoryHandle, bankFolders: string[] = []) {
   const output: WorkspaceImageFile[] = []
   for await (const [name, child] of handle.entries()) {
@@ -225,9 +272,10 @@ export function safeFolderName(name: string) {
 }
 
 export async function createBankFolder(handle: FileSystemDirectoryHandle, name: string) {
-  const folderName = safeFolderName(name)
-  await handle.getDirectoryHandle(folderName, { create: true })
-  return folderName
+  const folderPath = name.split('/').map(safeFolderName).filter(Boolean).join('/')
+  let parent = handle
+  for (const folderName of folderPath.split('/')) parent = await parent.getDirectoryHandle(folderName, { create: true })
+  return folderPath
 }
 
 export async function removeBankFolder(handle: FileSystemDirectoryHandle, folderName: string) {

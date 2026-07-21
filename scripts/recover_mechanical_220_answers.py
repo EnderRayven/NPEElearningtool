@@ -156,7 +156,7 @@ def render_answers(
         else:
             end_page, end_top = len(document), 0.0
         section = section_for(chapter, question)
-        folder = OUTPUT_ROOT / f"{chapter:02d} 第{chapter}章 {section}-强化板块{section}"
+        folder = OUTPUT_ROOT / f"{chapter:02d} 第{chapter}章 {section:02d}-强化板块{section}"
         folder.mkdir(parents=True, exist_ok=True)
         parts = []
         last_page = min(end_page, len(document) - 1)
@@ -169,7 +169,7 @@ def render_answers(
             if bottom > top + 10:
                 parts.append(image.crop((0, top, image.width, bottom)))
         for part_index, image in enumerate(parts, 1):
-            suffix = f".{part_index}" if len(parts) > 1 else ""
+            suffix = f".{part_index}"
             image.save(folder / f"A-{chapter:02d}-{section}-{question:02d}{suffix}.png", "PNG")
 
 

@@ -52,11 +52,11 @@ def main() -> None:
 
     for year, (first, last) in PAGE_RANGES.items():
         filename = f"analysis-{year}-part-b-complete.webp"
-        resource_dir = args.default_root / "英语一真题" / f"{year}年考研英语一真题" / "资源"
+        resource_dir = args.default_root / "英语" / "英语一真题" / f"{year}年考研英语一真题" / "资源"
         source = args.analysis_dir / f"{year}年考研英语一真题解析.pdf"
         with pdfplumber.open(source) as pdf:
             render(pdf, first, last, resource_dir / filename)
-        relative = f"英语一真题/{year}年考研英语一真题/资源/{filename}"
+        relative = f"英语/英语一真题/{year}年考研英语一真题/资源/{filename}"
         url = f"/api/default-workspace/file?path={quote(relative, safe='')}"
         section = next(section for section in chapters[year]["sections"] if any(q.get("type") == "阅读理解 Part B" for q in section["questions"]))
         for question in section["questions"]:

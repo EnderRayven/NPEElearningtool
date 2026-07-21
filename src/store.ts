@@ -1,15 +1,15 @@
 import type { PartBKind, Question, QuestionBank, QuestionStatus, ReadingQuestionType, Section, Subject } from './types'
 import { builtInBanks } from './data'
-import { migrateZhangyuBankId, migrateZhangyuReference, RETIRED_ZHANGYU_COMBINED_BANK_ID } from './bankMigration'
+import { isRetiredBankId, migrateZhangyuBankId, migrateZhangyuReference, RETIRED_1000_BASIC_BANK_ID, RETIRED_1000_INTENSIVE_BANK_ID, RETIRED_ZHANGYU_COMBINED_BANK_ID } from './bankMigration'
 
 const BANKS_KEY = 'npee:banks:v1'
-const BUILTIN_SEED_KEY = 'npee:builtins:english-exams:v8'
+const BUILTIN_SEED_KEY = 'npee:builtins:math-split-v2'
 const NAVIGATION_KEY = 'npee:navigation:v1'
 const VALID_STATUSES = new Set<QuestionStatus>(['none', 'proficient', 'vague', 'wrong'])
 const VALID_READING_TYPES = new Set<ReadingQuestionType>(['detail', 'example', 'main-idea', 'attitude', 'inference', 'vocabulary'])
 const VALID_PART_B_KINDS = new Set<PartBKind>(['ordering', 'sentence', 'subheading', 'viewpoint'])
 const VALID_SUBJECTS = new Set<Subject>(['math', 'english', 'professional'])
-const REMOVED_BANK_IDS = new Set(['local-calculus', 'local-linear', RETIRED_ZHANGYU_COMBINED_BANK_ID])
+const REMOVED_BANK_IDS = new Set(['local-calculus', 'local-linear', RETIRED_ZHANGYU_COMBINED_BANK_ID, RETIRED_1000_BASIC_BANK_ID, RETIRED_1000_INTENSIVE_BANK_ID])
 const LEGACY_ENGLISH_BANK_ID = /^english-20\d{2}$/
 const ENGLISH_BANK_ID = 'english-exams'
 
@@ -51,12 +51,12 @@ function decodeStoredBanks(value: unknown): QuestionBank[] {
     throw new Error('题库缓存顺序无效')
   const originalBankOrder = value.bankOrder as string[]
   const firstLegacyEnglishIndex = originalBankOrder.findIndex(id => LEGACY_ENGLISH_BANK_ID.test(id))
-  const bankOrder = originalBankOrder.filter(id => !LEGACY_ENGLISH_BANK_ID.test(id) && !REMOVED_BANK_IDS.has(id))
+  const bankOrder = originalBankOrder.filter(id => !LEGACY_ENGLISH_BANK_ID.test(id) && !REMOVED_BANK_IDS.has(id) && !isRetiredBankId(id))
   if (firstLegacyEnglishIndex >= 0 && !bankOrder.includes(ENGLISH_BANK_ID) && builtInBanks.some(bank => bank.id === ENGLISH_BANK_ID))
     bankOrder.splice(Math.min(firstLegacyEnglishIndex, bankOrder.length), 0, ENGLISH_BANK_ID)
   if (new Set(bankOrder).size !== bankOrder.length) throw new Error('题库缓存顺序包含重复项')
   if (!Array.isArray(value.banks)) throw new Error('题库缓存内容无效')
-  const overrides = value.banks.length ? validateBanks(value.banks).filter(bank => !LEGACY_ENGLISH_BANK_ID.test(bank.id) && !REMOVED_BANK_IDS.has(bank.id)) : []
+  const overrides = value.banks.length ? validateBanks(value.banks).filter(bank => !LEGACY_ENGLISH_BANK_ID.test(bank.id) && !REMOVED_BANK_IDS.has(bank.id) && !isRetiredBankId(bank.id)) : []
   const overrideById = new Map(overrides.map(bank => [bank.id, bank]))
   const builtInBankById = new Map(builtInBanks.map(bank => [bank.id, bank]))
   if (overrides.some(bank => !bankOrder.includes(bank.id))) throw new Error('题库缓存包含无效条目')
@@ -81,7 +81,7 @@ export function loadBanks(): QuestionBank[] {
       trySetItem(BUILTIN_SEED_KEY, '1')
       return structuredClone(builtInBanks)
     }
-    const cached = decodeStoredBanks(JSON.parse(raw)).filter(bank => !REMOVED_BANK_IDS.has(bank.id))
+    const cached = decodeStoredBanks(JSON.parse(raw)).filter(bank => !REMOVED_BANK_IDS.has(bank.id) && !isRetiredBankId(bank.id))
     if (localStorage.getItem(BUILTIN_SEED_KEY)) {
       trySetItem(BANKS_KEY, JSON.stringify(encodeStoredBanks(cached)))
       return cached
@@ -122,6 +122,11 @@ export interface NavigationState {
     english?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
     professional?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
   }
+  mathStudyPositions?: {
+    calculus?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
+    linear?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
+    exams?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
+  }
 }
 
 function parseStudyPosition(value: unknown) {
@@ -152,6 +157,15 @@ export function loadNavigation(): NavigationState | null {
         english: parseStudyPosition(value.studyPositions.english),
         professional: parseStudyPosition(value.studyPositions.professional),
       } : {},
+    }
+    if (isRecord(value.mathStudyPositions)) {
+      const mathStudyPositions = {
+        calculus: parseStudyPosition(value.mathStudyPositions.calculus),
+        linear: parseStudyPosition(value.mathStudyPositions.linear),
+      } as NonNullable<NavigationState['mathStudyPositions']>
+      const exams = parseStudyPosition(value.mathStudyPositions.exams)
+      if (exams) mathStudyPositions.exams = exams
+      migrated.mathStudyPositions = mathStudyPositions
     }
     if (raw !== JSON.stringify(migrated)) trySetItem(NAVIGATION_KEY, JSON.stringify(migrated))
     return migrated
@@ -214,6 +228,8 @@ export function validateBanks(value: unknown): QuestionBank[] {
                 if (rawQuestion.options !== undefined && (!Array.isArray(rawQuestion.options) || rawQuestion.options.some(option => typeof option !== 'string')))
                   throw new Error(`${questionPath}.options 必须是文本数组`)
                 const type = optionalString(rawQuestion.type, `${questionPath}.type`)
+                const score = rawQuestion.score === undefined ? undefined : Number.isFinite(rawQuestion.score) ? rawQuestion.score as number : (() => { throw new Error(`${questionPath}.score 必须是数字`) })()
+                const keyPoint = optionalString(rawQuestion.keyPoint, `${questionPath}.keyPoint`)
                 const imageUrl = optionalString(rawQuestion.imageUrl, `${questionPath}.imageUrl`)
                 const imageKeys = optionalStringArray(rawQuestion.imageKeys, `${questionPath}.imageKeys`)
                 const answerImageUrl = optionalString(rawQuestion.answerImageUrl, `${questionPath}.answerImageUrl`)
@@ -229,6 +245,8 @@ export function validateBanks(value: unknown): QuestionBank[] {
                   analysis: requiredString(rawQuestion.analysis, `${questionPath}.analysis`),
                 }
                 if (type !== undefined) question.type = type
+                if (score !== undefined) question.score = score
+                if (keyPoint !== undefined) question.keyPoint = keyPoint
                 if (rawQuestion.options !== undefined) question.options = rawQuestion.options as string[]
                 if (imageUrl !== undefined) question.imageUrl = imageUrl
                 if (answerImageUrl !== undefined) question.answerImageUrl = answerImageUrl
@@ -255,8 +273,10 @@ export function validateBanks(value: unknown): QuestionBank[] {
     }
     const description = optionalString(rawBank.description, `${path}.description`)
     const subject = VALID_SUBJECTS.has(rawBank.subject as Subject) ? rawBank.subject as Subject : undefined
+    const workspaceFolder = optionalString(rawBank.workspaceFolder, `${path}.workspaceFolder`)
     if (description !== undefined) bank.description = description
     if (subject !== undefined) bank.subject = subject
+    if (workspaceFolder !== undefined) bank.workspaceFolder = workspaceFolder
     return bank
   })
 }

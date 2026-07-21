@@ -60,7 +60,7 @@ def merge_english_banks(payload: dict, replacements: list[dict] | None = None) -
 
     folders = {key: value for key, value in payload.get("folders", {}).items() if not key.startswith("english-")}
     if chapters:
-        folders[BANK_ID] = BANK_NAME
+        folders[BANK_ID] = f"英语/{BANK_NAME}"
     payload["banks"] = retained
     payload["folders"] = folders
     payload["builtinEnglishVersion"] = ENGLISH_VERSION

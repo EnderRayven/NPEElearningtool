@@ -67,7 +67,7 @@ function fileNameFromUrl(url: string, questionNumber: number) {
     const sourceName = decodeURIComponent(path.replaceAll('\\', '/').split('/').pop() || '')
     if (sourceName && /\.[a-z0-9]+$/i.test(sourceName)) return safeName(sourceName)
   } catch { /* Use a stable fallback below. */ }
-  return `Q-${String(questionNumber).padStart(2, '0')}.png`
+  return `Q-${String(questionNumber).padStart(2, '0')}.1.png`
 }
 
 function nextFrame() { return new Promise<void>(resolve => requestAnimationFrame(() => resolve())) }

@@ -17,8 +17,8 @@ describe('image directory display names', () => {
 
   it('只把实际新建的题目计入新建数量', async () => {
     const bank = { id: 'bank', name: '题库', source: 'local' as const, chapters: [{ id: 'bank-chapter-01', name: '第一章', sections: [{ id: 'bank-chapter-01-section-1', name: '第一节', questions: [{ id: 'bank-01-1-01', number: 1, text: '已有题目', answer: 'A', analysis: '解析' }] }] }] }
-    const file = new File(['image'], 'Q-01-1-01.png', { type: 'image/png' })
-    const result = await mergeImageEntries([bank], [{ bankId: 'bank', file, relativePath: file.name }])
+    const file = new File(['image'], 'Q-01-1-01.1.png', { type: 'image/png' })
+    const result = await mergeImageEntries([bank], [{ bankId: 'bank', file, relativePath: `01 行列式 01-基础/${file.name}` }])
     expect(result.matchedQuestions).toBe(1)
     expect(result.createdQuestions).toBe(0)
   })

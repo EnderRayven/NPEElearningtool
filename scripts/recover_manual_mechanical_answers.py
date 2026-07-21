@@ -33,10 +33,10 @@ def main() -> None:
             bottom = round((end_top - 3) * scale) if page_index == end_page else image.height - round(8 * scale)
             if bottom > top + 10:
                 parts.append(image.crop((0, max(0, top), image.width, min(image.height, bottom))))
-        folder = OUT / f"{chapter:02d} 第{chapter}章 {section}-第{section}板块"
+        folder = OUT / f"{chapter:02d} 第{chapter}章 {section:02d}-第{section}板块"
         folder.mkdir(parents=True, exist_ok=True)
         for index, image in enumerate(parts, 1):
-            suffix = f".{index}" if len(parts) > 1 else ""
+            suffix = f".{index}"
             image.save(folder / f"A-{chapter:02d}-{section}-{question:02d}{suffix}.png", "PNG")
     document.close()
     print(f"补回 {len(TARGETS)} 个原始答案边界")

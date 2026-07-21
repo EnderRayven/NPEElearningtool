@@ -1,0 +1,3120 @@
+{
+  "version": 1,
+  "subject": "数学二",
+  "sourceUrl": "https://xiaoyivip.com.cn/#/math-past-papers",
+  "retrievedAt": "2026-07-20",
+  "scope": "使用已登录会话采集2009—2026年页面可访问内容；包含原先标锁定年份；未修改网站数据",
+  "papers": [
+    {
+      "subject": "数学二",
+      "year": 2026,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "1.6 无穷小量及其阶的比较",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296029113_1dtw226mkzx.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296029814_vrsu26kjj5.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296030414_3u22o9vzs9f.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296031061_g8di8mha21c.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.4 函数的单调性、极值与最值",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296031752_hkpnzal9ni.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296032476_lb5lkkbiwwr.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "5.1 二重积分的概念和性质",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296033059_d2s4qe9fyo5.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.1 伴随矩阵和逆矩阵",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296034003_9bop795ikj5.png"
+        },
+        {
+          "number": 9,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296034582_s9sk3iauxw.png"
+        },
+        {
+          "number": 10,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "5.1 特征值与特征向量",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296035197_tfojzn5op4.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296035908_6pvbdfsol3b.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296036610_h1axn338k28.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296037155_jqzq51h9z8i.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "4.2 全微分的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296037792_e8xrm0gklnf.png"
+        },
+        {
+          "number": 15,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "3.4 定积分计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296038429_a3ztmhdnr4d.png"
+        },
+        {
+          "number": 16,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296039167_rvykwtqe01q.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296039792_0fr6r2v1dq6r.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "3.5 变限积分",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296040428_xjgvvcrjh3p.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296041030_0bjsulo6am7w.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296041674_g57sm3buq3c.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "6.2 可降阶微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296042309_zkkl41gb2of.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "3.1 向量组的线性相关性",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784296042951_avbs78r5m2n.png"
+        }
+      ],
+      "questionCount": 22,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 10,
+        "填空题": 6,
+        "解答题": 6
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2025,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295974251_2tl3gbxrvqq.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295974833_mydd5i8drem.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295975425_6xdue204m69.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "1.6 无穷小量及其阶的比较",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295976124_pnkrauiynds.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295976658_hxqtut4l9l5.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295977244_prjwjmd0kth.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.1 导数与微分的概念",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295977846_wqbw4t61hep.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "5.1 特征值与特征向量",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295978851_i5ee6ylivf.png"
+        },
+        {
+          "number": 9,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.2 矩阵运算和变换",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295979414_ezpc3xl3oi.png"
+        },
+        {
+          "number": 10,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295979963_xcay52le5bg.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295980530_uurobf1apu.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295981100_2kutf07h9p.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "3.2 定积分的概念、性质及几何意义",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295981690_6othu4a5yb7.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295982168_uhjfd93j69r.png"
+        },
+        {
+          "number": 15,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295982887_6s9ezwrwo1b.png"
+        },
+        {
+          "number": 16,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295983688_cxlket3ratm.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.4 定积分计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295984224_zfk1ef004bl.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "2.1 导数与微分的概念",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295984835_jr2vsnr6as.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295985418_7x6ax4y4p43.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295985958_6ymlf3jggj5.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "2.8 微分中值定理",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295986677_evoo2720mo.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295987249_psr0ceyx3l.png"
+        }
+      ],
+      "questionCount": 22,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 10,
+        "填空题": 6,
+        "解答题": 6
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2024,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "1.7 函数连续性及间断点类型",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295875420_daookfzxvt6.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.1 导数与微分的概念",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295876034_y2lqjbsqidm.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.5 变限积分",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295876681_uglus1pbfv.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "1.2 极限的定义及性质",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295877329_y91acnd62f.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295877949_yzrv5foui4.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295879074_s8iy7cz30uc.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295879682_2hzg9hy5jv6.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.2 矩阵运算和变换",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295880548_uws921s70be.png"
+        },
+        {
+          "number": 9,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.3 矩阵的秩",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295881136_xk1l11637fs.png"
+        },
+        {
+          "number": 10,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295881833_y8uuosrgg8g.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295882736_lfzlvqh69z.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295883492_xu3u3batcc.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "6.1 一阶常微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295884316_plg2r2jebhe.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295884898_xfqfxu55fwg.png"
+        },
+        {
+          "number": 15,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295885597_b88d634ztek.png"
+        },
+        {
+          "number": 16,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "3.1 向量组的线性相关性",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295886174_wyhk8mfumu.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295887046_w8vnqfvxi6n.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295889841_8kr2c1af2vh.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295890839_esc8ertzmrm.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295891771_69pthsg3t7p.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "2.8 微分中值定理",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295892921_k5exjxw33q.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295895556_alh8l6hjpc4.png"
+        }
+      ],
+      "questionCount": 22,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 10,
+        "填空题": 6,
+        "解答题": 6
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2023,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295782678_rp5wnweib3f.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.3 不定积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295783363_07j590g9o9ka.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "1.6 无穷小量及其阶的比较",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295784577_vclc3s0wpwp.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295786211_bi2dpu231x.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.1 导数与微分的概念",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295787238_c4rzqltf5cc.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295788476_pd42ncmpog.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295789175_vz7aya84km.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.1 伴随矩阵和逆矩阵",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295789778_meui7gnbvu.png"
+        },
+        {
+          "number": 9,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295790802_w5ysajo2swp.png"
+        },
+        {
+          "number": 10,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.2 向量组之间的线性表示",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295791849_tkkzh8p9vd.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "1.5 确定极限中的参数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295792451_pshsgjlo6zb.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295793028_0vz74v1fadoi.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295793615_h9ev4t0kuuu.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295794163_mkfp78tw6q.png"
+        },
+        {
+          "number": 15,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "3.4 定积分计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295794843_wc8v3r3jfws.png"
+        },
+        {
+          "number": 16,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295795484_b5vvolnl7sf.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "6.4 微分方程的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295796590_pq0gw7f9zjq.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295797242_xmx58w9uafm.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295797881_xlg886u18ve.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295798497_aumz4ijhugv.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "2.8 微分中值定理",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295799109_ie83g85btck.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295799819_rikoio1jcon.png"
+        }
+      ],
+      "questionCount": 22,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 10,
+        "填空题": 6,
+        "解答题": 6
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2022,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "1.6 无穷小量及其阶的比较",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295697587_awcmjc4zl39.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295698809_36h48bww8p.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295699681_xgwewhu8o7m.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295701178_upxplcmhjx9.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295702429_joatu1g4c0j.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "1.2 极限的定义及性质",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295703870_hxr4micwwo5.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.2 定积分的概念、性质及几何意义",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295704535_eomo651feio.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295705599_drew7vwvr2i.png"
+        },
+        {
+          "number": 9,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295707575_y05nj97olg.png"
+        },
+        {
+          "number": 10,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.2 向量组之间的线性表示",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295708533_ju4sav21rd9.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295709820_51pjets52l.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295710359_q6re4qpvrz.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "3.4 定积分计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295710951_8tvmqfbpc4q.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295712421_2sj06kn10nj.png"
+        },
+        {
+          "number": 15,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295713007_d2zfqqrgnc7.png"
+        },
+        {
+          "number": 16,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "2.2 矩阵运算和变换",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295713611_mig65cq1i.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "2.1 导数与微分的概念",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295714521_pamsyzyy0u.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "6.1 一阶常微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295715483_yzo4ywvng8.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295716434_icilti9bmjf.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295717342_rbc9h6x54gp.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "2.8 微分中值定理",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295718901_0by9660a51ao.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295721534_aixaeic1hu.png"
+        }
+      ],
+      "questionCount": 22,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 10,
+        "填空题": 6,
+        "解答题": 6
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2021,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "1.6 无穷小量及其阶的比较",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352436440_ubd1liy384.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.1 导数与微分的概念",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352437101_5bxtnm4skh6.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352437977_1lnn3qnd2e.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.6 方程根的存在性与个数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352439593_un9uewecc4.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352440777_km5g2deaag8.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "4.2 全微分的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352441796_65cgg5rjn7.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "3.2 定积分的概念、性质及几何意义",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352442484_6xilt1y8ac.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352443166_9bzegaiuggh.png"
+        },
+        {
+          "number": 9,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352444108_pulkxv1skh.png"
+        },
+        {
+          "number": 10,
+          "type": "选择题",
+          "score": 5,
+          "keyPoint": "2.2 矩阵运算和变换",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352444759_qdbumex0bfq.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352446122_sz45p364pm.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352446690_gopvds9c5sm.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352447197_hekz6274zgd.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352447739_1fk6muj3p87.png"
+        },
+        {
+          "number": 15,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352448337_badgnv3uqvc.png"
+        },
+        {
+          "number": 16,
+          "type": "填空题",
+          "score": 5,
+          "keyPoint": "1.1 数字型行列式",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352448923_dcnaq2jt9m4.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352450359_z7t5dukf0a.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352451235_6lztjsiglr5.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352452174_d6w2y8f2lor.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "6.1 一阶常微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352454108_uo6x5dhu2c.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352455066_05ip0e7xq5xm.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 12,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784352455686_i9j8hjqofqc.png"
+        }
+      ],
+      "questionCount": 22,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 10,
+        "填空题": 6,
+        "解答题": 6
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2020,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.6 无穷小量及其阶的比较",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295467002_ipgk0c83ran.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.7 函数连续性及间断点类型",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295467649_cl633dv6jbl.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.4 定积分计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295468317_0prhip0zqvrp.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295468894_ww0z1nvrndf.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295470082_lomcjvbgsqe.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.4 函数的单调性、极值与最值",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295471094_3trfwcueop.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.1 伴随矩阵和逆矩阵",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295472638_c475gnys1uw.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.1 特征值与特征向量",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295473408_fzy8k2qnzlp.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295475272_ebholh8m6pe.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295475867_4k31oe83yb9.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "4.2 全微分的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295476709_kc791sie4st.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295477289_f2onrpif6lc.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295478797_wwopoc4y0fq.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "1.1 数字型行列式",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295479451_d9pul3sh9gp.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295481121_m3jczfrvtk.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.5 变限积分",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295482045_s5d7bxsh9yr.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295483450_io01xjglrjc.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295484369_sh22a82ia6.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295485344_il4o4m0v94p.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "2.8 微分中值定理",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295486279_7h1w10srbit.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "6.4 微分方程的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295487318_0pvgjm8e9yz.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295488330_dj6ioycpbpd.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295491389_0636h914me5h.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2019,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.5 确定极限中的参数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295386532_8k1fwwarwnw.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295387156_b0ppa6goy3g.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295388919_dp4nywrmg7.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295389558_affmnja6w6m.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.1 二重积分的概念和性质",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295390577_6ffqavlripo.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295391868_bv68xo1cwdw.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.1 伴随矩阵和逆矩阵",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295393904_pnlelj1pk8.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295395085_dn298jto9s.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295395958_p0q36rt3d9.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295396521_n70sonc8v9.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295397348_y6a6xj86y6h.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295397892_cy7k5xfk2rr.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.4 定积分计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295399172_v2c5vd0jnq.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "1.1 数字型行列式",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295400641_iojlxso7p1g.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "2.4 函数的单调性、极值与最值",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295401624_kceujox8n5m.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.3 不定积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295402968_d849020ft6f.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "6.1 一阶常微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295403973_as0nfuicw4.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295404626_1nrs08yzqi8.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295405563_zlgbi0x6jsj.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295406866_m2ojc0upw5.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "2.8 微分中值定理",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295407536_jf1r7arthyj.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "3.2 向量组之间的线性表示",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295409617_4p5yywq7u2c.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295411252_d74uhaxewuk.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2018,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.5 确定极限中的参数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295303275_c0xe2s51kpg.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.1 导数与微分的概念",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295303942_uemmrtngxz.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.7 函数连续性及间断点类型",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295304880_jdsag8x2s4f.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295305828_2s14rroq4xd.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.2 定积分的概念、性质及几何意义",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295307319_vpcbljn5jok.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295308248_p6vr0nz1c1i.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295308940_g89hcvw6mc5.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.3 矩阵的秩",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295310298_gpnbpw9re49.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "1.3 函数极限的计算"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295331576_n6ha5ld7q4f.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295332469_su9eic1i4ys.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295333161_2t63dfzbp1q.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295334238_ciagfl1939v.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "5.1 特征值与特征向量",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295335071_sxy0mrxhnbd.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.3 不定积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295335737_m7lyjc31t3l.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.5 变限积分",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295337170_mbjgm76oqc.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295338358_qfzpd46wvgm.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "2.7 不等式的证明",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295340576_485yn3ixhll.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295341650_znu8eab8z2o.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295342868_9bf94xutxx.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "1.4 数列极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295344152_4bq245mkuvu.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295345319_03yoyemxiuwa.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295346943_pvbefv5fbea.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": [
+        9
+      ]
+    },
+    {
+      "subject": "数学二",
+      "year": 2017,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.7 函数连续性及间断点类型",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295199226_wya1c7e6spf.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295199897_6zy907cpkta.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.2 极限的定义及性质",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295201323_3hhkcwnb2bp.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295202327_ys0egsd2l4c.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295203549_1pdvgk8c06qj.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295204195_sntih79sx8.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.1 特征值与特征向量",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295204845_ux1opzm6sgn.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295205491_ik0hmtwspn.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295207718_02j4r731ljip.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295208389_f9aaa787ew.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295209177_sj9ial9ztp.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "4.2 全微分的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295210573_9eyipi7b19j.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295211473_i0wk39mdqpi.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "5.1 特征值与特征向量",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295213076_yp20j8nft7i.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.5 变限积分",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295213591_12g0nvkp08ij.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295214905_j3f4duq5iaa.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.2 定积分的概念、性质及几何意义",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295215875_xsgaxssszc.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "2.4 函数的单调性、极值与最值",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295217181_7br2zt0z51f.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "2.6 方程根的存在性与个数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295219274_cvuvkmuijlp.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295221138_3mddi2y1opd.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "6.4 微分方程的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295221714_yjruu8p5pqk.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295223990_5i8kw3kolyt.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295225905_p4288wxcr0f.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2016,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.6 无穷小量及其阶的比较",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295062409_qekenl7jyun.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.3 不定积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295063123_80mtucyzxv6.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295064677_r1k7cjaa3r.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295065613_v4fu0hgq0jg.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295066615_7lofxm40zni.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295067597_0eggrm7bi5r.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295068108_4cofpjc5ofo.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295069112_6jb3gx4ds3t.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295070172_ux0bl99foxc.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.2 定积分的概念、性质及几何意义",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295071066_dbuun46uzg4.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "6.1 一阶常微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295071657_8s8cmwz8nkk.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295072295_iq6l27ltylc.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295074600_lcbvuz2mdw.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.3 矩阵的秩",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295075291_2nlw9dqk9le.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295077129_iahu9ms47qg.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.4 定积分计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295079008_gae79zot1ip.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295080947_7z0xzwz9xh.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295082129_q5qxeewhju.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295083656_8zmngc5uxlk.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295085306_0v6rzeymsbnr.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295087361_8snz20e1n5.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295089496_oynz2hms5y.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784295090465_h7mv2a782ra.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2015,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294911276_a90ju2b3dk7.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.7 函数连续性及间断点类型",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294911967_mje7plylvma.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.1 导数与微分的概念",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294913462_jxbgx7qumx.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294914766_x8n73v0ozl.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294915435_i3dhyveufr.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294916347_2lqjigiszde.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294917265_ksxp5heqkh.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294918660_youxp33ghhk.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294919674_p6n4o3m9f7s.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.5 变限积分",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294940032_r6rinqame8.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294941040_humpmxluo.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "4.2 全微分的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294941699_jdww5xnfpd.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "5.1 特征值与特征向量",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294942707_bo6u41rwrk4.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "1.5 确定极限中的参数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294944179_55fobhwf7a.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294945725_5wbvdkvo53i.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294946793_hqrqwrkj73k.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294947797_89hl594qczv.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "2.6 方程根的存在性与个数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294967899_j8le09iczv.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "6.4 微分方程的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294969646_fm5xa84v6wm.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "2.8 微分中值定理",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294971314_s8mz03dzidm.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "2.2 矩阵运算和变换",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294972657_3zo9uul9ik9.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294975443_82jnyeroyf5.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": [
+        10
+      ]
+    },
+    {
+      "subject": "数学二",
+      "year": 2014,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.5 确定极限中的参数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294846247_uv02lm1y03.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294846951_b4vcvsn0846.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294847896_w7kvb68laio.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294848905_eu7pd5dki65.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294849449_76iby0lxlgd.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294851070_u6k947vsc5.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.1 数字型行列式",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294852105_o7uoikffvyl.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.1 向量组的线性相关性",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294853020_c6ebju7p6.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294853677_7vsc98p8tjo.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.4 定积分计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294854264_34i7nabqy42.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "4.2 全微分的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294855170_sems2363onp.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294856068_byoez53furk.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294857330_f3jkejancpp.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294857903_9spnugs3aeq.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294858939_6j0utotx9v2.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "6.1 一阶常微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294860290_xw81tpiuj6i.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294860969_35qpicacyno.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294863121_flj8jz10aks.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294864451_x4xks1vzg6.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294865415_rt3nfsytqg9.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294866569_jqt88qqngnj.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294867491_up708mtrq2i.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294868423_ivynpi4la5.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2013,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.6 无穷小量及其阶的比较",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294638856_kww1qtee9fa.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.1 导数与微分的概念",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294639533_tz8f2ovs09.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.5 变限积分",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294641037_uw03o3ii2xt.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294642342_pgn9viauchk.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294643170_ziacfhivxj.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.1 二重积分的概念和性质",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294643765_fmfn0owy4qf.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.2 向量组之间的线性表示",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294644569_9k0bnv2x1jo.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294645484_ljvriydnr5n.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294647063_px49h6zo5sc.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294648326_nq1jdave8s.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294648933_rvb12b7wkvm.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294649632_4n5n6ezmt1s.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294650211_r1dl5u39969.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.1 伴随矩阵和逆矩阵",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294651203_jhx4cv9r3md.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "1.5 确定极限中的参数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294651987_u6ho1jolsrq.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294654522_poakcpspw4.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294655533_xqr3cl2y0xs.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "2.8 微分中值定理",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294656951_7l454ckxi1l.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294658601_g0thpysord8.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "1.4 数列极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294660132_drzk8vk8k75.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.3 二重积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294660844_si5fluthmx.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294661758_ubiwke1o4x.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294663498_jr17bcxyhb.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2012,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294521014_i0x3ad0qeve.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294521705_yrxxyyj2c2g.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.4 数列极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294522658_b97dtgveobd.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.2 定积分的概念、性质及几何意义",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294523655_dpwferzyogu.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294524530_qo8goy63lvh.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.2 二重积分的计算"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.1 向量组的线性相关性",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294546312_nlh1igy844a.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.2 矩阵运算和变换",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294547065_tbi9zedfbts.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294548311_11ofvpcjqteq.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.2 定积分的概念、性质及几何意义",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294548993_lq2b1vacphl.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294549554_yby9m0rb0l.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "6.1 一阶常微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294550081_o31zjhrse3p.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294550766_5x09d7yolkq.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.1 伴随矩阵和逆矩阵",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294551353_vnovdvicder.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "1.5 确定极限中的参数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294552521_5yw85hlxz5r.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294553979_6z2jid9dxv8.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294554754_udxf37nmduk.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294556369_g8wbfskms7u.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294558082_hxxj9csity.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "2.7 不等式的证明",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294559316_70l8ryi8zmx.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "2.6 方程根的存在性与个数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294560914_5bhdy0yrqrl.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294562978_6jg2g0ukqsd.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294564149_qdjffy91v.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": [
+        6
+      ]
+    },
+    {
+      "subject": "数学二",
+      "year": 2011,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.5 确定极限中的参数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294425668_mbt2vutyub9.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.1 导数与微分的概念",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294427050_pttgm5jxrz.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.6 方程根的存在性与个数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294428877_24mi2t2rbgz.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294429733_5q0mmpxvsbl.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294431155_n3nmor63a58.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.2 定积分的概念、性质及几何意义",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294432423_9uklby2f4t.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.2 矩阵运算和变换",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294433304_kwy0eqrc4jj.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.1 伴随矩阵和逆矩阵",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294434400_8osbt14ubw.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294436663_0ofy64xd9pb.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "6.1 一阶常微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294439015_are1nhx3hq.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294440636_h20wa8sbgg5.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294441223_pqotyee8pcd.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294441906_od2dluifp2.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294442571_e32xqeaeebc.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294443399_y70oqw2k88.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294444540_18qaysvxa5.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294447261_iv75e8dur9.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "6.4 微分方程的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294448217_cm1qyvnrde.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "1.4 数列极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294450296_r2gqla1xmr.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294451920_vq8k6asog7.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294454892_zxabh3o5uhk.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "3.2 向量组之间的线性表示",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294456014_nf6banc97t.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.1 特征值与特征向量",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294458369_2fzx5buzp5h.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2010,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.7 函数连续性及间断点类型",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294224203_4icl5oyz476.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294224931_qxshzqv3snm.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294225563_oc00ogj7lll.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294226178_nvvj91vl2p.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294228031_my8193jpf3c.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.1 二重积分的概念和性质",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294229242_68a07fgviz7.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.2 向量组之间的线性表示",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294231070_01a1bwsc22xw.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294232251_zd53o9dvha8.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "6.3 高阶线性微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294233623_q7qhw0i1c7.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.5 曲线的凹凸性、拐点及渐近线",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294234338_3ci9szil1f8.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294235375_2o5shdcfd59.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294236539_92y4k4q09uv.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294237229_i58zrfggdw.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.2 矩阵运算和变换",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294237900_lgvtytb7ll.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "2.4 函数的单调性、极值与最值",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294238788_knegvgy8irh.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.2 定积分的概念、性质及几何意义",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294239865_ezr4ea6g1q.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "6.1 一阶常微分方程",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294241627_jl1zdbkgnea.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294242555_yhw6kyhz4ma.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294243574_di1lao42pga.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294244551_y8n876n11v.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "2.8 微分中值定理",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294245569_wtwr9pmm0ha.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "4.1 线性方程组求解",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294247089_fk02ipgup7j.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "5.1 特征值与特征向量",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294248004_pdbiw4kuxvg.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": []
+    },
+    {
+      "subject": "数学二",
+      "year": 2009,
+      "questions": [
+        {
+          "number": 1,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.7 函数连续性及间断点类型",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294136895_wcon2u8537j.png"
+        },
+        {
+          "number": 2,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "1.5 确定极限中的参数",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294138994_shtn85vvw6t.png"
+        },
+        {
+          "number": 3,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "4.3 多元函数极值、最值问题",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294140825_95wkllgrzdq.png"
+        },
+        {
+          "number": 4,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294142082_mzez2bqnw5h.png"
+        },
+        {
+          "number": 5,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294143113_918m0uqh1tn.png"
+        },
+        {
+          "number": 6,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "3.5 变限积分",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294145829_b3fx08j0i4.png"
+        },
+        {
+          "number": 7,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.1 伴随矩阵和逆矩阵",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294148158_h9oc67brss4.png"
+        },
+        {
+          "number": 8,
+          "type": "选择题",
+          "score": 4,
+          "keyPoint": "2.2 矩阵运算和变换",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294150200_zcg0audmtod.png"
+        },
+        {
+          "number": 9,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.3 导数的几何意义及相关变化率",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294151348_tcpp1sta2u.png"
+        },
+        {
+          "number": 10,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.6 反常积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294151938_u52ic3yr71s.png"
+        },
+        {
+          "number": 11,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "3.4 定积分计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294152797_g2tgp4iimco.png"
+        },
+        {
+          "number": 12,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.2 导数与微分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294153736_6w9t3mkutj.png"
+        },
+        {
+          "number": 13,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "2.4 函数的单调性、极值与最值",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294154309_otxla8l9x2l.png"
+        },
+        {
+          "number": 14,
+          "type": "填空题",
+          "score": 4,
+          "keyPoint": "5.2 矩阵的相似和相似对角化",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294155194_nh1lmij5x6.png"
+        },
+        {
+          "number": 15,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "1.3 函数极限的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294155785_9r4pgik81h5.png"
+        },
+        {
+          "number": 16,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.3 不定积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294156779_4aieo34mkpj.png"
+        },
+        {
+          "number": 17,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "4.1 偏导数的概念和计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294158149_tic6mfqrb9o.png"
+        },
+        {
+          "number": 18,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "3.7 定积分的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294159949_4q7tgv87i7k.png"
+        },
+        {
+          "number": 19,
+          "type": "解答题",
+          "score": 10,
+          "keyPoint": "5.2 二重积分的计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294162299_ufdspa1112.png"
+        },
+        {
+          "number": 20,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "6.4 微分方程的应用",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294163983_i00joumkvg.png"
+        },
+        {
+          "number": 21,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "2.8 微分中值定理",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294165863_mmj29izyzap.png"
+        },
+        {
+          "number": 22,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "3.1 向量组的线性相关性",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294167220_unxf2qqngd.png"
+        },
+        {
+          "number": 23,
+          "type": "解答题",
+          "score": 11,
+          "keyPoint": "6.1 二次型相关计算",
+          "imageUrl": "https://backend.appmiaoda.com/projects/supabase263685314537631744/storage/v1/object/public/question-images/math-questions/1784294169181_atxq0n79mhe.png"
+        }
+      ],
+      "questionCount": 23,
+      "totalScore": 150,
+      "typeDistribution": {
+        "选择题": 8,
+        "填空题": 6,
+        "解答题": 9
+      },
+      "missingImageQuestions": []
+    }
+  ]
+}

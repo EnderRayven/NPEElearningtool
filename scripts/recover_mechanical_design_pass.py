@@ -179,7 +179,7 @@ def render_groups(
         chapter, number = key
         end_page, end_top = ordered[index + 1][1] if index + 1 < len(ordered) else (len(document), 0.0)
         section = sections[key]
-        folder = OUTPUT_ROOT / f"{chapter:02d} 第{chapter}章 {section}-第{section}板块"
+        folder = OUTPUT_ROOT / f"{chapter:02d} 第{chapter}章 {section:02d}-第{section}板块"
         folder.mkdir(parents=True, exist_ok=True)
         parts = []
         for page_index in range(start_page, min(end_page, len(document) - 1) + 1):
@@ -193,7 +193,7 @@ def render_groups(
             if bottom > top + 10:
                 parts.append(image.crop((0, top, image.width, bottom)))
         for part_index, image in enumerate(parts, 1):
-            suffix = f".{part_index}" if len(parts) > 1 else ""
+            suffix = f".{part_index}"
             image.save(folder / f"{prefix}-{chapter:02d}-{section}-{number:02d}{suffix}.png", "PNG")
         count += 1
     return count

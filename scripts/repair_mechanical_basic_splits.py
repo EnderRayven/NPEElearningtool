@@ -184,7 +184,7 @@ def render_split(pdf_path: Path, output: Path, prefix: str, reset_per_section: b
         chapter = candidate["chapter"]
         section = candidate["section"]
         number = candidate["number"]
-        chapter_dir = output / f"{chapter:02d} 第{chapter}章 {section}-第{section}类题"
+        chapter_dir = output / f"{chapter:02d} 第{chapter}章 {section:02d}-第{section}类题"
         chapter_dir.mkdir(parents=True, exist_ok=True)
         last_page = min(end_page, len(document) - 1)
         parts: list[Image.Image] = []
@@ -196,7 +196,7 @@ def render_split(pdf_path: Path, output: Path, prefix: str, reset_per_section: b
             if bottom > top + 10:
                 parts.append(image.crop((0, max(0, top - 2), image.width, bottom + 2)))
         for index, image in enumerate(parts, 1):
-            suffix = f".{index}" if len(parts) > 1 else ""
+            suffix = f".{index}"
             image.save(chapter_dir / f"{prefix}-{chapter:02d}-{section}-{number:02d}{suffix}.png", "PNG")
     document.close()
     return len(candidates)

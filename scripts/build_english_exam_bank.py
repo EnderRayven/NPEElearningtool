@@ -363,7 +363,7 @@ def main() -> None:
     if args.builtin_output and args.asset_dir:
         builtin_year_banks = copy.deepcopy(banks)
         for bank in builtin_year_banks:
-            bank_asset_dir = args.asset_dir / "英语一真题" / bank["name"] / "资源"
+            bank_asset_dir = args.asset_dir / "英语" / "英语一真题" / bank["name"] / "资源"
             bank_asset_dir.mkdir(parents=True, exist_ok=True)
             for chapter in bank["chapters"]:
                 for section in chapter["sections"]:
@@ -374,7 +374,7 @@ def main() -> None:
                         content = base64.b64decode(image_url.split(",", 1)[1])
                         filename = f"asset-{hashlib.sha256(content).hexdigest()[:12]}.png"
                         (bank_asset_dir / filename).write_bytes(content)
-                        relative = f'英语一真题/{bank["name"]}/资源/{filename}'
+                        relative = f'英语/英语一真题/{bank["name"]}/资源/{filename}'
                         question["imageUrl"] = f"/api/default-workspace/file?path={quote(relative, safe='')}"
         builtin_payload = merge_english_banks({"version": 1, "banks": builtin_year_banks})
         args.builtin_output.parent.mkdir(parents=True, exist_ok=True)

@@ -157,20 +157,20 @@ export interface StructuredImageMatch {
 }
 
 export function parseStructuredImagePath(relativePath: string, filename: string): StructuredImageMatch | null {
-  const basename = filename.replace(/\.[^.]+$/, '')
-  const match = basename.match(/^(Q|A)-(\d+)-(\d+)-(\d+)(?:\.(\d+))?$/i)
+  const match = filename.match(/^(Q|A)-(\d{2})-(\d+)-(\d{2,})\.(\d+)\.(png|jpe?g|webp|gif|bmp|avif)$/i)
   if (!match) return null
   const [, kindToken, chapterCode, sectionCode, questionCode, orderToken] = match
-  const folders = relativePath.split('/').slice(0, -1)
-  const folderPattern = new RegExp(`^0*${Number(chapterCode)}\\s*(.+?)\\s+0*${Number(sectionCode)}[-_ ](.+?)$`, 'i')
+  const folders = relativePath.replaceAll('\\', '/').split('/').slice(0, -1)
+  const folderPattern = new RegExp(`^${chapterCode}\\s+(.+?)\\s+${sectionCode.padStart(2, '0')}-([^/]+)$`)
   const folderMatch = folders.map(folder => folder.includes('.') ? null : folder.match(folderPattern)).find(Boolean)
+  if (!folderMatch) return null
   return {
     chapterCode,
-    chapterName: folderMatch?.[1]?.trim() || `第 ${chapterCode} 章`,
+    chapterName: folderMatch[1].trim(),
     sectionCode,
-    sectionName: folderMatch?.[2]?.trim() || `第 ${sectionCode} 节`,
+    sectionName: folderMatch[2].trim(),
     questionCode,
     kind: kindToken.toUpperCase() === 'A' ? 'answer' : 'question',
-    order: Number(orderToken || 1)
+    order: Number(orderToken)
   }
 }

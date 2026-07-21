@@ -379,7 +379,7 @@ def build_book(book: Book) -> tuple[dict, dict]:
     source = collect(source_root)
     fallback_root = SPLIT_ROOT / book.answer_fallback if book.answer_fallback else None
     fallback = collect(fallback_root)["A"] if fallback_root else {}
-    target_root = DEFAULT_ROOT / book.source_name
+    target_root = DEFAULT_ROOT / "专业课" / book.source_name
     if target_root.exists():
         shutil.rmtree(target_root)
     target_root.mkdir(parents=True)
@@ -426,15 +426,14 @@ def build_book(book: Book) -> tuple[dict, dict]:
             unmatched_answers += 1
 
         section_name = section_name_for(book, chapter, section)
-        folder = target_root / f"{chapter:02d} {book.chapter_names[chapter - 1]} {section}-{section_name}"
+        folder = target_root / f"{chapter:02d} {book.chapter_names[chapter - 1]} {section:02d}-{section_name}"
         q_filenames: list[str] = []
-        q_multi = sum(1 for path in qpaths if usable([path])) > 1
         for source_path in qpaths:
             if not image_is_usable(source_path):
                 skipped_tiny_parts += 1
                 continue
             saved_index = len(q_filenames) + 1
-            suffix = f".{saved_index}" if q_multi else ""
+            suffix = f".{saved_index}"
             filename = f"Q-{chapter:02d}-{section}-{question:02d}{suffix}.png"
             copy_full_width(source_path, folder / filename, width, False)
             q_filenames.append(filename)
@@ -442,13 +441,12 @@ def build_book(book: Book) -> tuple[dict, dict]:
             continue
 
         a_filenames: list[str] = []
-        answer_multi = sum(1 for path in answer_paths if usable([path])) > 1
         for source_path in answer_paths:
             if not image_is_usable(source_path):
                 skipped_tiny_parts += 1
                 continue
             saved_index = len(a_filenames) + 1
-            suffix = f".{saved_index}" if answer_multi else ""
+            suffix = f".{saved_index}"
             filename = f"A-{chapter:02d}-{section}-{question:02d}{suffix}.png"
             copy_full_width(source_path, folder / filename, width, answer_from_fallback)
             padded_answers += int(answer_from_fallback)
@@ -523,7 +521,7 @@ def main() -> None:
     for book in BOOKS:
         bank, audit = build_book(book)
         banks.append(bank)
-        folders[book.bank_id] = book.source_name
+        folders[book.bank_id] = f"专业课/{book.source_name}"
         audits.append(audit)
         print(
             f"{book.display_name}: {audit['questions']} 题，"

@@ -149,7 +149,7 @@ def anchors_for_group(pdf: pdfplumber.PDF, candidates: dict[int, list[tuple[int,
 
 
 def url(year: int, filename: str) -> str:
-    relative = f"英语一真题/{year}年考研英语真题/资源/{filename}"
+    relative = f"英语/英语一真题/{year}年考研英语真题/资源/{filename}"
     return f"/api/default-workspace/file?path={quote(relative, safe='')}"
 
 
@@ -263,7 +263,7 @@ def main() -> None:
     for year in years:
         chapter = chapters[year]
         questions = {q["number"]: q for section in chapter["sections"] for q in section["questions"]}
-        resource_dir = args.default_root / "英语一真题" / f"{year}年考研英语真题" / "资源"
+        resource_dir = args.default_root / "英语" / "英语一真题" / f"{year}年考研英语真题" / "资源"
         source = args.analysis_dir / f"{year}年考研英语真题解析.pdf"
         with pdfplumber.open(source) as pdf:
             candidates = candidate_positions(pdf)

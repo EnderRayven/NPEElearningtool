@@ -471,7 +471,12 @@ interface HandwritingEditorProps {
 }
 
 function HandwritingEditor(props: HandwritingEditorProps) {
+  const editorRef = useRef<HTMLDivElement | null>(null)
   const [selectedStrokeIds, setSelectedStrokeIds] = useState<string[]>([])
+
+  useEffect(() => {
+    editorRef.current?.focus({ preventScroll: true })
+  }, [])
 
   useEffect(() => {
     const drawingIds = new Set(props.drawing.strokes.map(stroke => stroke.id))
@@ -483,17 +488,28 @@ function HandwritingEditor(props: HandwritingEditorProps) {
     if (tool !== 'lasso') setSelectedStrokeIds([])
   }
 
+  const handleShortcutKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
+    const target = event.target as HTMLElement
+    if (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
+    const shortcutTool: Record<string, HandwritingTool> = { '1': 'eraser', '2': 'pen', '3': 'lasso' }
+    const nextTool = shortcutTool[event.key]
+    if (!nextTool) return
+    event.preventDefault()
+    selectTool(nextTool)
+  }
+
   const deleteSelection = () => {
     if (!selectedStrokeIds.length) return
     props.onCommit({ ...props.drawing, strokes: props.drawing.strokes.filter(stroke => !selectedStrokeIds.includes(stroke.id)) })
     setSelectedStrokeIds([])
   }
 
-  return <div className={props.expanded ? 'handwriting-editor expanded' : 'handwriting-editor'}>
+  return <div ref={editorRef} tabIndex={-1} className={props.expanded ? 'handwriting-editor expanded' : 'handwriting-editor'} onKeyDown={handleShortcutKeyDown}>
     <div className="handwriting-toolbar" role="toolbar" aria-label="手写工具">
-      <button className={props.tool === 'pen' ? 'active' : ''} aria-label="画笔" title="画笔" onClick={() => selectTool('pen')}><Pencil size={15}/><span>画笔</span></button>
-      <button className={props.tool === 'eraser' ? 'active' : ''} aria-label="橡皮擦" title="橡皮擦" onClick={() => selectTool('eraser')}><Eraser size={15}/><span>橡皮</span></button>
-      <button className={props.tool === 'lasso' ? 'active' : ''} aria-label="套索选择" title="套索选择" onClick={() => selectTool('lasso')}><Lasso size={15}/><span>套索</span></button>
+      <button className={props.tool === 'eraser' ? 'active' : ''} aria-label="橡皮擦" aria-keyshortcuts="1" title="橡皮（快捷键 1）" onClick={() => selectTool('eraser')}><Eraser size={15}/><span>橡皮</span></button>
+      <button className={props.tool === 'pen' ? 'active' : ''} aria-label="画笔" aria-keyshortcuts="2" title="画笔（快捷键 2）" onClick={() => selectTool('pen')}><Pencil size={15}/><span>画笔</span></button>
+      <button className={props.tool === 'lasso' ? 'active' : ''} aria-label="套索选择" aria-keyshortcuts="3" title="套索（快捷键 3）" onClick={() => selectTool('lasso')}><Lasso size={15}/><span>套索</span></button>
       <div className="handwriting-colors" role="group" aria-label="笔迹颜色">
         <span>颜色</span>
         <div className="handwriting-swatches">
@@ -558,7 +574,7 @@ export default function QuestionNotePanel({ questionId, note, onChange }: Questi
   const [expanded, setExpanded] = useState(false)
   const [tool, setTool] = useState<HandwritingTool>('pen')
   const [color, setColor] = useState('#8f3028')
-  const [size, setSize] = useState(3)
+  const [size, setSize] = useState(2)
   const [past, setPast] = useState<HandwritingDrawing[]>([])
   const [future, setFuture] = useState<HandwritingDrawing[]>([])
 

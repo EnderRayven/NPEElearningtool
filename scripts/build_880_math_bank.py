@@ -20,6 +20,7 @@ SOURCE_PDF = ROOT / "TEMP" / "【A4紧凑版】李林880数二高数篇做题本
 WORKSPACE = ROOT / "默认题库"
 BANK_NAME = "880高数"
 BANK_ID = "default-880-calculus"
+BANK_FOLDER = Path("数学/高数") / BANK_NAME
 
 CHAPTERS = {
     1: "函数、极限、连续",
@@ -443,7 +444,7 @@ def crop_answer(start: tuple[int, float], end: tuple[int, float]) -> list[Image.
 def save_parts(parts: list[Image.Image], folder: Path, stem: str) -> list[Path]:
     if not parts:
         raise RuntimeError(f"裁剪结果为空：{stem}")
-    paths = [folder / (f"{stem}.png" if len(parts) == 1 else f"{stem}.{index}.png") for index in range(1, len(parts) + 1)]
+    paths = [folder / f"{stem}.{index}.png" for index in range(1, len(parts) + 1)]
     for image, path in zip(parts, paths):
         image.save(path, optimize=True)
     return paths
@@ -454,7 +455,7 @@ def asset_keys(question_id: str, kind: str, paths: list[Path]) -> list[str]:
 
 
 def build() -> None:
-    destination = WORKSPACE / BANK_NAME
+    destination = WORKSPACE / BANK_FOLDER
     if destination.exists():
         raise SystemExit(f"目标题库已存在，未覆盖：{destination}")
     if not SOURCE_PDF.exists() or len(list(OCR_PAGES.glob("page-*.png"))) != 218:
@@ -472,7 +473,7 @@ def build() -> None:
             chapter_data = {"id": chapter_id, "name": f"{chapter:02d} {chapter_name}", "sections": []}
             for difficulty, difficulty_name in DIFFICULTIES.items():
                 key = (chapter, difficulty)
-                folder = destination / f"{chapter:02d} {chapter_name} {difficulty}-{difficulty_name}"
+                folder = destination / f"{chapter:02d} {chapter_name} {difficulty:02d}-{difficulty_name}"
                 folder.mkdir()
                 source_questions = grouped_questions[key]
                 answer_points = starts_by_section[key]
@@ -516,7 +517,7 @@ def build() -> None:
     backup = Path("/private/tmp/default-question-bank-manifest-before-880-math.json")
     shutil.copy2(manifest_path, backup)
     manifest["banks"].append(bank)
-    manifest.setdefault("folders", {})[BANK_ID] = BANK_NAME
+    manifest.setdefault("folders", {})[BANK_ID] = BANK_FOLDER.as_posix()
     manifest["updatedAt"] = datetime.now(timezone.utc).isoformat()
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
@@ -526,7 +527,7 @@ def build() -> None:
 
 
 def refresh_questions() -> None:
-    destination = WORKSPACE / BANK_NAME
+    destination = WORKSPACE / BANK_FOLDER
     manifest_path = WORKSPACE / "题库数据.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     bank = next((item for item in manifest["banks"] if item["id"] == BANK_ID), None)
@@ -546,7 +547,7 @@ def refresh_questions() -> None:
             chapter, difficulty = key
             folder = next(
                 item for item in destination.iterdir()
-                if item.name.startswith(f"{chapter:02d} ") and f" {difficulty}-" in item.name
+                if item.name.startswith(f"{chapter:02d} ") and f" {difficulty:02d}-" in item.name
             )
             for number, source in enumerate(questions, 1):
                 stem = f"Q-{chapter:02d}-{difficulty}-{number:02d}"
@@ -566,7 +567,7 @@ def refresh_questions() -> None:
 
 
 def refresh_answers() -> None:
-    destination = WORKSPACE / BANK_NAME
+    destination = WORKSPACE / BANK_FOLDER
     manifest_path = WORKSPACE / "题库数据.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     bank = next((item for item in manifest["banks"] if item["id"] == BANK_ID), None)
@@ -592,7 +593,7 @@ def refresh_answers() -> None:
         chapter, difficulty = key
         folder = next(
             item for item in destination.iterdir()
-            if item.name.startswith(f"{chapter:02d} ") and f" {difficulty}-" in item.name
+            if item.name.startswith(f"{chapter:02d} ") and f" {difficulty:02d}-" in item.name
         )
         stage_folder = staging / folder.name
         stage_folder.mkdir()

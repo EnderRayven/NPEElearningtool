@@ -160,7 +160,7 @@ def add_curl_download(config: list[str], url: str, target: Path) -> None:
 
 def local_target(root: Path, bank: str, chapter_no: int, chapter_name: str,
                  section_no: int, section_name: str) -> Path:
-    folder = f"{chapter_no:02d} {clean_chapter_name(chapter_name)} {section_no}-{clean_section_name(section_name)}"
+    folder = f"{chapter_no:02d} {clean_chapter_name(chapter_name)} {section_no:02d}-{clean_section_name(section_name)}"
     return root / safe_name(bank) / safe_name(folder)
 
 
@@ -193,7 +193,7 @@ def copy_temp_30(temp: Path, output: Path, bank: str, chapters: list[dict[str, A
             continue
         section_no = section_code(sections, section)
         target_dir = local_target(output, bank, chapter_no, chapter["name"], section_no, section["name"])
-        target = target_dir / f"Q-{chapter_no:02d}-{section_no}-{question_no:02d}.png"
+        target = target_dir / f"Q-{chapter_no:02d}-{section_no}-{question_no:02d}.1.png"
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(image, target)
         stats["temp_questions"] += 1
@@ -242,7 +242,7 @@ def copy_temp_36(temp: Path, output: Path, bank: str, chapter: dict[str, Any],
         section = sections[section_no - 1]
         chapter_no = 1
         target_dir = local_target(output, bank, chapter_no, chapter["name"], section_no, section["name"])
-        target = target_dir / f"Q-{chapter_no:02d}-{section_no}-{question_no:02d}.png"
+        target = target_dir / f"Q-{chapter_no:02d}-{section_no}-{question_no:02d}.1.png"
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(image, target)
         stats["temp_questions"] += 1
@@ -274,7 +274,7 @@ def copy_temp_1000(temp: Path, output: Path, bank: str, chapters: list[dict[str,
         else:
             continue
         target_dir = local_target(output, bank, chapter_no, high_chapter["name"], section_no, section["name"])
-        suffix = f".{part}" if part is not None else ""
+        suffix = f".{part or 1}"
         target = target_dir / f"Q-{chapter_no:02d}-{section_no}-{question_no:02d}{suffix}.png"
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(image, target)
@@ -367,7 +367,7 @@ def main() -> int:
                 })
             if not existing_questions:
                 for index, value in enumerate(q_values, 1):
-                    suffix = "" if len(q_values) == 1 else f".{index}"
+                    suffix = f".{index}"
                     target = target_dir / f"Q-{chapter_no:02d}-{section_no}-{question_no:02d}{suffix}.png"
                     payload = data_url_bytes(value)
                     if payload is not None:
@@ -381,7 +381,7 @@ def main() -> int:
                 stats["temp_questions_kept"] += 1
 
             for index, value in enumerate(a_values, 1):
-                suffix = "" if len(a_values) == 1 else f".{index}"
+                suffix = f".{index}"
                 target = target_dir / f"A-{chapter_no:02d}-{section_no}-{question_no:02d}{suffix}.png"
                 payload = data_url_bytes(value)
                 if payload is not None:

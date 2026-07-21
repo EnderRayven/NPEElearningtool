@@ -59,7 +59,7 @@ ORDERING_SEQUENCES = {
 VIEWPOINT_NAMES = {41: "Hannah", 42: "Buck", 43: "Sara", 44: "Victor", 45: "Julia"}
 
 def default_asset_url(year: int, filename: str) -> str:
-    relative = f"英语一真题/{year}年考研英语一真题/资源/{filename}"
+    relative = f"英语/英语一真题/{year}年考研英语一真题/资源/{filename}"
     return f"/api/default-workspace/file?path={quote(relative, safe='')}"
 
 
