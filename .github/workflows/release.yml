@@ -49,7 +49,7 @@ jobs:
 
   package-question-bank:
     name: 生成题库数据包
-    if: startsWith(github.ref_name, 'data-v')
+    if: startsWith(github.ref_name, 'v')
     runs-on: ubuntu-latest
     steps:
       - name: 检出正式版题库数据
@@ -59,7 +59,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="${GITHUB_REF_NAME#data-v}"
+          version="${GITHUB_REF_NAME#v}"
           package_root="NPEE-Study-Space-v${version}"
           archive="${package_root}-Question-Bank.zip"
           mkdir -p "release/${package_root}"

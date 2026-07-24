@@ -10,7 +10,7 @@
 
 > 当前正式版：**v0.3.5** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
 
-[**下载 v0.3.5 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.5) · [下载 v0.3.5 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/tag/data-v0.3.5) · [查看全部版本](https://github.com/EnderRayven/NPEElearningtool/releases) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
+[**下载 v0.3.5 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.3.5/NPEE-Study-Space-v0.3.5-Software.zip) · [下载 v0.3.5 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.3.5/NPEE-Study-Space-v0.3.5-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.5) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
 
 软件包与题库数据分开发布：软件包包含应用源码、启动脚本和运行所需配置，不包含默认题库图片；题库数据包包含 `默认题库/` 目录和题库清单。首次使用时，将两个压缩包解压到同一个目录，再运行对应系统的一键启动脚本；后续更新软件或题库时可以单独替换对应包。无需安装 Git 或克隆仓库。
 
@@ -198,7 +198,7 @@ flowchart LR
 
 ### 一键启动
 
-1. 从 [v0.3.5 软件 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.5) 下载软件包，再从 [v0.3.5 题库数据 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/data-v0.3.5) 下载题库数据包。
+1. 在同一个 [v0.3.5 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.5) 中分别下载 `NPEE-Study-Space-v0.3.5-Software.zip` 和 `NPEE-Study-Space-v0.3.5-Question-Bank.zip`。
 2. 将两个压缩包解压到同一个可长期保存的目录，使 `默认题库/` 与 `一键启动.command` 或 `一键启动.bat` 位于同一级；不要直接在压缩包预览中运行。
 3. 按系统启动：
    - macOS：双击 `一键启动.command`，自动配置 Homebrew、Node.js、pnpm 和项目依赖。
