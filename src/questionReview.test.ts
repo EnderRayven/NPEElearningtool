@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildQuestionReviewTimeline, resetQuestionReview, updateQuestionReview } from './questionReview'
+import { buildQuestionReviewTimeline, deleteQuestionReview, resetQuestionReview, updateQuestionReview } from './questionReview'
 
 describe('question review timeline', () => {
   it('separates the initial mark from later daily review records', () => {
@@ -91,6 +91,53 @@ describe('question review timeline', () => {
     expect(result.activities[0]).not.toHaveProperty('initialStatus')
     expect(buildQuestionReviewTimeline(result.activities, 'q1')).toEqual({
       initialMark: { date: '2026-07-16', markedAt: '', status: 'vague' },
+      reviews: [],
+    })
+  })
+
+  it('deletes one review and rolls back the current status when it was the latest review', () => {
+    const activities = [
+      { date: '2026-07-14', questionId: 'q1', bankId: 'math', status: 'wrong' as const, updatedAt: '2026-07-14T02:00:00.000Z' },
+      { date: '2026-07-16', questionId: 'q1', bankId: 'math', status: 'proficient' as const, updatedAt: '2026-07-16T02:00:00.000Z', reviews: [{ previousStatus: 'wrong' as const, status: 'proficient' as const, reviewedAt: '2026-07-16T02:00:00.000Z' }] },
+      { date: '2026-07-18', questionId: 'q1', bankId: 'math', status: 'vague' as const, updatedAt: '2026-07-18T02:00:00.000Z', reviews: [{ previousStatus: 'proficient' as const, status: 'vague' as const, reviewedAt: '2026-07-18T02:00:00.000Z' }] },
+    ]
+
+    const result = deleteQuestionReview(activities, 'q1', 2)
+
+    expect(result.deleted).toBe(true)
+    expect(result.status).toBe('proficient')
+    expect(result.activities).toHaveLength(2)
+    expect(buildQuestionReviewTimeline(result.activities, 'q1').reviews).toMatchObject([{ attempt: 1, status: 'proficient' }])
+  })
+
+  it('re-links the next review when an earlier review is deleted', () => {
+    const activities = [
+      { date: '2026-07-14', questionId: 'q1', bankId: 'math', status: 'wrong' as const, updatedAt: '2026-07-14T02:00:00.000Z' },
+      { date: '2026-07-16', questionId: 'q1', bankId: 'math', status: 'proficient' as const, updatedAt: '2026-07-16T02:00:00.000Z', reviews: [{ previousStatus: 'wrong' as const, status: 'proficient' as const, reviewedAt: '2026-07-16T02:00:00.000Z' }] },
+      { date: '2026-07-18', questionId: 'q1', bankId: 'math', status: 'vague' as const, updatedAt: '2026-07-18T02:00:00.000Z', reviews: [{ previousStatus: 'proficient' as const, status: 'vague' as const, reviewedAt: '2026-07-18T02:00:00.000Z' }] },
+    ]
+
+    const result = deleteQuestionReview(activities, 'q1', 1)
+
+    expect(result.status).toBe('vague')
+    expect(result.activities).toHaveLength(2)
+    expect(result.activities.find(item => item.date === '2026-07-18')?.reviews?.[0].previousStatus).toBe('wrong')
+  })
+
+  it('restores the initial status when deleting a same-day review on the baseline record', () => {
+    const activities = [{
+      date: '2026-07-16', questionId: 'q1', bankId: 'math', initialStatus: 'none' as const, status: 'proficient' as const,
+      firstUpdatedAt: '2026-07-16T01:00:00.000Z', updatedAt: '2026-07-16T02:00:00.000Z',
+      reviews: [{ previousStatus: 'wrong' as const, status: 'proficient' as const, reviewedAt: '2026-07-16T02:00:00.000Z' }],
+    }]
+
+    const result = deleteQuestionReview(activities, 'q1', 1)
+
+    expect(result.status).toBe('wrong')
+    expect(result.activities[0]).toMatchObject({ date: '2026-07-16', status: 'wrong', changeCount: 0 })
+    expect(result.activities[0]).not.toHaveProperty('reviews')
+    expect(buildQuestionReviewTimeline(result.activities, 'q1')).toEqual({
+      initialMark: { date: '2026-07-16', markedAt: '2026-07-16T01:00:00.000Z', status: 'wrong' },
       reviews: [],
     })
   })

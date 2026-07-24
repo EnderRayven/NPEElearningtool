@@ -18,6 +18,7 @@ interface LearningDashboardProps {
   onQuestionStatusChange: (bankId: string, questionId: string, status: QuestionStatus, answerRevealed: boolean) => void
   onQuestionReviewStatusChange: (bankId: string, questionId: string, status: QuestionStatus, answerRevealed: boolean) => void
   onQuestionReviewReset: (bankId: string, questionId: string) => void
+  onQuestionReviewDelete: (bankId: string, questionId: string, attempt: number) => void
   onQuestionNoteChange: (questionId: string, note: QuestionNote) => void
 }
 
@@ -43,11 +44,14 @@ function MasteryProgressBar({ stats, label, binaryMode }: { stats: ReturnType<ty
 function ActivityProgressBar({ stats, tone }: { stats: ActivityOutcomeStats; tone: 'new' | 'review' }) {
   if (!stats.total) return null
   const label = tone === 'new' ? '新题' : '复习'
-  return <i className={`calendar-day-bar ${tone}`} title={`${label} ${stats.total} 题 · 正确率 ${formatRate(stats.accuracy)}`}>
-    {stats.proficient > 0 && <b className="green" style={{ flex: stats.proficient }}/>}
-    {stats.vague > 0 && <b className="yellow" style={{ flex: stats.vague }}/>}
-    {stats.wrong > 0 && <b className="red" style={{ flex: stats.wrong }}/>}
-  </i>
+  return <div className={`calendar-day-bar-row ${tone}`} title={`${label} ${stats.total} 题 · 正确率 ${formatRate(stats.accuracy)}`}>
+    <span>{label}</span>
+    <i className="calendar-day-bar">
+      {stats.proficient > 0 && <b className="green" style={{ flex: `${stats.proficient} 1 0px` }}/>}
+      {stats.vague > 0 && <b className="yellow" style={{ flex: `${stats.vague} 1 0px` }}/>}
+      {stats.wrong > 0 && <b className="red" style={{ flex: `${stats.wrong} 1 0px` }}/>}
+    </i>
+  </div>
 }
 
 function ActivityTypeSummary({ label, stats, tone }: { label: string; stats: ActivityOutcomeStats; tone: 'new' | 'review' }) {
@@ -55,7 +59,7 @@ function ActivityTypeSummary({ label, stats, tone }: { label: string; stats: Act
   return <div className={`selected-day-type-card ${tone}`}><div className="selected-day-type-heading"><strong>{label}</strong><span>{stats.total}<small>题</small></span><em>正确率 {formatRate(stats.accuracy)}</em></div><div className="selected-day-type-outcomes"><span className="green-text">{stats.proficient} 正确</span><span className="yellow-text">{stats.vague} 模糊</span><span className="red-text">{stats.wrong} 错误</span></div></div>
 }
 
-export default function LearningDashboard({ banks, statuses, activities, notes, selectedBankId, onSelectedBankIdChange, onQuestionStatusChange, onQuestionReviewStatusChange, onQuestionReviewReset, onQuestionNoteChange }: LearningDashboardProps) {
+export default function LearningDashboard({ banks, statuses, activities, notes, selectedBankId, onSelectedBankIdChange, onQuestionStatusChange, onQuestionReviewStatusChange, onQuestionReviewReset, onQuestionReviewDelete, onQuestionNoteChange }: LearningDashboardProps) {
   const orderedBanks = subjectOrder.flatMap(subject => sortBanksForDisplay(banks.filter(bank => bankSubject(bank) === subject)))
   const [expandedSectionIds, setExpandedSectionIds] = useState<Set<string>>(() => new Set())
   const [questionPreview, setQuestionPreview] = useState<DashboardQuestionPreview | null>(null)
@@ -126,7 +130,7 @@ export default function LearningDashboard({ banks, statuses, activities, notes, 
             const outsideMonth = date.slice(0, 7) !== calendarMonth
             const stats = calculateDailyActivity(dailyActivities.get(date) || [], markedActivities)
             const activityLabel = stats.total ? `，学习 ${stats.total} 题，新题 ${stats.newStats.total} 题，复习 ${stats.reviewStats.total} 题` : ''
-            return <button key={date} aria-label={`${cellDate.getFullYear()} 年 ${cellDate.getMonth() + 1} 月 ${day} 日${activityLabel}`} className={`calendar-day${outsideMonth ? ' outside-month' : ''}${date === selectedDate ? ' selected' : ''}${date === today ? ' today' : ''}${stats.total ? ' active' : ''}`} onClick={() => { setSelectedDate(date); if (outsideMonth) setCalendarMonth(date.slice(0, 7)) }}><span>{day}</span>{stats.total > 0 && <><strong>{stats.total} 题</strong><div className="calendar-day-bars"><ActivityProgressBar stats={stats.newStats} tone="new"/><ActivityProgressBar stats={stats.reviewStats} tone="review"/></div></>}</button>
+            return <button key={date} aria-label={`${cellDate.getFullYear()} 年 ${cellDate.getMonth() + 1} 月 ${day} 日${activityLabel}`} className={`calendar-day${outsideMonth ? ' outside-month' : ''}${date === selectedDate ? ' selected' : ''}${date === today ? ' today' : ''}${stats.total ? ' active' : ''}`} onClick={() => { setSelectedDate(date); if (outsideMonth) setCalendarMonth(date.slice(0, 7)) }}><div className="calendar-day-topline"><span>{day}</span>{stats.total > 0 && <strong>{stats.total} 题</strong>}</div>{stats.total > 0 && <div className="calendar-day-bars"><ActivityProgressBar stats={stats.newStats} tone="new"/><ActivityProgressBar stats={stats.reviewStats} tone="review"/></div>}</button>
           })}</div>
         </div>
         <aside className="calendar-summary">
@@ -171,6 +175,6 @@ export default function LearningDashboard({ banks, statuses, activities, notes, 
         </article>
       })}{selectedBank.chapters.length === 0 && <div className="section-progress-empty">该题库还没有章节数据</div>}</div>
     </section>}
-    {questionPreview && <DashboardQuestionDialog bankName={questionPreview.bank.name} chapterName={questionPreview.chapterName} sectionName={questionPreview.sectionName} question={questionPreview.question} questions={questionPreview.questions} questionStatuses={statuses} status={statuses[questionPreview.question.id] || 'none'} activities={activities} note={notes[questionPreview.question.id]} binaryMode={bankSubject(questionPreview.bank) === 'english'} onQuestionSelect={question => setQuestionPreview(current => current ? { ...current, question } : current)} onPreviousQuestion={() => setQuestionPreview(current => { if (!current) return current; const index = current.questions.findIndex(item => item.id === current.question.id); return { ...current, question: current.questions[Math.max(0, index - 1)] } })} onNextQuestion={() => setQuestionPreview(current => { if (!current) return current; const index = current.questions.findIndex(item => item.id === current.question.id); return { ...current, question: current.questions[Math.min(current.questions.length - 1, index + 1)] } })} onStatusChange={(status, answerRevealed) => onQuestionStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => onQuestionReviewStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onResetReview={() => onQuestionReviewReset(questionPreview.bank.id, questionPreview.question.id)} onNoteChange={note => onQuestionNoteChange(questionPreview.question.id, note)} onClose={() => setQuestionPreview(null)}/>}
+    {questionPreview && <DashboardQuestionDialog bankName={questionPreview.bank.name} chapterName={questionPreview.chapterName} sectionName={questionPreview.sectionName} question={questionPreview.question} questions={questionPreview.questions} questionStatuses={statuses} status={statuses[questionPreview.question.id] || 'none'} activities={activities} note={notes[questionPreview.question.id]} binaryMode={bankSubject(questionPreview.bank) === 'english'} onQuestionSelect={question => setQuestionPreview(current => current ? { ...current, question } : current)} onPreviousQuestion={() => setQuestionPreview(current => { if (!current) return current; const index = current.questions.findIndex(item => item.id === current.question.id); return { ...current, question: current.questions[Math.max(0, index - 1)] } })} onNextQuestion={() => setQuestionPreview(current => { if (!current) return current; const index = current.questions.findIndex(item => item.id === current.question.id); return { ...current, question: current.questions[Math.min(current.questions.length - 1, index + 1)] } })} onStatusChange={(status, answerRevealed) => onQuestionStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => onQuestionReviewStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onResetReview={() => onQuestionReviewReset(questionPreview.bank.id, questionPreview.question.id)} onDeleteReview={attempt => onQuestionReviewDelete(questionPreview.bank.id, questionPreview.question.id, attempt)} onNoteChange={note => onQuestionNoteChange(questionPreview.question.id, note)} onClose={() => setQuestionPreview(null)}/>}
   </section>
 }

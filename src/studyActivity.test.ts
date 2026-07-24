@@ -84,6 +84,27 @@ describe('study activity', () => {
     })
   })
 
+  it('已有掌握标记但没有历史活动时也按复习统计', () => {
+    const activities = [{
+      date: '2026-07-14', questionId: 'q1', bankId: 'math', status: 'wrong' as const,
+      initialStatus: 'vague' as const, updatedAt: '2026-07-14T02:00:00.000Z',
+    }]
+    expect(calculateDailyActivity(activities)).toMatchObject({
+      newQuestions: 0,
+      reviewQuestions: 1,
+      newStats: { total: 0, accuracy: null },
+      reviewStats: { total: 1, wrong: 1, accuracy: 0 },
+    })
+  })
+
+  it('迁移已有掌握标记但缺少复习事件的旧记录', () => {
+    const [activity] = validateStudyActivities([{
+      date: '2026-07-14', questionId: 'q1', bankId: 'math', status: 'wrong',
+      initialStatus: 'vague', firstUpdatedAt: '2026-07-14T02:00:00.000Z', updatedAt: '2026-07-14T02:00:00.000Z',
+    }])
+    expect(activity.reviews).toEqual([{ previousStatus: 'vague', status: 'wrong', reviewedAt: '2026-07-14T02:00:00.000Z' }])
+  })
+
   it('过滤损坏的活动数据', () => {
     expect(validateStudyActivities([{ date: 'bad', questionId: 'q1' }, { date: '2026-07-14', questionId: 'q2', bankId: 'math', status: 'wrong', updatedAt: 'now' }])).toHaveLength(1)
   })

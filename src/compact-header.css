@@ -5,6 +5,8 @@
 
   .page-head {
     align-items: center;
+    position: relative;
+    top: -8px;
   }
 
   .page-head > div:first-child {
@@ -114,6 +116,10 @@
   background: #fff;
   padding: 0;
   margin: 16px 24px 20px;
+}
+
+.question-card {
+  scroll-margin-top: 90px;
 }
 
 @media screen and (max-width: 580px) {

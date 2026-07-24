@@ -49,7 +49,9 @@ function isLinearReference(value = '') {
 }
 
 function isLinear1000Reference(value = '') {
-  return Boolean(retired1000IdForReference(value) && /^(?:default-1783931377861-(?:25|26)|default-\d+-(?:15|16))-(?:02-|chapter-02)/.test(value))
+  if (!retired1000IdForReference(value)) return false
+  return /^(?:default-1783931377861-(?:25|26)|default-\d+-(?:15|16))-(?:02-|chapter-02)/.test(value)
+    || /^(?:default-1783931377861-(?:25|26)|default-\d+-(?:15|16))-linear(?:-|$)/.test(value)
 }
 
 function migrate1000Reference(value = '') {
@@ -57,6 +59,8 @@ function migrate1000Reference(value = '') {
   const sourceId = source1000IdForReference(value)
   const targets = retiredId ? split1000BankMap[retiredId] : undefined
   if (!retiredId || !sourceId || !targets) return value
+  const subjectMatch = value.match(/^(default-1783931377861-(?:25|26)|default-\d+-(?:15|16))-(calculus|linear)(?=-|$)/)
+  if (subjectMatch) return value.replace(subjectMatch[0], subjectMatch[2] === 'linear' ? targets.linear : targets.calculus)
   if (value.startsWith(`${sourceId}-chapter-01`)) return value.replace(`${sourceId}-chapter-01`, `${targets.calculus}-chapter-01`)
   if (value.startsWith(`${sourceId}-chapter-02`)) return value.replace(`${sourceId}-chapter-02`, `${targets.linear}-chapter-02`)
   if (value.startsWith(`${sourceId}-01-`)) return value.replace(`${sourceId}-01-`, `${targets.calculus}-01-`)

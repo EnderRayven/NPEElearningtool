@@ -1,4 +1,4 @@
-name: 发布完整下载包
+name: 发布 Release 包
 
 on:
   release:
@@ -8,20 +8,21 @@ permissions:
   contents: write
 
 jobs:
-  package:
-    name: 生成一键启动完整包
+  package-software:
+    name: 生成软件包
+    if: startsWith(github.ref_name, 'v')
     runs-on: ubuntu-latest
     steps:
-      - name: 检出正式版源码与题库
+      - name: 检出正式版源码
         uses: actions/checkout@v6
 
-      - name: 组装发布包
+      - name: 组装软件包
         shell: bash
         run: |
           set -euo pipefail
           version="${GITHUB_REF_NAME#v}"
           package_root="NPEE-Study-Space-v${version}"
-          archive="${package_root}-Full.zip"
+          archive="${package_root}-Software.zip"
           mkdir -p "release/${package_root}"
           rsync -a ./ "release/${package_root}/" \
             --exclude '.git/' \
@@ -29,6 +30,9 @@ jobs:
             --exclude '.pnpm-store/' \
             --exclude 'node_modules/' \
             --exclude 'dist/' \
+            --exclude '默认题库/' \
+            --exclude '机械原理-教材习题/' \
+            --exclude '数学真题题库-可访问数据.json' \
             --exclude '用户数据/' \
             --exclude '.DS_Store' \
             --exclude 'release/'
@@ -38,7 +42,35 @@ jobs:
           sha256sum "${archive}" > "${archive}.sha256"
           printf 'RELEASE_ARCHIVE=%s\n' "${archive}" >> "$GITHUB_ENV"
 
-      - name: 上传到 GitHub Release
+      - name: 上传软件包到 GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" "$RELEASE_ARCHIVE" "$RELEASE_ARCHIVE.sha256" --clobber
+
+  package-question-bank:
+    name: 生成题库数据包
+    if: startsWith(github.ref_name, 'data-v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出正式版题库数据
+        uses: actions/checkout@v6
+
+      - name: 组装题库数据包
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#data-v}"
+          package_root="NPEE-Study-Space-v${version}"
+          archive="${package_root}-Question-Bank.zip"
+          mkdir -p "release/${package_root}"
+          rsync -a "默认题库/" "release/${package_root}/默认题库/"
+          cd release
+          zip -1 -q -r "../${archive}" "${package_root}/默认题库"
+          cd ..
+          sha256sum "${archive}" > "${archive}.sha256"
+          printf 'RELEASE_ARCHIVE=%s\n' "${archive}" >> "$GITHUB_ENV"
+
+      - name: 上传题库数据包到 GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$GITHUB_REF_NAME" "$RELEASE_ARCHIVE" "$RELEASE_ARCHIVE.sha256" --clobber

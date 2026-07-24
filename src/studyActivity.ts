@@ -64,7 +64,7 @@ export function localDateKey(date = new Date()) {
 
 export function validateStudyActivities(value: unknown): StudyActivity[] {
   if (!Array.isArray(value)) return []
-  return value.filter((item): item is StudyActivity => {
+  const validActivities = value.filter((item): item is StudyActivity => {
     if (!item || typeof item !== 'object') return false
     const activity = item as Partial<StudyActivity>
     return (activity.schemaVersion === undefined || activity.schemaVersion === 2)
@@ -89,6 +89,16 @@ export function validateStudyActivities(value: unknown): StudyActivity[] {
         && (review.previousStatus === 'none' || review.previousStatus === 'proficient' || review.previousStatus === 'vague' || review.previousStatus === 'wrong')
         && typeof review.reviewedAt === 'string'
         && !Number.isNaN(Date.parse(review.reviewedAt))))
+  })
+  return validActivities.map(activity => {
+    const previousStatus = activity.initialStatus
+    if (activity.status === 'none' || !previousStatus || previousStatus === 'none' || activity.reviews?.length) return activity
+    const reviewedAt = activity.firstUpdatedAt || activity.updatedAt
+    if (Number.isNaN(Date.parse(reviewedAt))) return activity
+    return {
+      ...activity,
+      reviews: [{ previousStatus, status: activity.status, reviewedAt }],
+    }
   })
 }
 
@@ -160,7 +170,12 @@ export function calculateDailyActivity(activities: StudyActivity[], allActivitie
   const reviewActivities: StudyActivity[] = []
   activities.filter(item => item.status !== 'none').forEach(item => {
     const key = activityKey(item)
-    const isNewQuestion = firstActivityDate.get(key) === item.date && !hasReviewOnDate(item, item.date)
+    // A question can already have a mastery mark before activity tracking has
+    // a record for it. In that case updateStudyActivity preserves that state
+    // in initialStatus, so the same-day action is a review even without an
+    // earlier dated activity or an explicit review event.
+    const hadStatusBeforeDay = item.initialStatus !== undefined && item.initialStatus !== 'none'
+    const isNewQuestion = firstActivityDate.get(key) === item.date && !hadStatusBeforeDay && !hasReviewOnDate(item, item.date)
     if (isNewQuestion) newActivities.push(item)
     else reviewActivities.push(item)
   })

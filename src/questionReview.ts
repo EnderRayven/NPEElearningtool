@@ -18,6 +18,12 @@ export interface QuestionReviewTimeline {
   reviews: QuestionReviewEntry[]
 }
 
+export interface DeleteQuestionReviewResult {
+  status: QuestionStatus
+  activities: StudyActivity[]
+  deleted: boolean
+}
+
 function utcDay(date: string) {
   const [year, month, day] = date.split('-').map(Number)
   return Date.UTC(year, month - 1, day)
@@ -158,4 +164,70 @@ export function resetQuestionReview(activities: StudyActivity[], questionId: str
     .map(item => item === baselineActivity ? retainedBaseline : item)
 
   return { status: timeline.initialMark.status, activities: nextActivities, reset: true }
+}
+
+/**
+ * Delete one review entry while keeping the initial mark and the remaining
+ * review timeline consistent. Review events are normally stored on one daily
+ * activity, so removing the last event from a review-only day also removes
+ * that activity from the history.
+ */
+export function deleteQuestionReview(activities: StudyActivity[], questionId: string, attempt: number): DeleteQuestionReviewResult {
+  const timeline = buildQuestionReviewTimeline(activities, questionId)
+  const target = timeline.reviews[attempt - 1]
+  if (!target) return { status: timeline.reviews.at(-1)?.status || timeline.initialMark?.status || 'none', activities, deleted: false }
+
+  const explicitLocation = activities
+    .map((activity, activityIndex) => ({ activity, activityIndex }))
+    .filter(({ activity }) => activity.questionId === questionId)
+    .flatMap(({ activity, activityIndex }) => (activity.reviews || []).map((review, reviewIndex) => ({ activity, activityIndex, review, reviewIndex })))
+    .sort((left, right) => left.review.reviewedAt.localeCompare(right.review.reviewedAt))
+    .find(({ review }) => review.reviewedAt === target.markedAt && review.status === target.status)
+
+  const questionInitialDate = timeline.initialMark?.date
+  const nextActivities = activities.flatMap((activity, activityIndex) => {
+    if (explicitLocation && activityIndex === explicitLocation.activityIndex) {
+      const remainingReviews = (activity.reviews || []).filter((_, reviewIndex) => reviewIndex !== explicitLocation.reviewIndex)
+      if (remainingReviews.length) return [{ ...activity, reviews: remainingReviews }]
+      if (activity.date !== questionInitialDate) return []
+      const { initialStatus: _initialStatus, reviews: _reviews, ...baselineFields } = activity
+      return [{
+        ...baselineFields,
+        status: timeline.initialMark?.status || activity.status,
+        firstUpdatedAt: timeline.initialMark?.markedAt || activity.firstUpdatedAt,
+        changeCount: 0,
+      }]
+    }
+    if (!explicitLocation && activity.questionId === questionId && activity.date === target.date && activity.status === target.status) return []
+    return [activity]
+  })
+
+  const remainingReviewLocations = nextActivities
+    .map((activity, activityIndex) => ({ activity, activityIndex }))
+    .filter(({ activity }) => activity.questionId === questionId && activity.reviews?.length)
+    .flatMap(({ activity, activityIndex }) => (activity.reviews || []).map((review, reviewIndex) => ({ activity, activityIndex, review, reviewIndex })))
+    .sort((left, right) => left.review.reviewedAt.localeCompare(right.review.reviewedAt))
+  const baselineStatus = timeline.initialMark?.status || 'none'
+  let previousStatus: QuestionStatus = baselineStatus
+  const normalizedPreviousStatuses = new Map<string, QuestionStatus>()
+  remainingReviewLocations.forEach(location => {
+    normalizedPreviousStatuses.set(`${location.activityIndex}:${location.reviewIndex}`, previousStatus)
+    previousStatus = location.review.status
+  })
+
+  const normalizedActivities = nextActivities.map((activity, activityIndex) => {
+    if (activity.questionId !== questionId || !activity.reviews?.length) return activity
+    const reviews = activity.reviews.map((review, reviewIndex) => ({
+      ...review,
+      previousStatus: normalizedPreviousStatuses.get(`${activityIndex}:${reviewIndex}`) || review.previousStatus,
+    }))
+    const latestReview = [...reviews].sort((left, right) => left.reviewedAt.localeCompare(right.reviewedAt)).at(-1)
+    return latestReview ? { ...activity, status: latestReview.status, updatedAt: latestReview.reviewedAt, reviews } : activity
+  })
+  const nextTimeline = buildQuestionReviewTimeline(normalizedActivities, questionId)
+  return {
+    status: nextTimeline.reviews.at(-1)?.status || nextTimeline.initialMark?.status || 'none',
+    activities: normalizedActivities,
+    deleted: true,
+  }
 }

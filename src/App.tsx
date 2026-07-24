@@ -16,7 +16,7 @@ import { sortBanksForDisplay } from './bankSorting'
 import LearningDashboard from './LearningDashboard'
 import DashboardQuestionDialog from './DashboardQuestionDialog'
 import { updateStudyActivity } from './studyActivity'
-import { buildQuestionReviewTimeline, resetQuestionReview, updateQuestionReview } from './questionReview'
+import { buildQuestionReviewTimeline, deleteQuestionReview, resetQuestionReview, updateQuestionReview } from './questionReview'
 import { calculateLearningStats, calculateQuestionStats, formatRate } from './learningStats'
 import { resolveNavigation, resolveProfileBankId, type SavedNavigation } from './navigationRestore'
 import { removeRetiredBanks } from './bankMigration'
@@ -226,6 +226,8 @@ export default function App() {
   const importRef = useRef<HTMLInputElement>(null)
   const imageImportRef = useRef<HTMLInputElement>(null)
   const printSheetRef = useRef<HTMLElement>(null)
+  const questionCardRef = useRef<HTMLElement>(null)
+  const displayedQuestionId = useRef('')
   const settingsToolsRef = useRef<HTMLDivElement>(null)
   const toolboxRef = useRef<HTMLDivElement>(null)
 
@@ -451,6 +453,22 @@ export default function App() {
     saveNavigation({ ...currentPosition, page: activePage, profileBankId, studyPositions: studyPositions.current, mathStudyPositions: mathStudyPositions.current })
   }, [navigationReady, bank?.id, sectionId, question?.id, view, activePage, profileBankId, subject, mathModule])
 
+  useEffect(() => {
+    const questionId = question?.id || ''
+    if (!questionId) {
+      displayedQuestionId.current = ''
+      return
+    }
+    if (!displayedQuestionId.current) {
+      displayedQuestionId.current = questionId
+      return
+    }
+    if (displayedQuestionId.current === questionId) return
+    displayedQuestionId.current = questionId
+    const frame = window.requestAnimationFrame(() => questionCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    return () => window.cancelAnimationFrame(frame)
+  }, [question?.id])
+
   function selectBank(next: QuestionBank) {
     if (bankSubject(next) === 'math') {
       const modules = bankMathModules(next)
@@ -673,6 +691,15 @@ export default function App() {
     setActivities(result.activities)
     setStatuses(previous => ({ ...previous, [questionId]: result.status }))
     setToast('已重置本题复习记录，初始标记已保留')
+  }
+  function deleteDashboardReview(targetBankId: string, questionId: string, attempt: number) {
+    const targetBank = banks.find(item => item.id === targetBankId)
+    if (!targetBank || !orderedQuestionEntriesForBank(targetBank).some(entry => entry.question.id === questionId)) return
+    const result = deleteQuestionReview(activities, questionId, attempt)
+    if (!result.deleted) return
+    setActivities(result.activities)
+    setStatuses(previous => ({ ...previous, [questionId]: result.status }))
+    setToast(`已删除第 ${attempt} 次复习记录`)
   }
   function mark(status: QuestionStatus) { if (question) markQuestion(question.id, status, question) }
   function togglePassageAnswer(questionId: string) {
@@ -1205,7 +1232,7 @@ export default function App() {
       </aside></>}
 
       <main className={activePage === 'profile' ? 'profile-main' : ''}>
-        {activePage === 'profile' ? <LearningDashboard banks={banks} statuses={statuses} activities={activities} notes={questionNotes} selectedBankId={profileBankId} onSelectedBankIdChange={setProfileBankId} onQuestionStatusChange={markDashboardQuestion} onQuestionReviewStatusChange={markDashboardReview} onQuestionReviewReset={resetDashboardReview} onQuestionNoteChange={updateQuestionNote}/> : <>
+        {activePage === 'profile' ? <LearningDashboard banks={banks} statuses={statuses} activities={activities} notes={questionNotes} selectedBankId={profileBankId} onSelectedBankIdChange={setProfileBankId} onQuestionStatusChange={markDashboardQuestion} onQuestionReviewStatusChange={markDashboardReview} onQuestionReviewReset={resetDashboardReview} onQuestionReviewDelete={deleteDashboardReview} onQuestionNoteChange={updateQuestionNote}/> : <>
         <div className="page-head"><div><span className="breadcrumb">{bank.name} <ChevronRight size={13}/>{view === 'section' && currentChapter && !isMathExamKeyPointMode && <>{currentChapter.name} <ChevronRight size={13}/></>}{view === 'wrong' ? '本题库不熟练题' : currentStudyLabel}</span><div className="page-head-title-row"><h1>{view === 'wrong' ? '本题库不熟练题' : currentStudyLabel === '未选择' ? '请选择具体节题目' : currentStudyLabel}</h1><p>{view === 'wrong' ? `按章节和小节分组 · 共 ${reviewQuestions.length} 道不熟练题` : isMathExamKeyPointMode ? `按考点归类 · 共 ${sourceQuestions.length} 道题` : section ? `共 ${section.questions.length} 道题` : '从左侧选择一个章节开始学习'}</p></div></div>
           <div className="page-head-tools">
             <div className="filter-row"><Filter size={16}/><span>筛选</span>{filterOptions.map(s => <button key={s} className={filter === s ? 'chip active' : 'chip'} onClick={() => { setFilter(s); setQuestionIndex(0) }}>{s === 'all' ? '全部' : (binaryFilterMode ? binaryStatusMeta[s].label : statusMeta[s].label)}</button>)}</div>
@@ -1243,7 +1270,7 @@ export default function App() {
             {section.passageImageUrls?.length && <div className="source-scan"><AssetGallery urls={section.passageImageUrls} alt="Part B 原卷原文"/></div>}
           </article>}
         </div><nav className="question-nav passage-question-nav" aria-label={showFullPaperNavigation ? '全卷导航' : '题号导航'}><div><strong>{showFullPaperNavigation ? '全卷导航' : '题号导航'}</strong><small>点击快速跳转</small></div><div className="number-grid">{showFullPaperNavigation ? currentPaperEntries.map(entry => { const item = entry.question; const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={item.id === question.id ? 'true' : undefined} title={`${entry.sectionName} · 第 ${item.number} 题`} className={`${item.id === question.id ? 'selected ' : ''}${itemStatus}`} onClick={() => navigateToBankQuestion(entry)}>{item.number}</button> }) : filteredQuestions.map((item, index) => { const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={index === questionIndex ? 'true' : undefined} title={`第 ${item.number} 题`} className={`${index === questionIndex ? 'selected ' : ''}${itemStatus}`} onClick={() => jumpToPassageQuestion(item.id, index)}>{item.number}</button> })}</div><div className="legend"><span><i/>未标记</span><span><i className="green"/>正确</span><span><i className="red"/>错误</span></div><div className="nav-accuracy"><span>本卷正确率</span><strong>{formatRate(currentNavigationStats.accuracy)}</strong><small>{currentNavigationStats.marked} 道题已标记</small></div></nav></div> : question ? <div className="study-layout">
-          <section className="question-card">
+          <section ref={questionCardRef} className="question-card">
             <div className="question-top"><div><span className="number">{String(question.number).padStart(2,'0')}</span>{currentQuestionEntry && <span className="wrong-context">{currentQuestionEntry.chapterName} · {currentQuestionEntry.sectionName}</span>}</div><nav className="question-top-pager" aria-label="上下题切换"><button disabled={questionIndex === 0} onClick={() => moveQuestion(-1)}><span>←</span> 上一题</button><em>{questionIndex + 1} / {filteredQuestions.length}</em><button disabled={questionIndex >= filteredQuestions.length - 1} onClick={() => moveQuestion(1)}>下一题 <span>→</span></button></nav><span className={`current-status ${currentQuestionStatus}`}>{currentQuestionStatusMeta.icon} {currentQuestionStatusMeta.label}</span></div>
             {((question.type && !(subject === 'professional' && question.type === '图片题')) || question.score !== undefined || question.keyPoint) && <div className="question-meta-row" aria-label="题目信息">{question.type && !(subject === 'professional' && question.type === '图片题') && <span>{question.type}</span>}{question.score !== undefined && <span>{question.score}分</span>}{question.keyPoint && <span className="question-key-point">{isMathExamBank ? mathExamKeyPointLabel(question.keyPoint) : question.keyPoint}</span>}</div>}
             <div className="question-content">{questionText && <p>{questionText}</p>}<AssetGallery keys={question.imageKeys} urls={question.imageUrl ? [question.imageUrl] : []} alt="题目配图"/>{question.options && <div className="options">{question.options.map((o, i) => <div key={i}>{o}</div>)}</div>}</div>
@@ -1275,7 +1302,7 @@ export default function App() {
     {renameTarget && <div className="modal-backdrop" onClick={() => setRenameTarget(null)}><section className="modal-card rename-card" role="dialog" aria-modal="true" aria-labelledby="rename-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setRenameTarget(null)}><X/></button><span className="modal-icon"><Pencil/></span><h2 id="rename-title">重命名{renameTarget.kind === 'bank' ? '题库' : '章节'}</h2><p>只修改显示名称，不会改变题目、图片或学习状态。</p><label>新名称<input autoFocus value={renameValue} onChange={event => setRenameValue(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') applyRename() }} placeholder={renameTarget.name}/></label><button className="primary-button" onClick={applyRename}>保存名称</button></section></div>}
     {settingsOpen && <SettingsDialog banks={banks} activeBankId={bank.id} builtInIds={new Set(builtInBanks.map(item => item.id))} protectedBankIds={protectedBankIds} onClose={() => setSettingsOpen(false)} onOpenNewBank={() => openNewBank(newBankSubject)} onClearMarks={clearMarks} onExportBank={exportSingleBank} onResetBank={resetManagedBank} onDeleteBank={deleteManagedBank} onRestoreBuiltIns={restoreBuiltIns} onFactoryReset={factoryReset}/>}
     {notesOpen && <NotesDialog banks={banks} notes={questionNotes} onClose={() => setNotesOpen(false)} onOpenQuestion={openNoteQuestionPreview}/>}
-    {notePreviewData && <DashboardQuestionDialog bankName={notePreviewData.bank.name} chapterName={notePreviewData.entry.chapterName} sectionName={notePreviewData.entry.sectionName} question={notePreviewData.entry.question} status={statuses[notePreviewData.entry.question.id] || 'none'} activities={activities} note={questionNotes[notePreviewData.entry.question.id]} binaryMode={bankSubject(notePreviewData.bank) === 'english'} onStatusChange={(status, answerRevealed) => markDashboardQuestion(notePreviewData.bank.id, notePreviewData.entry.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => markDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id, status, answerRevealed)} onResetReview={() => resetDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id)} onNoteChange={note => updateQuestionNote(notePreviewData.entry.question.id, note)} onClose={() => setNoteQuestionPreview(null)}/>}
+    {notePreviewData && <DashboardQuestionDialog bankName={notePreviewData.bank.name} chapterName={notePreviewData.entry.chapterName} sectionName={notePreviewData.entry.sectionName} question={notePreviewData.entry.question} status={statuses[notePreviewData.entry.question.id] || 'none'} activities={activities} note={questionNotes[notePreviewData.entry.question.id]} binaryMode={bankSubject(notePreviewData.bank) === 'english'} onStatusChange={(status, answerRevealed) => markDashboardQuestion(notePreviewData.bank.id, notePreviewData.entry.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => markDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id, status, answerRevealed)} onResetReview={() => resetDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id)} onDeleteReview={attempt => deleteDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id, attempt)} onNoteChange={note => updateQuestionNote(notePreviewData.entry.question.id, note)} onClose={() => setNoteQuestionPreview(null)}/>}
     {timerView !== 'closed' && <TimerDialog view={timerView} onViewChange={setTimerView} onClose={() => setTimerView('closed')}/>}
   </div>
 }

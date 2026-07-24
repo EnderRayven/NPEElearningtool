@@ -428,6 +428,31 @@
   cursor: nesw-resize;
 }
 
+.lasso-delete-icon {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+.lasso-delete-icon > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.lasso-delete-icon > svg:last-child {
+  top: -2px;
+  right: -2px;
+  left: auto;
+  width: 65%;
+  height: 65%;
+  padding: 1px;
+  border-radius: 50%;
+  background: #fff;
+  stroke-width: 3;
+}
+
 .handwriting-sheet > span {
   position: absolute;
   top: 50%;

@@ -150,7 +150,7 @@
 
 .timer-dialog {
   position: relative;
-  width: min(920px, calc(100vw - 36px));
+  width: min(1040px, calc(100vw - 36px));
   height: min(780px, calc(100vh - 36px));
   min-height: 0;
   max-height: calc(100vh - 36px);
@@ -164,18 +164,19 @@
 
 .timer-dialog-scroll {
   height: 100%;
-  margin-right: 56px;
+  max-height: 100%;
+  margin-right: 0;
   padding: 48px 76px 38px;
   overflow-y: auto;
   scrollbar-gutter: stable;
-  scrollbar-color: #c9beb7 transparent;
+  scrollbar-color: rgba(185, 173, 164, .58) transparent;
   scrollbar-width: thin;
 }
 
 .timer-dialog-scroll::-webkit-scrollbar,
 .timer-history-list::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
+  width: 7px;
+  height: 7px;
 }
 
 .timer-dialog-scroll::-webkit-scrollbar-track,
@@ -186,14 +187,14 @@
 .timer-dialog-scroll::-webkit-scrollbar-thumb,
 .timer-history-list::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
-  border-radius: 9px;
-  background: #c9beb7;
+  border-radius: 999px;
+  background: rgba(185, 173, 164, .58);
   background-clip: padding-box;
 }
 
 .timer-dialog-scroll::-webkit-scrollbar-thumb:hover,
 .timer-history-list::-webkit-scrollbar-thumb:hover {
-  background: #b8a79d;
+  background: rgba(164, 148, 137, .78);
   background-clip: padding-box;
 }
 
@@ -538,7 +539,7 @@
   max-height: 210px;
   padding: 1px 5px 2px 1px;
   overflow-y: auto;
-  scrollbar-color: #d4c9c2 transparent;
+  scrollbar-color: rgba(196, 184, 175, .52) transparent;
   scrollbar-width: thin;
 }
 

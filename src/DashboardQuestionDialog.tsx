@@ -7,6 +7,7 @@ import { localDateKey, type StudyActivity } from './studyActivity'
 import type { Question, QuestionStatus } from './types'
 import QuestionNotePanel from './QuestionNotePanel'
 import type { QuestionNote } from './questionNotes'
+import ConfirmDialog from './ConfirmDialog'
 
 interface DashboardQuestionDialogProps {
   bankName: string
@@ -22,6 +23,7 @@ interface DashboardQuestionDialogProps {
   onStatusChange: (status: QuestionStatus, answerRevealed: boolean) => void
   onReviewStatusChange: (status: QuestionStatus, answerRevealed: boolean) => void
   onResetReview: () => void
+  onDeleteReview: (attempt: number) => void
   onNoteChange: (note: QuestionNote) => void
   onClose: () => void
   onQuestionSelect?: (question: Question) => void
@@ -43,13 +45,15 @@ const formatMarkedAt = (value: string) => {
   }).format(date)
 }
 
-export default function DashboardQuestionDialog({ bankName, chapterName, sectionName, question, questions = [], questionStatuses = {}, status, activities, note, binaryMode, onStatusChange, onReviewStatusChange, onResetReview, onNoteChange, onClose, onQuestionSelect, onPreviousQuestion, onNextQuestion }: DashboardQuestionDialogProps) {
+export default function DashboardQuestionDialog({ bankName, chapterName, sectionName, question, questions = [], questionStatuses = {}, status, activities, note, binaryMode, onStatusChange, onReviewStatusChange, onResetReview, onDeleteReview, onNoteChange, onClose, onQuestionSelect, onPreviousQuestion, onNextQuestion }: DashboardQuestionDialogProps) {
   const [answerOpen, setAnswerOpen] = useState(false)
   const timeline = buildQuestionReviewTimeline(activities, question.id)
   const effectiveStatus = binaryMode && status === 'vague' ? 'none' : status
   const initialMark = timeline.initialMark || (effectiveStatus !== 'none' ? { status: effectiveStatus, markedAt: '', date: '' } : null)
   const reviewEntries = timeline.reviews
   const [manualReviewSlots, setManualReviewSlots] = useState<number[]>([])
+  const [resetPending, setResetPending] = useState(false)
+  const [deleteReviewAttempt, setDeleteReviewAttempt] = useState<number | null>(null)
   const baseReviewSlotCount = Math.max(3, reviewEntries.length)
   const reviewSlotCount = baseReviewSlotCount + manualReviewSlots.length
   const latestReviewIsToday = reviewEntries[reviewEntries.length - 1]?.date === localDateKey()
@@ -87,6 +91,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
   useEffect(() => {
     setAnswerOpen(false)
     setManualReviewSlots([])
+    setDeleteReviewAttempt(null)
   }, [question.id])
 
   const changeReviewStatus = (value: QuestionStatus, selectedStatus: QuestionStatus) => {
@@ -94,11 +99,31 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
     onReviewStatusChange(nextStatus, answerOpen)
   }
 
-  const resetReview = () => {
-    if (window.confirm('将清除本题的全部复习记录，仅保留初始标记。是否继续？')) onResetReview()
+  const changeMasteryStatus = (value: QuestionStatus) => {
+    const nextStatus = effectiveStatus === value ? 'none' : value
+    // Once a question has an initial mark, a status choice in this dialog is
+    // a review result. Keeping changed statuses on the review path prevents
+    // the daily activity from being counted as a new question. Preserve the
+    // existing toggle-to-clear behavior for the active status.
+    if (initialMark && nextStatus !== 'none') onReviewStatusChange(nextStatus, answerOpen)
+    else onStatusChange(nextStatus, answerOpen)
   }
 
-  const statusControls = <div>{choices.map(choice => <button key={choice} className={effectiveStatus === choice ? `status-button ${choice} active` : `status-button ${choice}`} onClick={() => onStatusChange(effectiveStatus === choice ? 'none' : choice, answerOpen)}><b>{statusMeta[choice].icon}</b>{labelFor(choice)}</button>)}</div>
+  const resetReview = () => {
+    setResetPending(true)
+  }
+
+  const confirmResetReview = () => {
+    onResetReview()
+    setResetPending(false)
+  }
+  const confirmDeleteReview = () => {
+    if (deleteReviewAttempt === null) return
+    onDeleteReview(deleteReviewAttempt)
+    setDeleteReviewAttempt(null)
+  }
+
+  const statusControls = <div>{choices.map(choice => <button key={choice} className={effectiveStatus === choice ? `status-button ${choice} active` : `status-button ${choice}`} onClick={() => changeMasteryStatus(choice)}><b>{statusMeta[choice].icon}</b>{labelFor(choice)}</button>)}</div>
   const questionContent = <section className="dashboard-question-dialog" role="dialog" aria-modal="true" aria-labelledby="dashboard-question-title">
       <div className={hasQuestionNavigation ? 'dashboard-question-main navigated' : 'dashboard-question-main'}>
         {!hasQuestionNavigation && <header className="dashboard-question-dialog-head">
@@ -148,8 +173,8 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
           const isNextReview = Boolean(initialMark && !latestReviewIsToday && !entry && index === reviewEntries.length)
           const isTodayReview = Boolean(entry && index === reviewEntries.length - 1 && entry.date === localDateKey())
           const manualSlotId = index >= baseReviewSlotCount ? manualReviewSlots[index - baseReviewSlotCount] : null
-          return <article className={entry ? 'dashboard-review-card filled' : 'dashboard-review-card pending'} key={index}>
-            <div><strong>第 {index + 1} 次复习</strong><div><span>{entry ? initialMark?.markedAt ? `距标记 ${entry.daysAfterFirst} 天 · 距上次 ${entry.daysAfterPrevious} 天` : `距标记时间未知${index ? ` · 距上次 ${entry.daysAfterPrevious} 天` : ''}` : '待复习'}</span>{manualSlotId !== null && <button aria-label={`删除第 ${index + 1} 次复习位`} title="删除复习位" onClick={() => setManualReviewSlots(slots => slots.filter(id => id !== manualSlotId))}><Trash2 size={13}/></button>}</div></div>
+            return <article className={entry ? 'dashboard-review-card filled' : 'dashboard-review-card pending'} key={index}>
+            <div><strong>第 {index + 1} 次复习</strong><div><span>{entry ? initialMark?.markedAt ? `距标记 ${entry.daysAfterFirst} 天 · 距上次 ${entry.daysAfterPrevious} 天` : `距标记时间未知${index ? ` · 距上次 ${entry.daysAfterPrevious} 天` : ''}` : '待复习'}</span>{entry && <button type="button" aria-label={`删除第 ${index + 1} 次复习记录`} title="删除复习记录" onClick={() => setDeleteReviewAttempt(index + 1)}><Trash2 size={13}/></button>}{manualSlotId !== null && <button type="button" aria-label={`删除第 ${index + 1} 次复习位`} title="删除复习位" onClick={() => setManualReviewSlots(slots => slots.filter(id => id !== manualSlotId))}><Trash2 size={13}/></button>}</div></div>
             {entry ? <time dateTime={entry.markedAt}>{formatMarkedAt(entry.markedAt)}</time> : <p>{isNextReview ? '选择本次复习结果后记录' : '下次复习时开放'}</p>}
             <div className="dashboard-review-statuses">{reviewChoices.map(value => {
               const activeStatus = entry?.status || 'none'
@@ -182,6 +207,8 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
 
   return <div className="dashboard-question-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
     {modalContent}
+    {resetPending && <ConfirmDialog title="重置本题复习记录？" description="本题的全部复习记录将被清除，仅保留初始标记。" confirmLabel="确认重置" onConfirm={confirmResetReview} onCancel={() => setResetPending(false)}/>}
+    {deleteReviewAttempt !== null && <ConfirmDialog title={`删除第 ${deleteReviewAttempt} 次复习记录？`} description="该次复习记录将被删除，其他复习记录会保留。" confirmLabel="确认删除" onConfirm={confirmDeleteReview} onCancel={() => setDeleteReviewAttempt(null)}/>}
     <button className="dashboard-question-dialog-close" onClick={onClose} aria-label="关闭题目弹窗"><X size={19}/></button>
   </div>
 }

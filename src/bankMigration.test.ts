@@ -36,4 +36,13 @@ describe('数二1000综合题库拆分迁移', () => {
     expect(migrateZhangyuBankId('default-1784510566897-15', 'default-1784510566897-15-chapter-01-section-2')).toBe(MATH_1000A_CALCULUS_BANK_ID)
     expect(migrateZhangyuBankId('default-1784510566897-16', 'default-1784510566897-16-chapter-02-section-2')).toBe(MATH_1000B_LINEAR_BANK_ID)
   })
+
+  it('迁移旧版按科目拆分的题目标识', () => {
+    expect(migrateZhangyuReference(`${RETIRED_1000_BASIC_BANK_ID}-calculus-01-2-01`)).toBe(`${MATH_1000A_CALCULUS_BANK_ID}-01-2-01`)
+    expect(migrateZhangyuReference(`${RETIRED_1000_BASIC_BANK_ID}-linear-02-1-01`)).toBe(`${MATH_1000A_LINEAR_BANK_ID}-02-1-01`)
+    expect(migrateZhangyuReference(`${RETIRED_1000_INTENSIVE_BANK_ID}-calculus-01-2-01`)).toBe(`${MATH_1000B_CALCULUS_BANK_ID}-01-2-01`)
+    expect(migrateZhangyuReference(`${RETIRED_1000_INTENSIVE_BANK_ID}-linear-02-1-01`)).toBe(`${MATH_1000B_LINEAR_BANK_ID}-02-1-01`)
+    expect(migrateZhangyuBankId(RETIRED_1000_BASIC_BANK_ID, `${RETIRED_1000_BASIC_BANK_ID}-linear-02-1-01`)).toBe(MATH_1000A_LINEAR_BANK_ID)
+    expect(migrateZhangyuStatuses({ [`${RETIRED_1000_BASIC_BANK_ID}-calculus-01-2-01`]: 'wrong' })).toEqual({ [`${MATH_1000A_CALCULUS_BANK_ID}-01-2-01`]: 'wrong' })
+  })
 })

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { ArrowDownToLine, ChevronDown, Eraser, Lasso, Maximize2, NotebookPen, Pencil, Redo2, Trash2, Undo2, X } from 'lucide-react'
 import { DRAWING_BASE_HEIGHT, DRAWING_WIDTH, MAX_DRAWING_HEIGHT, emptyHandwritingDrawing, emptyQuestionNote, eraseHandwritingStrokes, hasQuestionNote, type HandwritingDrawing, type HandwritingPoint, type HandwritingStroke, type QuestionNote } from './questionNotes'
+import ConfirmDialog from './ConfirmDialog'
+import LassoDeleteIcon from './LassoDeleteIcon'
 
 interface QuestionNotePanelProps {
   questionId: string
@@ -15,7 +17,7 @@ interface HandwritingCanvasProps {
   size: number
   expanded?: boolean
   selectedStrokeIds: string[]
-  onCommit: (drawing: HandwritingDrawing) => void
+  onCommit: (drawing: HandwritingDrawing, deferCanvasTrim?: boolean) => void
   onSelectionChange: (strokeIds: string[]) => void
   onDeleteSelection: () => void
 }
@@ -505,7 +507,7 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
     }
     if (interaction === 'eraser') {
       const strokes = erasingStrokesRef.current
-      if (strokes && strokes.length !== drawing.strokes.length) onCommit({ ...drawing, aspectRatio: aspectRatioForCanvasHeight(canvasHeightForStrokes(strokes)), strokes })
+      if (strokes && strokes.length !== drawing.strokes.length) onCommit({ ...drawing, strokes }, true)
       erasingStrokesRef.current = null
       setErasingStrokes(null)
       return
@@ -567,7 +569,6 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
         onPointerCancel={finish}
         onKeyDown={handleKeyDown}
       >
-        <title>手写笔记画布</title>
         {visibleStrokes.flatMap(stroke => pathsForStroke(stroke).flatMap((path, index) => [
           selectedStrokeIds.includes(stroke.id) && <path key={`${stroke.id}-selected-${index}`} d={path.d} fill="none" stroke="#bf8179" strokeWidth={path.width + 5} strokeLinecap="round" strokeLinejoin="round" opacity=".32" vectorEffect="non-scaling-stroke"/>,
           <path key={`${stroke.id}-${index}`} d={path.d} fill="none" stroke={stroke.color} strokeWidth={path.width} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>,
@@ -616,7 +617,7 @@ interface HandwritingEditorProps {
   onToolChange: (tool: HandwritingTool) => void
   onColorChange: (color: string) => void
   onSizeChange: (size: number) => void
-  onCommit: (drawing: HandwritingDrawing) => void
+  onCommit: (drawing: HandwritingDrawing, deferCanvasTrim?: boolean) => void
   onUndo: () => void
   onRedo: () => void
   onClear: () => void
@@ -686,7 +687,7 @@ function HandwritingEditor(props: HandwritingEditorProps) {
   const deleteSelection = () => {
     if (!selectedStrokeIds.length) return
     const strokes = props.drawing.strokes.filter(stroke => !selectedStrokeIds.includes(stroke.id))
-    props.onCommit({ ...props.drawing, aspectRatio: aspectRatioForCanvasHeight(canvasHeightForStrokes(strokes)), strokes })
+    props.onCommit({ ...props.drawing, strokes }, true)
     setSelectedStrokeIds([])
   }
 
@@ -731,7 +732,7 @@ function HandwritingEditor(props: HandwritingEditorProps) {
       <span className="handwriting-toolbar-spacer"/>
       <button aria-label="撤销" aria-keyshortcuts="Control+Z Meta+Z" title="撤销（Ctrl/⌘+Z）" disabled={!props.canUndo} onClick={props.onUndo}><Undo2 size={15}/></button>
       <button aria-label="重做" aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y" title="重做（Ctrl/⌘+Shift+Z 或 Ctrl+Y）" disabled={!props.canRedo} onClick={props.onRedo}><Redo2 size={15}/></button>
-      <button className="handwriting-two-line" aria-label="删除选中笔迹" title="删除选中笔迹" disabled={!selectedStrokeIds.length} onClick={deleteSelection}><Trash2 size={15}/><TwoLineToolbarLabel first="删除" second="选中"/></button>
+      <button className="handwriting-two-line" aria-label="删除选中笔迹" title="删除选中笔迹" disabled={!selectedStrokeIds.length} onClick={deleteSelection}><LassoDeleteIcon size={15}/><TwoLineToolbarLabel first="删除" second="选中"/></button>
       <button aria-label="清空手写" title="清空手写" disabled={!props.drawing.strokes.length} onClick={props.onClear}><Trash2 size={15}/></button>
       {props.onExpand && <button className="handwriting-expand handwriting-two-line" onClick={props.onExpand}><Maximize2 size={15}/><TwoLineToolbarLabel first="放大" second="书写"/></button>}
     </div>
@@ -744,6 +745,7 @@ function ExpandedHandwritingDialog({ editor, onClose }: { editor: ReactNode; onC
     const previousOverflow = document.body.style.overflow
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
+      if (event.target instanceof Element && event.target.closest('[data-confirm-dialog]')) return
       event.preventDefault()
       event.stopPropagation()
       onClose()
@@ -767,6 +769,7 @@ function ExpandedHandwritingDialog({ editor, onClose }: { editor: ReactNode; onC
 export default function QuestionNotePanel({ questionId, note, onChange }: QuestionNotePanelProps) {
   const value = note || EMPTY_NOTE
   const drawing = value.drawing || emptyHandwritingDrawing()
+  const notePanelRef = useRef<HTMLElement | null>(null)
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<'text' | 'handwriting'>('handwriting')
   const [expanded, setExpanded] = useState(false)
@@ -775,12 +778,15 @@ export default function QuestionNotePanel({ questionId, note, onChange }: Questi
   const [size, setSize] = useState(2)
   const [past, setPast] = useState<HandwritingDrawing[]>([])
   const [future, setFuture] = useState<HandwritingDrawing[]>([])
+  const [clearPending, setClearPending] = useState(false)
+  const [canvasTrimPending, setCanvasTrimPending] = useState(false)
 
   useEffect(() => {
     setMode('handwriting')
     setExpanded(false)
     setPast([])
     setFuture([])
+    setCanvasTrimPending(false)
   }, [questionId])
 
   const change = (next: Partial<Pick<QuestionNote, 'text' | 'drawing'>>) => onChange({
@@ -789,16 +795,36 @@ export default function QuestionNotePanel({ questionId, note, onChange }: Questi
     updatedAt: new Date().toISOString(),
   })
 
-  const commitDrawing = (next: HandwritingDrawing) => {
+  const commitDrawing = (next: HandwritingDrawing, deferCanvasTrim = false) => {
     setPast(previous => [...previous.slice(-49), drawing])
     setFuture([])
+    if (deferCanvasTrim) setCanvasTrimPending(true)
     change({ drawing: next })
   }
+
+  useEffect(() => {
+    if (!canvasTrimPending) return
+    const trimCanvasWhenPointerLeaves = (event: PointerEvent) => {
+      const target = event.target instanceof Element ? event.target : null
+      const isInsideThisNoteCanvas = Boolean(target?.closest('.handwriting-canvas') && notePanelRef.current?.contains(target))
+      if (isInsideThisNoteCanvas) return
+
+      setCanvasTrimPending(false)
+      const nextHeight = canvasHeightForStrokes(drawing.strokes)
+      const currentHeight = canvasHeightForDrawing(drawing)
+      if (nextHeight >= currentHeight) return
+      change({ drawing: { ...drawing, aspectRatio: aspectRatioForCanvasHeight(nextHeight) } })
+    }
+    document.addEventListener('pointerdown', trimCanvasWhenPointerLeaves)
+    return () => document.removeEventListener('pointerdown', trimCanvasWhenPointerLeaves)
+  }, [canvasTrimPending, drawing])
+
   const undo = () => {
     const previous = past[past.length - 1]
     if (!previous) return
     setPast(items => items.slice(0, -1))
     setFuture(items => [drawing, ...items].slice(0, 50))
+    setCanvasTrimPending(false)
     change({ drawing: previous })
   }
   const redo = () => {
@@ -806,11 +832,17 @@ export default function QuestionNotePanel({ questionId, note, onChange }: Questi
     if (!next) return
     setPast(items => [...items.slice(-49), drawing])
     setFuture(items => items.slice(1))
+    setCanvasTrimPending(false)
     change({ drawing: next })
   }
   const clear = () => {
-    if (!drawing.strokes.length || !window.confirm('确定清空这道题的全部手写笔记吗？')) return
+    if (!drawing.strokes.length) return
+    setClearPending(true)
+  }
+  const confirmClear = () => {
     commitDrawing({ ...drawing, aspectRatio: aspectRatioForCanvasHeight(DRAWING_BASE_HEIGHT), strokes: [] })
+    setCanvasTrimPending(false)
+    setClearPending(false)
   }
   const editorProps = {
     drawing,
@@ -828,7 +860,7 @@ export default function QuestionNotePanel({ questionId, note, onChange }: Questi
     onClear: clear,
   }
 
-  return <section className="question-note-section">
+  return <section ref={notePanelRef} className="question-note-section">
     <button className="passage-answer-toggle question-note-toggle" aria-expanded={open} onClick={() => setOpen(previous => {
       const next = !previous
       if (next) setMode('handwriting')
@@ -847,5 +879,6 @@ export default function QuestionNotePanel({ questionId, note, onChange }: Questi
         : <HandwritingEditor {...editorProps} onExpand={() => setExpanded(true)}/>}
     </div>}
     {expanded && <ExpandedHandwritingDialog onClose={() => setExpanded(false)} editor={<HandwritingEditor {...editorProps} expanded/>}/>}
+    {clearPending && <ConfirmDialog title="清空这道题的手写笔记？" description="本题的全部手写笔迹将被删除，但可以使用撤销恢复。" onConfirm={confirmClear} onCancel={() => setClearPending(false)}/>}
   </section>
 }
