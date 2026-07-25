@@ -3,6 +3,7 @@ import { Eraser, GripVertical, Hand, Lasso, NotebookPen, Palette, Pencil, Redo2,
 import { loadDraftBook, saveDraftBook, type DraftBookData, type DraftBookPoint, type DraftBookSize, type DraftBookView, type DraftStroke } from './draftBook'
 import ConfirmDialog from './ConfirmDialog'
 import LassoDeleteIcon from './LassoDeleteIcon'
+import { copyHandwritingStrokes, readHandwritingStrokes } from './handwritingClipboard'
 
 type InteractionMode = 'icon' | 'window' | 'resize'
 type CanvasTool = 'pen' | 'eraser' | 'lasso' | 'pan'
@@ -456,6 +457,7 @@ export default function DraftBook() {
   useEffect(() => {
     if (!interaction) return
     const move = (event: PointerEvent) => {
+      if (interactionPointerIdRef.current !== null && event.pointerId !== interactionPointerIdRef.current) return
       pendingInteractionPointerRef.current = { clientX: event.clientX, clientY: event.clientY }
       if (interactionFrameRef.current !== null) return
       interactionFrameRef.current = requestAnimationFrame(() => {
@@ -545,7 +547,7 @@ export default function DraftBook() {
   }
 
   function beginInteraction(event: ReactPointerEvent, mode: InteractionMode) {
-    if (event.button !== 0) return
+    if (event.button !== 0 && event.pointerType !== 'touch' && event.pointerType !== 'pen') return
     event.preventDefault()
     event.stopPropagation()
     const startPosition = mode === 'icon' ? draft.iconPosition : draft.windowPosition
@@ -609,6 +611,32 @@ export default function DraftBook() {
     setSelectedStrokeIndexes([])
   }
 
+  function copySelection() {
+    if (!selectedStrokeIndexes.length) return
+    const selected = new Set(selectedStrokeIndexes)
+    copyHandwritingStrokes(draft.strokes.filter((_, index) => selected.has(index)), 'canvas')
+  }
+
+  async function pasteSelection() {
+    const clipboard = await readHandwritingStrokes()
+    if (!clipboard?.strokes.length) return
+    const allPoints = clipboard.strokes.flatMap(stroke => stroke.points)
+    const minX = Math.min(...allPoints.map(point => point.x))
+    const minY = Math.min(...allPoints.map(point => point.y))
+    const scale = clipboard.space === 'normalized' ? Math.min(320, draft.size.width * .72) : 1
+    const offset = clipboard.space === 'normalized' ? 36 : 24
+    const pasted = clipboard.strokes.map(stroke => ({
+      color: stroke.color,
+      points: stroke.points.map(point => ({
+        x: (point.x - (clipboard.space === 'normalized' ? minX : 0)) * scale + offset,
+        y: (point.y - (clipboard.space === 'normalized' ? minY : 0)) * scale + offset,
+      })),
+    }))
+    const firstIndex = draft.strokes.length
+    commitStrokes([...draft.strokes, ...pasted])
+    setSelectedStrokeIndexes(pasted.map((_, index) => firstIndex + index))
+  }
+
   function handleShortcutKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
     if (event.defaultPrevented) return
     if (event.key === 'Escape' && colorPickerOpen) {
@@ -619,7 +647,21 @@ export default function DraftBook() {
     }
     const target = event.target as HTMLElement
     if (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
-    const historyAction = historyActionForShortcut(event.key, event.metaKey || event.ctrlKey, event.shiftKey, event.altKey)
+    const primaryModifier = event.metaKey || event.ctrlKey
+    const normalizedKey = event.key.toLowerCase()
+    if (primaryModifier && !event.shiftKey && !event.altKey && normalizedKey === 'c' && selectedStrokeIndexes.length) {
+      event.preventDefault()
+      event.stopPropagation()
+      copySelection()
+      return
+    }
+    if (primaryModifier && !event.shiftKey && !event.altKey && normalizedKey === 'v') {
+      event.preventDefault()
+      event.stopPropagation()
+      void pasteSelection()
+      return
+    }
+    const historyAction = historyActionForShortcut(event.key, primaryModifier, event.shiftKey, event.altKey)
     if (historyAction) {
       event.preventDefault()
       event.stopPropagation()
@@ -642,7 +684,7 @@ export default function DraftBook() {
   }
 
   function beginCanvasPointer(event: ReactPointerEvent<HTMLCanvasElement>) {
-    if (event.button !== 0 && event.pointerType !== 'touch') return
+    if (event.button !== 0 && event.pointerType !== 'touch' && event.pointerType !== 'pen') return
     const canvas = canvasRef.current
     if (!canvas) return
     event.preventDefault()
@@ -807,6 +849,11 @@ export default function DraftBook() {
   }
 
   function selectColor(color: string) {
+    if (selectedStrokeIndexes.length) {
+      const selected = new Set(selectedStrokeIndexes)
+      const nextStrokes = draft.strokes.map((stroke, index) => selected.has(index) ? { ...stroke, color } : stroke)
+      if (nextStrokes.some((stroke, index) => stroke.color !== draft.strokes[index]?.color)) commitStrokes(nextStrokes)
+    }
     setDraft(previous => ({ ...previous, color }))
     setColorPickerOpen(false)
   }

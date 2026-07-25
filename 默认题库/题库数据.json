@@ -1,7 +1,7 @@
 {
   "version": 2,
   "builtinEnglishVersion": 6,
-  "updatedAt": "2026-07-24T06:27:28.152Z",
+  "updatedAt": "2026-07-25T12:42:43.845Z",
   "banks": [
     {
       "id": "workspace-1783924545931-2",
@@ -481,8 +481,7 @@
                     "workspace-1783924545931-2-01-2-15/question/1-Q-01-2-15.1.png"
                   ],
                   "answerImageKeys": [
-                    "workspace-1783924545931-2-01-2-15/answer/1-A-01-2-15.1.png",
-                    "workspace-1783924545931-2-01-2-15/answer/2-A-01-2-15.2.png"
+                    "workspace-1783924545931-2-01-2-15/answer/1-A-01-2-15.1.png"
                   ]
                 }
               ]
@@ -52356,8 +52355,7 @@
                   "analysis": "原书答案与解析",
                   "type": "图片题",
                   "imageKeys": [
-                    "default-mechanical-theory-basic-450-02-5-06/question/1-Q-02-5-06.1.png",
-                    "default-mechanical-theory-basic-450-02-5-06/question/2-Q-02-5-06.2.png"
+                    "default-mechanical-theory-basic-450-02-5-06/question/1-Q-02-5-06.1.png"
                   ],
                   "answerImageKeys": [
                     "default-mechanical-theory-basic-450-02-5-06/answer/1-A-02-5-06.1.png",
@@ -54809,8 +54807,7 @@
                     "default-mechanical-theory-basic-450-07-1-12/question/1-Q-07-1-12.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-mechanical-theory-basic-450-07-1-12/answer/1-A-07-1-12.1.png",
-                    "default-mechanical-theory-basic-450-07-1-12/answer/2-A-07-1-12.2.png"
+                    "default-mechanical-theory-basic-450-07-1-12/answer/1-A-07-1-12.1.png"
                   ]
                 }
               ]

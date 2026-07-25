@@ -28,10 +28,20 @@ export interface QuestionNote {
 
 export type QuestionNotes = Record<string, QuestionNote>
 
+export interface QuestionErrorRecord {
+  wrongOption: string
+  updatedAt: string
+}
+
+export type QuestionErrorRecords = Record<string, QuestionErrorRecord>
+
 const DB_NAME = 'npee-question-notes'
 const STORE_NAME = 'notes'
+const ERROR_RECORDS_STORE_NAME = 'error-records'
 const NOTES_KEY = 'all'
+const ERROR_RECORDS_KEY = 'all'
 const FALLBACK_KEY = 'npee:question-notes:v1'
+const ERROR_RECORDS_FALLBACK_KEY = 'npee:question-error-records:v1'
 const DEFAULT_ASPECT_RATIO = 5 / 3
 export const DRAWING_WIDTH = 1000
 export const DRAWING_BASE_HEIGHT = 600
@@ -103,6 +113,21 @@ export function validateQuestionNotes(value: unknown): QuestionNotes {
   return migrateZhangyuQuestionNotes(notes)
 }
 
+export function validateQuestionErrorRecords(value: unknown): QuestionErrorRecords {
+  if (!isRecord(value)) return {}
+  const records: QuestionErrorRecords = {}
+  for (const [questionId, rawRecord] of Object.entries(value)) {
+    if (!questionId || !isRecord(rawRecord)) continue
+    const wrongOption = typeof rawRecord.wrongOption === 'string' ? rawRecord.wrongOption.trim().toUpperCase() : ''
+    if (!/^[A-Z]$/.test(wrongOption)) continue
+    records[questionId] = {
+      wrongOption,
+      updatedAt: typeof rawRecord.updatedAt === 'string' ? rawRecord.updatedAt : '',
+    }
+  }
+  return records
+}
+
 export function hasQuestionNote(note: QuestionNote | undefined) {
   return Boolean(note && (note.text.trim() || note.drawing.strokes.length))
 }
@@ -119,6 +144,14 @@ function readFallbackNotes() {
   }
 }
 
+function readFallbackErrorRecords() {
+  try {
+    return validateQuestionErrorRecords(JSON.parse(localStorage.getItem(ERROR_RECORDS_FALLBACK_KEY) || '{}'))
+  } catch {
+    return {}
+  }
+}
+
 function writeFallbackNotes(notes: QuestionNotes) {
   try {
     localStorage.setItem(FALLBACK_KEY, JSON.stringify(validateQuestionNotes(notes)))
@@ -127,11 +160,20 @@ function writeFallbackNotes(notes: QuestionNotes) {
   }
 }
 
+function writeFallbackErrorRecords(records: QuestionErrorRecords) {
+  try {
+    localStorage.setItem(ERROR_RECORDS_FALLBACK_KEY, JSON.stringify(validateQuestionErrorRecords(records)))
+  } catch {
+    throw new Error('错误记录保存失败，请导出完整备份后检查浏览器存储空间')
+  }
+}
+
 function openNotesDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1)
+    const request = indexedDB.open(DB_NAME, 2)
     request.onupgradeneeded = () => {
       if (!request.result.objectStoreNames.contains(STORE_NAME)) request.result.createObjectStore(STORE_NAME)
+      if (!request.result.objectStoreNames.contains(ERROR_RECORDS_STORE_NAME)) request.result.createObjectStore(ERROR_RECORDS_STORE_NAME)
     }
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error || new Error('无法打开笔记存储'))
@@ -171,5 +213,41 @@ export async function saveQuestionNotes(notes: QuestionNotes) {
     database.close()
   } catch {
     writeFallbackNotes(validated)
+  }
+}
+
+export async function loadQuestionErrorRecords(): Promise<QuestionErrorRecords> {
+  if (typeof indexedDB === 'undefined') return readFallbackErrorRecords()
+  try {
+    const database = await openNotesDatabase()
+    const records = await new Promise<QuestionErrorRecords>((resolve, reject) => {
+      const request = database.transaction(ERROR_RECORDS_STORE_NAME, 'readonly').objectStore(ERROR_RECORDS_STORE_NAME).get(ERROR_RECORDS_KEY)
+      request.onsuccess = () => resolve(validateQuestionErrorRecords(request.result))
+      request.onerror = () => reject(request.error)
+    })
+    database.close()
+    return records
+  } catch {
+    return readFallbackErrorRecords()
+  }
+}
+
+export async function saveQuestionErrorRecords(records: QuestionErrorRecords) {
+  const validated = validateQuestionErrorRecords(records)
+  if (typeof indexedDB === 'undefined') {
+    writeFallbackErrorRecords(validated)
+    return
+  }
+  try {
+    const database = await openNotesDatabase()
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(ERROR_RECORDS_STORE_NAME, 'readwrite')
+      transaction.objectStore(ERROR_RECORDS_STORE_NAME).put(validated, ERROR_RECORDS_KEY)
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+    })
+    database.close()
+  } catch {
+    writeFallbackErrorRecords(validated)
   }
 }

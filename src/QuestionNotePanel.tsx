@@ -3,6 +3,7 @@ import { ArrowDownToLine, ChevronDown, Eraser, Lasso, Maximize2, NotebookPen, Pe
 import { DRAWING_BASE_HEIGHT, DRAWING_WIDTH, MAX_DRAWING_HEIGHT, emptyHandwritingDrawing, emptyQuestionNote, eraseHandwritingStrokes, hasQuestionNote, type HandwritingDrawing, type HandwritingPoint, type HandwritingStroke, type QuestionNote } from './questionNotes'
 import ConfirmDialog from './ConfirmDialog'
 import LassoDeleteIcon from './LassoDeleteIcon'
+import { copyHandwritingStrokes, readHandwritingStrokes } from './handwritingClipboard'
 
 interface QuestionNotePanelProps {
   questionId: string
@@ -229,6 +230,7 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
   const [transformPreview, setTransformPreview] = useState<HandwritingStroke[] | null>(null)
   const [lassoPoints, setLassoPoints] = useState<HandwritingPoint[]>([])
   const [spacePreview, setSpacePreview] = useState<{ y: number; amount: number } | null>(null)
+  const [spaceHoverY, setSpaceHoverY] = useState<number | null>(null)
   const [canvasHeightUnits, setCanvasHeightUnits] = useState(() => canvasHeightForDrawing(drawing))
   const currentStrokeRef = useRef<HandwritingStroke | null>(null)
   const erasingStrokesRef = useRef<HandwritingStroke[] | null>(null)
@@ -270,7 +272,12 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
     setTransformPreview(null)
     setLassoPoints([])
     setSpacePreview(null)
+    setSpaceHoverY(null)
   }, [drawing])
+
+  useEffect(() => {
+    if (tool !== 'space') setSpaceHoverY(null)
+  }, [tool])
 
   const pointsFromEvent = (event: ReactPointerEvent<SVGElement>): HandwritingPoint[] => {
     const bounds = svgRef.current?.getBoundingClientRect()
@@ -385,6 +392,11 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
   }
 
   const move = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (activePointerRef.current === null && tool === 'space' && (event.pointerType === 'mouse' || event.pointerType === 'pen')) {
+      const point = pointsFromEvent(event).at(-1)
+      if (point) setSpaceHoverY(point.y)
+      return
+    }
     if (activePointerRef.current !== event.pointerId) return
     if (event.pointerType === 'pen') penDetectedRef.current = true
     event.preventDefault()
@@ -503,6 +515,7 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
       spacePreviewRef.current = null
       spacePointerHeightRef.current = canvasHeightRef.current
       setSpacePreview(null)
+      setSpaceHoverY(null)
       return
     }
     if (interaction === 'eraser') {
@@ -567,6 +580,7 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
         onPointerMove={move}
         onPointerUp={finish}
         onPointerCancel={finish}
+        onPointerLeave={() => { if (activePointerRef.current === null) setSpaceHoverY(null) }}
         onKeyDown={handleKeyDown}
       >
         {visibleStrokes.flatMap(stroke => pathsForStroke(stroke).flatMap((path, index) => [
@@ -574,6 +588,9 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
           <path key={`${stroke.id}-${index}`} d={path.d} fill="none" stroke={stroke.color} strokeWidth={path.width} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>,
         ]))}
         {currentStroke && pathsForStroke(currentStroke).map((path, index) => <path key={index} d={path.d} fill="none" stroke={currentStroke.color} strokeWidth={path.width} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>)}
+        {tool === 'space' && spaceHoverY !== null && !spacePreview && (
+          <line className="handwriting-space-guide" x1="0" x2={DRAWING_WIDTH} y1={spaceHoverY * DRAWING_BASE_HEIGHT} y2={spaceHoverY * DRAWING_BASE_HEIGHT}/>
+        )}
         {spacePreview && <g className="handwriting-space-boundaries">
           <line x1="0" x2={DRAWING_WIDTH} y1={spaceRangeTop} y2={spaceRangeTop} strokeDasharray="12 8"/>
           <line x1="0" x2={DRAWING_WIDTH} y1={spaceRangeTop + spaceRangeHeight} y2={spaceRangeTop + spaceRangeHeight} strokeDasharray="12 8"/>
@@ -665,11 +682,72 @@ function HandwritingEditor(props: HandwritingEditorProps) {
     if (tool !== 'lasso') setSelectedStrokeIds([])
   }
 
+  const applyColor = (nextColor: string) => {
+    props.onColorChange(nextColor)
+    if (!selectedStrokeIds.length) return
+    const selected = new Set(selectedStrokeIds)
+    const nextStrokes = props.drawing.strokes.map(stroke => selected.has(stroke.id) ? { ...stroke, color: nextColor } : stroke)
+    if (nextStrokes.some((stroke, index) => stroke.color !== props.drawing.strokes[index]?.color)) props.onCommit({ ...props.drawing, strokes: nextStrokes })
+  }
+
+  const copySelection = () => {
+    if (!selectedStrokeIds.length) return
+    const selected = new Set(selectedStrokeIds)
+    copyHandwritingStrokes(props.drawing.strokes.filter(stroke => selected.has(stroke.id)), 'normalized')
+  }
+
+  const pasteSelection = async () => {
+    const clipboard = await readHandwritingStrokes()
+    if (!clipboard?.strokes.length) return
+    const allPoints = clipboard.strokes.flatMap(stroke => stroke.points)
+    const minX = Math.min(...allPoints.map(point => point.x))
+    const minY = Math.min(...allPoints.map(point => point.y))
+    const maxX = Math.max(...allPoints.map(point => point.x))
+    const maxY = Math.max(...allPoints.map(point => point.y))
+    const sourceWidth = Math.max(.001, maxX - minX)
+    const sourceHeight = Math.max(.001, maxY - minY)
+    const normalizedScale = clipboard.space === 'canvas' ? Math.min(.52 / sourceWidth, .42 / sourceHeight) : 1
+    const normalizedOrigin = { x: minX, y: minY }
+    const normalizedOffset = clipboard.space === 'normalized' ? (maxX + .035 <= 1 ? .035 : minX - .035 >= 0 ? -.035 : 0) : 0
+    const normalizedOffsetY = clipboard.space === 'normalized' ? (maxY + .035 <= 1 ? .035 : minY - .035 >= 0 ? -.035 : 0) : 0
+    const pasted = clipboard.strokes.map(stroke => ({
+      id: newStrokeId(),
+      color: stroke.color,
+      size: stroke.size || 2,
+      input: stroke.input || 'mouse',
+      points: stroke.points.map(point => ({
+        ...point,
+        x: clipboard.space === 'canvas'
+          ? (point.x - normalizedOrigin.x) * normalizedScale + .18
+          : point.x + normalizedOffset,
+        y: clipboard.space === 'canvas'
+          ? (point.y - normalizedOrigin.y) * normalizedScale + .18
+          : point.y + normalizedOffsetY,
+      })),
+    }))
+    props.onCommit({ ...props.drawing, strokes: [...props.drawing.strokes, ...pasted] })
+    setSelectedStrokeIds(pasted.map(stroke => stroke.id))
+  }
+
   const handleShortcutKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.defaultPrevented) return
     const target = event.target as HTMLElement
     if (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
-    const historyAction = historyActionForShortcut(event.key, event.metaKey || event.ctrlKey, event.shiftKey, event.altKey)
+    const primaryModifier = event.metaKey || event.ctrlKey
+    const normalizedKey = event.key.toLowerCase()
+    if (primaryModifier && !event.shiftKey && !event.altKey && normalizedKey === 'c' && selectedStrokeIds.length) {
+      event.preventDefault()
+      event.stopPropagation()
+      copySelection()
+      return
+    }
+    if (primaryModifier && !event.shiftKey && !event.altKey && normalizedKey === 'v') {
+      event.preventDefault()
+      event.stopPropagation()
+      void pasteSelection()
+      return
+    }
+    const historyAction = historyActionForShortcut(event.key, primaryModifier, event.shiftKey, event.altKey)
     if (historyAction) {
       event.preventDefault()
       if (historyAction === 'undo') props.onUndo()
@@ -708,11 +786,11 @@ function HandwritingEditor(props: HandwritingEditorProps) {
             aria-pressed={props.color.toLowerCase() === item.value}
             title={item.label}
             style={{ '--ink-color': item.value } as CSSProperties}
-            onClick={() => props.onColorChange(item.value)}
+            onClick={() => applyColor(item.value)}
           />)}
         </div>
         <label className="handwriting-custom-color" title="自定义颜色">
-          <input aria-label="自定义笔迹颜色" type="color" value={props.color} onChange={event => props.onColorChange(event.target.value)}/>
+          <input aria-label="自定义笔迹颜色" type="color" value={props.color} onChange={event => applyColor(event.target.value)}/>
           <span>自定义</span>
         </label>
       </div>
@@ -758,7 +836,7 @@ function ExpandedHandwritingDialog({ editor, onClose }: { editor: ReactNode; onC
     }
   }, [onClose])
 
-  return <div className="handwriting-dialog-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
+  return <div className="handwriting-dialog-backdrop" role="presentation" onPointerDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <section className="handwriting-dialog" role="dialog" aria-modal="true" aria-labelledby="handwriting-dialog-title">
       <header><div><span>HANDWRITING NOTE</span><h2 id="handwriting-dialog-title">手写笔记</h2></div><button aria-label="完成并关闭" onClick={onClose}><X size={19}/><span>完成</span></button></header>
       {editor}
@@ -806,8 +884,10 @@ export default function QuestionNotePanel({ questionId, note, onChange }: Questi
     if (!canvasTrimPending) return
     const trimCanvasWhenPointerLeaves = (event: PointerEvent) => {
       const target = event.target instanceof Element ? event.target : null
-      const isInsideThisNoteCanvas = Boolean(target?.closest('.handwriting-canvas') && notePanelRef.current?.contains(target))
-      if (isInsideThisNoteCanvas) return
+      // Keep the extra canvas height while interacting with the whole
+      // handwriting workspace, including the toolbar. This prevents switching
+      // tools from trimming the canvas and causing the editor to jump.
+      if (target && notePanelRef.current?.contains(target)) return
 
       setCanvasTrimPending(false)
       const nextHeight = canvasHeightForStrokes(drawing.strokes)

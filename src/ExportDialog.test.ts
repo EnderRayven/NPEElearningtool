@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { dateFolderName, ExportPage, filterQuestionsForExport, imageExportFolderName, originalAssetName, splitPages } from './ExportDialog'
+import { dateFolderName, exportEntriesForScope, ExportPage, filterQuestionsForExport, imageExportFolderName, imageExportRootFolderName, originalAssetName, splitPages } from './ExportDialog'
 import type { Question } from './types'
 import { isImageAnswerPlaceholder } from './questionPresentation'
 
@@ -21,10 +21,30 @@ describe('export selection', () => {
     expect(splitPages(questions, 2).map(page => page.length)).toEqual([2, 2, 1])
   })
 
+  it('支持整库、整章和整节，并保留题目来源', () => {
+    const bank = {
+      id: 'bank-1', name: '测试题库', source: 'local' as const, chapters: [
+        { id: 'chapter-1', name: '第一章', sections: [
+          { id: 'section-1', name: '选择题', questions: [questions[0], questions[1]] },
+          { id: 'section-2', name: '判断题', questions: [questions[2]] },
+        ] },
+        { id: 'chapter-2', name: '第二章', sections: [
+          { id: 'section-3', name: '简答题', questions: [questions[3], questions[4]] },
+        ] },
+      ],
+    }
+    expect(exportEntriesForScope(bank, 'section', 'chapter-1', 'section-2').map(entry => entry.question.id)).toEqual(['q-3'])
+    expect(exportEntriesForScope(bank, 'chapter', 'chapter-1', 'section-1').map(entry => entry.question.id)).toEqual(['q-1', 'q-2', 'q-3'])
+    expect(exportEntriesForScope(bank, 'bank', 'chapter-1', 'section-1').map(entry => entry.question.id)).toEqual(['q-1', 'q-2', 'q-3', 'q-4', 'q-5'])
+    expect(exportEntriesForScope(bank, 'bank', 'chapter-1', 'section-1')[3]).toMatchObject({ chapterName: '第二章', sectionName: '简答题' })
+  })
+
   it('为原图复制生成稳定的日期目录和原始文件名', () => {
     expect(dateFolderName(new Date(2026, 6, 14))).toBe('2026-07-14')
     expect(originalAssetName('bank/question/1-Q-02-3-06.1.png')).toBe('Q-02-3-06.1.png')
     expect(imageExportFolderName('880/线代', '02 矩阵', '综合', new Date(2026, 6, 14))).toBe('2026-07-14-880-线代-02 矩阵-综合')
+    expect(imageExportRootFolderName('880/线代', 'bank', '', new Date(2026, 6, 14))).toBe('2026-07-14-880-线代-整库')
+    expect(imageExportRootFolderName('880/线代', 'chapter', '02 矩阵', new Date(2026, 6, 14))).toBe('2026-07-14-880-线代-02 矩阵')
   })
 
   it('按学习状态筛选并把缺省状态视为未标记', () => {
@@ -36,8 +56,9 @@ describe('export selection', () => {
   })
 
   it('导出页面只包含题目，不包含答案与解析', () => {
-    const markup = renderToStaticMarkup(createElement(ExportPage, { questions: [{ ...questions[0], text: '题目正文', answer: '秘密答案', analysis: '秘密解析' }], statuses: { 'q-1': 'vague' }, pageNumber: 1 }))
+    const markup = renderToStaticMarkup(createElement(ExportPage, { questions: [{ ...questions[0], text: '题目正文', answer: '秘密答案', analysis: '秘密解析' }], statuses: { 'q-1': 'vague' }, questionContext: { 'q-1': { chapterName: '第一章', sectionName: '选择题' } }, pageNumber: 1 }))
     expect(markup).toContain('题目正文')
+    expect(markup).toContain('第一章 · 选择题')
     expect(markup).toContain('模糊')
     expect(markup).not.toContain('秘密答案')
     expect(markup).not.toContain('秘密解析')

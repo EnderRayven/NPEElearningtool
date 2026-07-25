@@ -41,5 +41,5 @@ export default function AssetGallery({ keys = [], urls = [], alt, className, tra
   const sources = [...urls.filter(Boolean).map(versionDefaultWorkspaceUrl), ...(loadState.signature === assetSignature ? localUrls : [])]
   const exportState = loadState.signature === assetSignature ? loadState.status : keys.length ? 'loading' : 'ready'
   if (!sources.length && !trackExportLoading) return null
-  return <div className={className || 'asset-gallery'} data-export-asset-state={trackExportLoading ? exportState : undefined}>{sources.map((source, index) => <img key={`${source}-${index}`} src={source} alt={`${alt}${sources.length > 1 ? ` ${index + 1}` : ''}`} loading={trackExportLoading || eager ? 'eager' : 'lazy'}/>)}</div>
+  return <div className={className || 'asset-gallery'} data-export-asset-state={trackExportLoading ? exportState : undefined}>{sources.map((source, index) => <img key={`${source}-${index}`} src={source} alt={`${alt}${sources.length > 1 ? ` ${index + 1}` : ''}`} loading={trackExportLoading || eager ? 'eager' : 'lazy'} draggable={false} onDragStart={event => event.preventDefault()}/>)}</div>
 }

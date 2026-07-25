@@ -30,6 +30,82 @@ html::-webkit-scrollbar-corner {
   background: #faf8f5;
 }
 
+/* Images are content, not draggable browser payloads. Keep this global for
+ * generated/exported image nodes as well as the regular asset gallery. */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  user-select: none;
+}
+
+/* Keep pen and touch drags on the page's vertical scrolling surface. Drawing
+ * canvases and explicit horizontal toolbars opt out below where necessary. */
+:is(
+  html,
+  body,
+  .app-shell,
+  main,
+  aside,
+  .modal-backdrop,
+  .notes-modal-backdrop,
+  .timer-modal-backdrop,
+  .dashboard-question-backdrop,
+  .handwriting-dialog-backdrop,
+  .scrim,
+  .chapter-scroll,
+  .study-layout > .question-nav,
+  .passage-question-nav,
+  .review-nav-groups,
+  .keypoint-number-nav,
+  .dashboard-question-dialog-scroll,
+  .dashboard-question-review,
+  .notes-nav-groups,
+  .notes-detail-scroll,
+  .notes-stream-question,
+  .day-bank-breakdown,
+  .timer-dialog-scroll,
+  .timer-history-list,
+  .settings-tools-popover,
+  .toolbox-popover,
+  .export-dialog,
+  .settings-dialog
+) {
+  touch-action: pan-y pinch-zoom;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Horizontal strips should consume pen/touch movement themselves instead of
+ * turning a sideways toolbar swipe into a page scroll. */
+:is(
+  .header-actions,
+  .filter-row,
+  .draftbook-tool-actions,
+  .dashboard-review-list
+) {
+  touch-action: pan-x pinch-zoom;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The modal shell contains its own scroll areas; stop edge gestures from
+ * leaking through to the locked document behind it. */
+:is(
+  .modal-backdrop,
+  .notes-modal-backdrop,
+  .timer-modal-backdrop,
+  .dashboard-question-backdrop,
+  .handwriting-dialog-backdrop
+) {
+  overscroll-behavior: contain;
+}
+
+/* A pen drag is handled by PenScrollController after it crosses the drag
+ * threshold. Disable the browser's text-selection cursor only for that drag. */
+html.pen-scroll-active,
+html.pen-scroll-active * {
+  user-select: none !important;
+  cursor: grabbing !important;
+}
+
 /* The page scrollbar is hidden while a modal is open, so the reserved gutter does not become a bright strip. */
 html.dashboard-question-modal-open {
   scrollbar-gutter: auto;
@@ -45,6 +121,24 @@ html.dashboard-question-modal-open::-webkit-scrollbar {
 html.dashboard-question-modal-open::-webkit-scrollbar-track,
 html.dashboard-question-modal-open::-webkit-scrollbar-corner,
 html.dashboard-question-modal-open::-webkit-scrollbar-thumb {
+  border: 0;
+  background: transparent;
+}
+
+html.notes-modal-open {
+  scrollbar-gutter: auto;
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+
+html.notes-modal-open::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+html.notes-modal-open::-webkit-scrollbar-track,
+html.notes-modal-open::-webkit-scrollbar-corner,
+html.notes-modal-open::-webkit-scrollbar-thumb {
   border: 0;
   background: transparent;
 }

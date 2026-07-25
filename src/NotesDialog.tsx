@@ -161,9 +161,20 @@ export default function NotesDialog({ banks, notes, onClose, onOpenQuestion }: N
   const pendingSectionScroll = useRef(false)
 
   useEffect(() => {
+    const root = document.documentElement
+    const previousBodyOverflow = document.body.style.overflow
+    const previousRootOverflow = root.style.overflow
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
+    document.body.style.overflow = 'hidden'
+    root.style.overflow = 'hidden'
+    root.classList.add('notes-modal-open')
     document.addEventListener('keydown', closeOnEscape)
-    return () => document.removeEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousBodyOverflow
+      root.style.overflow = previousRootOverflow
+      root.classList.remove('notes-modal-open')
+      document.removeEventListener('keydown', closeOnEscape)
+    }
   }, [onClose])
 
   const entries = useMemo(() => buildNoteEntries(banks, notes), [banks, notes])
@@ -238,14 +249,13 @@ export default function NotesDialog({ banks, notes, onClose, onOpenQuestion }: N
     if (!nav || !activeSectionKey) return
     const activeButton = Array.from(nav.querySelectorAll<HTMLButtonElement>('[data-note-section]'))
       .find(button => button.dataset.noteSection === activeSectionKey)
-    const sidebar = nav.closest<HTMLElement>('.notes-sidebar')
-    if (!activeButton || !sidebar) return
-    const sidebarBounds = sidebar.getBoundingClientRect()
+    if (!activeButton) return
+    const navBounds = nav.getBoundingClientRect()
     const buttonBounds = activeButton.getBoundingClientRect()
-    const visibleTop = sidebarBounds.top + 12
-    const visibleBottom = sidebarBounds.bottom - 12
-    if (buttonBounds.top < visibleTop) sidebar.scrollBy({ top: buttonBounds.top - visibleTop, behavior: 'smooth' })
-    else if (buttonBounds.bottom > visibleBottom) sidebar.scrollBy({ top: buttonBounds.bottom - visibleBottom, behavior: 'smooth' })
+    const visibleTop = navBounds.top + 8
+    const visibleBottom = navBounds.bottom - 8
+    if (buttonBounds.top < visibleTop) nav.scrollBy({ top: buttonBounds.top - visibleTop, behavior: 'smooth' })
+    else if (buttonBounds.bottom > visibleBottom) nav.scrollBy({ top: buttonBounds.bottom - visibleBottom, behavior: 'smooth' })
   }, [activeBankGroup, activeSectionKey])
 
   const textCount = entries.filter(entry => noteHasText(entry.note)).length

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CalendarClock, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import AssetGallery from './AssetGallery'
 import { isImageAnswerPlaceholder } from './questionPresentation'
@@ -45,12 +45,22 @@ const formatMarkedAt = (value: string) => {
   }).format(date)
 }
 
+const calendarDaysSince = (date: string) => {
+  const [year, month, day] = date.split('-').map(Number)
+  const [todayYear, todayMonth, todayDay] = localDateKey().split('-').map(Number)
+  const elapsed = (Date.UTC(todayYear, todayMonth - 1, todayDay) - Date.UTC(year, month - 1, day)) / 86_400_000
+  return Math.max(0, Math.round(elapsed))
+}
+
 export default function DashboardQuestionDialog({ bankName, chapterName, sectionName, question, questions = [], questionStatuses = {}, status, activities, note, binaryMode, onStatusChange, onReviewStatusChange, onResetReview, onDeleteReview, onNoteChange, onClose, onQuestionSelect, onPreviousQuestion, onNextQuestion }: DashboardQuestionDialogProps) {
   const [answerOpen, setAnswerOpen] = useState(false)
+  const questionScrollRef = useRef<HTMLDivElement>(null)
   const timeline = buildQuestionReviewTimeline(activities, question.id)
   const effectiveStatus = binaryMode && status === 'vague' ? 'none' : status
   const initialMark = timeline.initialMark || (effectiveStatus !== 'none' ? { status: effectiveStatus, markedAt: '', date: '' } : null)
   const reviewEntries = timeline.reviews
+  const lastReviewDate = reviewEntries.at(-1)?.date || initialMark?.date
+  const daysSinceLastReview = lastReviewDate ? calendarDaysSince(lastReviewDate) : null
   const [manualReviewSlots, setManualReviewSlots] = useState<number[]>([])
   const [resetPending, setResetPending] = useState(false)
   const [deleteReviewAttempt, setDeleteReviewAttempt] = useState<number | null>(null)
@@ -92,6 +102,8 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
     setAnswerOpen(false)
     setManualReviewSlots([])
     setDeleteReviewAttempt(null)
+    const frame = window.requestAnimationFrame(() => questionScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }))
+    return () => window.cancelAnimationFrame(frame)
   }, [question.id])
 
   const changeReviewStatus = (value: QuestionStatus, selectedStatus: QuestionStatus) => {
@@ -129,7 +141,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
         {!hasQuestionNavigation && <header className="dashboard-question-dialog-head">
           <div><span>{bankName}</span><small>{chapterName} · {sectionName}</small></div>
         </header>}
-      <div className="dashboard-question-dialog-scroll">
+      <div ref={questionScrollRef} className="dashboard-question-dialog-scroll">
         <div className="dashboard-question-title-row">
           <div><span className="number">{String(question.number).padStart(2, '0')}</span></div>
           <span className={`current-status ${effectiveStatus}`}>{statusMeta[effectiveStatus].icon} {labelFor(effectiveStatus)}</span>
@@ -165,7 +177,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
         : <footer className="dashboard-question-status"><span>掌握情况</span>{statusControls}</footer>}
       </div>
       <aside className="dashboard-question-review" aria-label="复习记录">
-        <div className="dashboard-review-heading"><div><div><span>REVIEW</span><h2><CalendarClock size={17}/>复习</h2></div>{reviewEntries.length > 0 && <button type="button" className="dashboard-review-reset" aria-label="重置复习记录" title="保留初始标记，清除全部复习记录" onClick={resetReview}><RotateCcw size={13}/>重置</button>}</div><small>{reviewEntries.length ? `标记后已复习 ${reviewEntries.length} 次` : '完成初始标记后，下次记录为第一次复习'}</small></div>
+        <div className="dashboard-review-heading"><div><div><span>REVIEW</span><h2><CalendarClock size={17}/>复习</h2></div>{reviewEntries.length > 0 && <button type="button" className="dashboard-review-reset" aria-label="重置复习记录" title="保留初始标记，清除全部复习记录" onClick={resetReview}><RotateCcw size={13}/>重置</button>}</div><small>{reviewEntries.length ? `标记后已复习 ${reviewEntries.length} 次` : '完成初始标记后，下次记录为第一次复习'}</small>{daysSinceLastReview !== null && <small className="dashboard-review-elapsed">距上一次复习（标记）到现在：<strong>{daysSinceLastReview} 天</strong></small>}</div>
         <div className={initialMark ? 'dashboard-review-baseline filled' : 'dashboard-review-baseline'}><div><strong>初始标记</strong><span>{initialMark?.markedAt ? formatMarkedAt(initialMark.markedAt) : initialMark ? '时间暂无' : '尚未标记'}</span></div>{initialMark && <em className={initialMark.status}>{statusMeta[initialMark.status].icon} {binaryMode && initialMark.status === 'proficient' ? '正确' : statusMeta[initialMark.status].label}</em>}</div>
         <div className="dashboard-review-list">{Array.from({ length: reviewSlotCount }, (_, index) => {
           const entry = reviewEntries[index]
@@ -204,7 +216,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
     ? <div className="dashboard-question-modal-shell">{questionNavigation}{questionContent}</div>
     : questionContent
 
-  return <div className="dashboard-question-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
+  return <div className="dashboard-question-backdrop" role="presentation" onPointerDown={event => { if (event.target === event.currentTarget) onClose() }}>
     {modalContent}
     {resetPending && <ConfirmDialog title="重置本题复习记录？" description="本题的全部复习记录将被清除，仅保留初始标记。" confirmLabel="确认重置" onConfirm={confirmResetReview} onCancel={() => setResetPending(false)}/>}
     {deleteReviewAttempt !== null && <ConfirmDialog title={`删除第 ${deleteReviewAttempt} 次复习记录？`} description="该次复习记录将被删除，其他复习记录会保留。" confirmLabel="确认删除" onConfirm={confirmDeleteReview} onCancel={() => setDeleteReviewAttempt(null)}/>}

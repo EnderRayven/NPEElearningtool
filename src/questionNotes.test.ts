@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptyQuestionNote, eraseHandwritingStrokes, hasQuestionNote, validateHandwritingDrawing, validateQuestionNotes } from './questionNotes'
+import { emptyQuestionNote, eraseHandwritingStrokes, hasQuestionNote, validateHandwritingDrawing, validateQuestionErrorRecords, validateQuestionNotes } from './questionNotes'
 
 describe('questionNotes', () => {
   it('validates text and editable vector strokes', () => {
@@ -29,6 +29,16 @@ describe('questionNotes', () => {
       valid: { text: '保留', drawing: null },
     })).toEqual({
       valid: { text: '保留', drawing: validateHandwritingDrawing(null), updatedAt: '' },
+    })
+  })
+
+  it('validates saved English error records', () => {
+    expect(validateQuestionErrorRecords({
+      q1: { wrongOption: ' b ', updatedAt: '2026-07-25T08:00:00.000Z' },
+      empty: { wrongOption: '   ', updatedAt: 'ignored' },
+      malformed: 'not a record',
+    })).toEqual({
+      q1: { wrongOption: 'B', updatedAt: '2026-07-25T08:00:00.000Z' },
     })
   })
 

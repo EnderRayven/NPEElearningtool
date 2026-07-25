@@ -11,6 +11,16 @@ export interface ExportJob {
   questions: Question[]
   perPage: 1 | 2
   statuses: Record<string, QuestionStatus>
+  scope: ExportScope
+  questionContext: Record<string, ExportQuestionContext>
+}
+
+export type ExportScope = 'bank' | 'chapter' | 'section'
+export interface ExportQuestionContext { chapterName: string; sectionName: string }
+export interface ExportQuestionEntry extends ExportQuestionContext {
+  question: Question
+  chapterId: string
+  sectionId: string
 }
 
 interface Props {
@@ -34,6 +44,11 @@ const statusOptions: Array<{ value: ExportStatusFilter; label: string }> = [
   { value: 'all', label: '全部状态' }, { value: 'review', label: '错题和模糊' }, { value: 'none', label: '未标记' }, { value: 'proficient', label: '熟练' }, { value: 'vague', label: '模糊' }, { value: 'wrong', label: '错题' }
 ]
 const exportStatusLabels: Record<QuestionStatus, string> = { none: '未标记', proficient: '熟练', vague: '模糊', wrong: '错题' }
+export const exportScopeOptions: Array<{ value: ExportScope; label: string; description: string }> = [
+  { value: 'bank', label: '整库', description: '整个题库' },
+  { value: 'chapter', label: '整章', description: '当前章节' },
+  { value: 'section', label: '整节', description: '当前小节' },
+]
 
 export function splitPages(questions: Question[], perPage: number) {
   return Array.from({ length: Math.ceil(questions.length / perPage) }, (_, index) => questions.slice(index * perPage, (index + 1) * perPage))
@@ -43,6 +58,25 @@ export function filterQuestionsForExport(questions: Question[], status: ExportSt
   return questions.filter(question => {
     const questionStatus = statuses[question.id] || 'none'
     return status === 'all' || (status === 'review' ? questionStatus === 'wrong' || questionStatus === 'vague' : questionStatus === status)
+  })
+}
+
+export function exportEntriesForScope(bank: QuestionBank | undefined, scope: ExportScope, chapterId: string, sectionId: string): ExportQuestionEntry[] {
+  if (!bank) return []
+  const chapters = scope === 'bank'
+    ? bank.chapters
+    : bank.chapters.filter(chapter => chapter.id === chapterId)
+  return chapters.flatMap(chapter => {
+    const sections = scope === 'section'
+      ? chapter.sections.filter(section => section.id === sectionId)
+      : chapter.sections
+    return sections.flatMap(section => section.questions.map(question => ({
+      question,
+      chapterId: chapter.id,
+      chapterName: chapter.name,
+      sectionId: section.id,
+      sectionName: section.name,
+    })))
   })
 }
 
@@ -59,6 +93,10 @@ export function originalAssetName(key: string) {
 }
 export function imageExportFolderName(bankName: string, chapterName: string, sectionName: string, date = new Date()) {
   return safeFolderName([dateFolderName(date), bankName || '题库', chapterName || '章节', sectionName || '小节'].join('-'))
+}
+export function imageExportRootFolderName(bankName: string, scope: ExportScope, chapterName = '', date = new Date()) {
+  const scopeName = scope === 'bank' ? '整库' : chapterName || '整章'
+  return safeFolderName([dateFolderName(date), bankName || '题库', scopeName].join('-'))
 }
 function fileNameFromUrl(url: string, questionNumber: number) {
   try {
@@ -96,13 +134,14 @@ export async function waitForExportContent(container: HTMLElement, timeoutMs = 2
   await nextFrame()
 }
 
-export function ExportPage({ questions, statuses = {}, pageNumber, showType = true }: { questions: Question[]; statuses?: Record<string, QuestionStatus>; pageNumber: number; showType?: boolean }) {
+export function ExportPage({ questions, statuses = {}, questionContext = {}, pageNumber, showType = true }: { questions: Question[]; statuses?: Record<string, QuestionStatus>; questionContext?: Record<string, ExportQuestionContext>; pageNumber: number; showType?: boolean }) {
   return <article className={`export-page${questions.length > 1 ? ' export-page-two-up' : ''}`}>
     {questions.map(question => {
       const text = (question.type === '图片题' || question.imageUrl || question.imageKeys?.length) && question.text === `第 ${question.number} 题` ? '' : question.text
       const questionStatus = statuses[question.id] || 'none'
+      const context = questionContext[question.id]
       return <section className="export-question" key={question.id}>
-        <div className="export-question-title"><strong>{String(question.number).padStart(2, '0')}</strong><span className={`export-mastery ${questionStatus}`}>{exportStatusLabels[questionStatus]}</span>{showType && question.type && <span>{question.type}</span>}</div>
+        <div className="export-question-title"><strong>{String(question.number).padStart(2, '0')}</strong>{context && <span className="export-question-context">{context.chapterName} · {context.sectionName}</span>}<span className={`export-mastery ${questionStatus}`}>{exportStatusLabels[questionStatus]}</span>{showType && question.type && <span>{question.type}</span>}</div>
         {text && <p>{text}</p>}
         <AssetGallery keys={question.imageKeys} urls={question.imageUrl ? [question.imageUrl] : []} alt="题目配图" trackExportLoading/>
         {question.options?.map(option => <p className="export-option" key={option}>{option}</p>)}
@@ -118,6 +157,7 @@ export default function ExportDialog({ banks, statuses, defaultBankId, defaultSe
   const initialChapter = initialBank?.chapters.find(chapter => chapter.sections.some(section => section.id === defaultSectionId)) || initialBank?.chapters[0]
   const [chapterId, setChapterId] = useState(initialChapter?.id || '')
   const [sectionId, setSectionId] = useState(defaultSectionId || initialChapter?.sections[0]?.id || '')
+  const [scope, setScope] = useState<ExportScope>('section')
   const [status, setStatus] = useState<ExportStatusFilter>('all')
   const [perPage, setPerPage] = useState<1 | 2>(2)
   const [exporting, setExporting] = useState(false)
@@ -132,10 +172,22 @@ export default function ExportDialog({ banks, statuses, defaultBankId, defaultSe
   }, [bankId, bank, chapterId])
   useEffect(() => { if (chapter && !chapter.sections.some(item => item.id === sectionId)) setSectionId(chapter.sections[0]?.id || '') }, [chapter, sectionId])
 
-  const questions = useMemo(() => filterQuestionsForExport(section?.questions || [], status, statuses), [section, status, statuses])
+  const exportEntries = useMemo(() => exportEntriesForScope(bank, scope, chapter?.id || '', section?.id || ''), [bank, scope, chapter, section])
+  const sourceQuestions = useMemo(() => exportEntries.map(entry => entry.question), [exportEntries])
+  const questions = useMemo(() => filterQuestionsForExport(sourceQuestions, status, statuses), [sourceQuestions, status, statuses])
   const pages = useMemo(() => splitPages(questions, perPage), [questions, perPage])
-  const counts = (section?.questions || []).reduce((result, question) => { result[statuses[question.id] || 'none']++; return result }, { none: 0, proficient: 0, vague: 0, wrong: 0 })
-  const job: ExportJob = { title: bank?.name || '题库导出', subtitle: `${chapter?.name || ''} · ${section?.name || ''}`, questions, perPage, statuses }
+  const counts = sourceQuestions.reduce((result, question) => { result[statuses[question.id] || 'none']++; return result }, { none: 0, proficient: 0, vague: 0, wrong: 0 })
+  const questionContext = useMemo(() => Object.fromEntries(exportEntries.map(entry => [entry.question.id, { chapterName: entry.chapterName, sectionName: entry.sectionName }])), [exportEntries])
+  const scopeLabel = exportScopeOptions.find(option => option.value === scope)?.label || '整节'
+  const job: ExportJob = {
+    title: bank?.name || '题库导出',
+    subtitle: scope === 'bank' ? `${bank?.name || ''} · 整个题库` : scope === 'chapter' ? `${bank?.name || ''} · ${chapter?.name || ''}（整章）` : `${chapter?.name || ''} · ${section?.name || ''}`,
+    questions,
+    perPage,
+    statuses,
+    scope,
+    questionContext: scope === 'section' ? {} : questionContext,
+  }
 
   async function exportImages() {
     if (!questions.length) { onNotice('当前条件下没有可导出的题目'); return }
@@ -148,11 +200,26 @@ export default function ExportDialog({ banks, statuses, defaultBankId, defaultSe
     }
     setExporting(true)
     try {
-      const folderName = imageExportFolderName(bank?.name || '', chapter?.name || '', section?.name || '')
-      const sectionDirectory = await directory.getDirectoryHandle(folderName, { create: true })
-      const writtenNames = new Set<string>()
+      const folderName = scope === 'section'
+        ? imageExportFolderName(bank?.name || '', chapter?.name || '', section?.name || '')
+        : imageExportRootFolderName(bank?.name || '', scope, chapter?.name || '')
+      const rootDirectory = await directory.getDirectoryHandle(folderName, { create: true })
+      const writtenNamesByFolder = new Map<string, Set<string>>()
       let skippedQuestions = 0
-      for (const question of questions) {
+      for (const entry of exportEntries.filter(item => questions.some(question => question.id === item.question.id))) {
+        const question = entry.question
+        let targetDirectory = rootDirectory
+        let folderKey = ''
+        if (scope === 'chapter') {
+          targetDirectory = await rootDirectory.getDirectoryHandle(safeFolderName(entry.sectionName || '小节'), { create: true })
+          folderKey = entry.sectionName
+        } else if (scope === 'bank') {
+          const chapterDirectory = await rootDirectory.getDirectoryHandle(safeFolderName(entry.chapterName || '章节'), { create: true })
+          targetDirectory = await chapterDirectory.getDirectoryHandle(safeFolderName(entry.sectionName || '小节'), { create: true })
+          folderKey = `${entry.chapterName}/${entry.sectionName}`
+        }
+        const writtenNames = writtenNamesByFolder.get(folderKey) || new Set<string>()
+        writtenNamesByFolder.set(folderKey, writtenNames)
         const assets = await getAssetFiles(question.imageKeys || [])
         const sources: Array<{ name: string; blob: Blob }> = assets.map(asset => ({ name: originalAssetName(asset.key), blob: asset.blob }))
         if (!sources.length && question.imageUrl) {
@@ -170,11 +237,12 @@ export default function ExportDialog({ banks, statuses, defaultBankId, defaultSe
             while (writtenNames.has(filename)) filename = `${prefix}-${duplicate++}-${source.name}`
           }
           writtenNames.add(filename)
-          const file = await sectionDirectory.getFileHandle(filename, { create: true })
+          const file = await targetDirectory.getFileHandle(filename, { create: true })
           const writable = await file.createWritable(); await writable.write(source.blob); await writable.close()
         }
       }
-      onNotice(`已复制 ${writtenNames.size} 张原图到 ${folderName}${skippedQuestions ? `，跳过 ${skippedQuestions} 道无图片题目` : ''}`); onClose()
+      const writtenCount = Array.from(writtenNamesByFolder.values()).reduce((total, names) => total + names.size, 0)
+      onNotice(`已复制 ${writtenCount} 张原图到 ${folderName}${skippedQuestions ? `，跳过 ${skippedQuestions} 道无图片题目` : ''}`); onClose()
     } catch (error) { onNotice(error instanceof Error ? error.message : '题目图片复制失败') } finally { setExporting(false) }
   }
 
@@ -182,12 +250,15 @@ export default function ExportDialog({ banks, statuses, defaultBankId, defaultSe
     <section className="export-dialog" role="dialog" aria-modal="true" aria-labelledby="export-title" onClick={event => event.stopPropagation()}>
       <button className="modal-close" aria-label="关闭" onClick={onClose}><X/></button>
       <h2 id="export-title">导出题目</h2><p>选择范围、状态和页面布局</p>
+      <div className="export-scope" role="tablist" aria-label="导出范围">
+        {exportScopeOptions.map(option => <button key={option.value} role="tab" aria-selected={scope === option.value} className={scope === option.value ? 'active' : ''} onClick={() => setScope(option.value)}><strong>{option.label}</strong><small>{option.description}</small></button>)}
+      </div>
       <div className="export-form-grid">
         <label>题库<select value={bank?.id || ''} onChange={event => setBankId(event.target.value)}>{banks.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-        <label>章<select value={chapter?.id || ''} onChange={event => { setChapterId(event.target.value); const next = bank?.chapters.find(item => item.id === event.target.value); setSectionId(next?.sections[0]?.id || '') }}>{bank?.chapters.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-        <label className="full">节<select value={section?.id || ''} onChange={event => setSectionId(event.target.value)}>{chapter?.sections.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+        <label>章<select disabled={scope === 'bank'} value={chapter?.id || ''} onChange={event => { setChapterId(event.target.value); const next = bank?.chapters.find(item => item.id === event.target.value); setSectionId(next?.sections[0]?.id || '') }}>{bank?.chapters.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+        <label className="full">节<select disabled={scope !== 'section'} value={section?.id || ''} onChange={event => setSectionId(event.target.value)}>{chapter?.sections.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
       </div>
-      <div className="export-stats"><div><span>总题目</span><strong>{section?.questions.length || 0}</strong></div><div className="green-stat"><span>熟练</span><strong>{counts.proficient}</strong></div><div className="yellow-stat"><span>模糊</span><strong>{counts.vague}</strong></div><div className="red-stat"><span>错题</span><strong>{counts.wrong}</strong></div></div>
+      <div className="export-stats"><div><span>{scopeLabel}题目</span><strong>{sourceQuestions.length}</strong></div><div className="green-stat"><span>熟练</span><strong>{counts.proficient}</strong></div><div className="yellow-stat"><span>模糊</span><strong>{counts.vague}</strong></div><div className="red-stat"><span>错题</span><strong>{counts.wrong}</strong></div></div>
       <div className="export-options">
         <label>状态<select value={status} onChange={event => setStatus(event.target.value as ExportStatusFilter)}>{statusOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
         <label>布局<select value={perPage} onChange={event => setPerPage(Number(event.target.value) as 1 | 2)}><option value="1">每页 1 题</option><option value="2">每页 2 题</option></select></label>

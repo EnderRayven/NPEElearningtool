@@ -471,6 +471,16 @@
   pointer-events: none;
 }
 
+.handwriting-space-guide {
+  fill: none;
+  stroke: #a65349;
+  stroke-width: 1.5;
+  stroke-dasharray: 8 7;
+  opacity: .68;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
 .handwriting-space-range {
   position: absolute;
   z-index: 2;

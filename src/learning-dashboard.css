@@ -325,6 +325,8 @@
 .dashboard-review-heading h2 { display: flex; align-items: center; gap: 7px; margin: 5px 0 0; color: #4e4842; font-size: 17px; }
 .dashboard-review-heading h2 svg { color: #9f2e25; }
 .dashboard-review-heading small { display: block; margin-top: 8px; color: #968e86; font-size: 9px; line-height: 1.6; }
+.dashboard-review-heading small.dashboard-review-elapsed { color: #65504b; font-weight: 700; }
+.dashboard-review-elapsed strong { color: #9f2e25; font-size: 11px; font-weight: 800; }
 .dashboard-review-baseline { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; padding: 10px 11px; border: 1px solid #e2d8cf; border-radius: 10px; background: rgba(255, 255, 255, .5); }
 .dashboard-review-baseline > div { min-width: 0; }
 .dashboard-review-baseline strong { display: block; color: #625a54; font-size: 10px; }

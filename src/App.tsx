@@ -26,7 +26,7 @@ import { countMarkedQuestions, emptyStudyRound, getStudyRound, loadStudyRounds, 
 import QuestionNotePanel from './QuestionNotePanel'
 import TimerDialog from './TimerDialog'
 import NotesDialog from './NotesDialog'
-import { hasQuestionNote, loadQuestionNotes, saveQuestionNotes, validateQuestionNotes, type QuestionNote, type QuestionNotes } from './questionNotes'
+import { hasQuestionNote, loadQuestionErrorRecords, loadQuestionNotes, saveQuestionErrorRecords, saveQuestionNotes, validateQuestionErrorRecords, validateQuestionNotes, type QuestionErrorRecords, type QuestionNote, type QuestionNotes } from './questionNotes'
 import { bankMathModule, bankMathModules, bankSubject, mathModuleLabels, mathModuleOrder, subjectLabels } from './subjects'
 import { englishSectionLabel, groupEnglishSections, type EnglishSectionGroupKey } from './englishNavigation'
 
@@ -46,6 +46,14 @@ const readingTypeMeta: Array<{ value: ReadingQuestionType; label: string }> = [
 ]
 const isReadingTypeQuestion = (item?: Question) => item?.type === '阅读理解 Part A'
 const isBinaryMasteryQuestion = (item?: Question) => item?.type === '完形填空' || item?.type === '阅读理解 Part A' || item?.type === '阅读理解 Part B'
+const isEnglishObjectiveQuestion = (item?: Question) => Boolean(item && (
+  item.type === '完形填空'
+  || item.type === '阅读理解 Part A'
+  || item.type === '阅读理解 Part B'
+  || item.type === '选择题'
+  || (item.options?.length && !/翻译|写作/.test(item.type || ''))
+))
+const questionOptionKey = (option: string, index: number) => option.trim().match(/^([A-Z])(?:[.、)）:]|\s|$)/)?.[1] || String.fromCharCode(65 + index)
 const effectiveQuestionStatus = (item: Question | undefined, status: QuestionStatus, binaryMode = isBinaryMasteryQuestion(item)): QuestionStatus => binaryMode && status === 'vague' ? 'none' : status
 const questionStatusMeta = (item: Question | undefined, status: QuestionStatus, binaryMode = isBinaryMasteryQuestion(item)) => binaryMode ? binaryStatusMeta[status] : statusMeta[status]
 const masteryChoices = (item?: Question, binaryMode = isBinaryMasteryQuestion(item)): QuestionStatus[] => binaryMode ? ['proficient', 'wrong'] : ['proficient', 'vague', 'wrong']
@@ -179,7 +187,9 @@ export default function App() {
   const [statuses, setStatuses] = useState(() => initialRound.statuses)
   const [activities, setActivities] = useState(() => initialRound.activities)
   const [questionNotes, setQuestionNotes] = useState<QuestionNotes>({})
+  const [questionErrorRecords, setQuestionErrorRecords] = useState<QuestionErrorRecords>({})
   const [notesReady, setNotesReady] = useState(false)
+  const [errorRecordsReady, setErrorRecordsReady] = useState(false)
   const [bankId, setBankId] = useState(banks[0]?.id || '')
   const [sectionId, setSectionId] = useState(banks[0]?.chapters[0]?.sections[0]?.id || '')
   const [mathExamNavigationMode, setMathExamNavigationMode] = useState<MathExamNavigationMode>('paper')
@@ -227,6 +237,7 @@ export default function App() {
   const imageImportRef = useRef<HTMLInputElement>(null)
   const printSheetRef = useRef<HTMLElement>(null)
   const questionCardRef = useRef<HTMLElement>(null)
+  const chapterScrollRef = useRef<HTMLDivElement>(null)
   const displayedQuestionId = useRef('')
   const settingsToolsRef = useRef<HTMLDivElement>(null)
   const toolboxRef = useRef<HTMLDivElement>(null)
@@ -239,12 +250,14 @@ export default function App() {
   useEffect(() => { if (!saveUserSettings(userSettings)) setToast('用户设置保存失败，请检查浏览器存储空间') }, [userSettings])
   useEffect(() => {
     let cancelled = false
-    loadQuestionNotes().then(savedNotes => {
+    Promise.all([loadQuestionNotes(), loadQuestionErrorRecords()]).then(([savedNotes, savedErrorRecords]) => {
       if (cancelled || notesLoaded.current) return
       notesLoaded.current = true
       setQuestionNotes(savedNotes)
+      setQuestionErrorRecords(savedErrorRecords)
       setNotesReady(true)
-    }).catch(() => setToast('笔记读取失败，请检查浏览器存储空间'))
+      setErrorRecordsReady(true)
+    }).catch(() => setToast('笔记和错误记录读取失败，请检查浏览器存储空间'))
     return () => { cancelled = true }
   }, [])
   useEffect(() => {
@@ -254,6 +267,13 @@ export default function App() {
     }, 350)
     return () => window.clearTimeout(timer)
   }, [questionNotes, notesReady])
+  useEffect(() => {
+    if (!errorRecordsReady) return
+    const timer = window.setTimeout(() => {
+      saveQuestionErrorRecords(questionErrorRecords).catch(() => setToast('错误记录保存失败，请先导出完整备份'))
+    }, 350)
+    return () => window.clearTimeout(timer)
+  }, [questionErrorRecords, errorRecordsReady])
   useEffect(() => { const timer = window.setInterval(() => setCountdownNow(new Date()), 60 * 60 * 1000); return () => window.clearInterval(timer) }, [])
   useEffect(() => {
     const syncFullscreenState = () => setIsFullscreen(document.fullscreenElement === document.documentElement)
@@ -305,12 +325,12 @@ export default function App() {
     const timer = window.setTimeout(() => {
       const rounds = updateStudyRound(studyRounds, userSettings.activeRound, statuses, activities)
       const save = defaultWorkspaceConnected
-        ? writeDefaultWorkspaceUserData(rounds, userSettings, questionNotes)
-        : workspaceHandle ? writeWorkspaceUserData(workspaceHandle, rounds, userSettings, questionNotes) : Promise.resolve()
+        ? writeDefaultWorkspaceUserData(rounds, userSettings, questionNotes, questionErrorRecords)
+        : workspaceHandle ? writeWorkspaceUserData(workspaceHandle, rounds, userSettings, questionNotes, questionErrorRecords) : Promise.resolve()
       save.catch(() => setWorkspaceState('error'))
     }, 450)
     return () => window.clearTimeout(timer)
-  }, [studyRounds, statuses, activities, userSettings, questionNotes, workspaceHandle, workspaceState, defaultWorkspaceConnected])
+  }, [studyRounds, statuses, activities, userSettings, questionNotes, questionErrorRecords, workspaceHandle, workspaceState, defaultWorkspaceConnected])
   useEffect(() => {
     restoreSavedNavigation(banks, statuses)
     setNavigationReady(true)
@@ -413,6 +433,7 @@ export default function App() {
   const questionText = question && (question.type === '图片题' || question.imageUrl || question.imageKeys?.length) && question.text === `第 ${question.number} 题` ? '' : question?.text
   const hasAnswerImages = Boolean(question?.answerImageKeys?.length || question?.answerImageUrl)
   const usesImageAnswer = Boolean(question && hasAnswerImages && isImageAnswerPlaceholder(question.answer))
+  const currentQuestionNavigationEntry = question ? bankQuestionEntries.find(entry => entry.question.id === question.id) : undefined
   const currentQuestionEntry = view === 'wrong' ? reviewEntries.find(entry => entry.question.id === question?.id) : undefined
   const currentQuestionStatus = effectiveQuestionStatus(question, question ? statuses[question.id] || 'none' : 'none', binaryFilterMode)
   const currentQuestionStatusMeta = questionStatusMeta(question, currentQuestionStatus, binaryFilterMode)
@@ -442,6 +463,32 @@ export default function App() {
       entries: reviewEntries.filter(entry => entry.sectionId === itemSection.id && visibleIds.has(entry.question.id)),
     }))).filter(group => group.entries.length)
   }, [view, filteredQuestions, bank.chapters, reviewEntries])
+
+  const currentNavigationChapterId = currentQuestionNavigationEntry?.chapterId || currentChapter?.id
+  const currentNavigationSectionId = view === 'wrong'
+    ? currentQuestionNavigationEntry?.sectionId
+    : sectionId
+
+  useEffect(() => {
+    if (activePage !== 'study' || isMathExamKeyPointMode || !currentNavigationChapterId) return
+
+    setExpandedChapterIds(previous => {
+      if (previous.has(currentNavigationChapterId)) return previous
+      return new Set(previous).add(currentNavigationChapterId)
+    })
+
+    const frame = window.requestAnimationFrame(() => {
+      const container = chapterScrollRef.current
+      if (!container) return
+      const elements = Array.from(container.querySelectorAll<HTMLElement>('[data-chapter-id], [data-section-id]'))
+      const target = elements.find(element => (
+        element.dataset.sectionId === currentNavigationSectionId
+        || (!currentNavigationSectionId && element.dataset.chapterId === currentNavigationChapterId)
+      )) || elements.find(element => element.dataset.chapterId === currentNavigationChapterId)
+      target?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [activePage, isMathExamKeyPointMode, currentNavigationChapterId, currentNavigationSectionId])
 
   useEffect(() => {
     if (!navigationReady) return
@@ -760,6 +807,29 @@ export default function App() {
     if (!isReadingTypeQuestion(item)) return null
     return <label className="reading-type-picker"><span>阅读题型</span><select aria-label={`第 ${item.number} 题阅读题型`} value={item.readingType || ''} onChange={event => markReadingType(item.id, event.target.value as ReadingQuestionType | '')}><option value="">未分类</option>{readingTypeMeta.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}</select><ChevronDown size={13}/></label>
   }
+  function updateQuestionErrorRecord(questionId: string, wrongOption: string) {
+    setQuestionErrorRecords(previous => {
+      if (!wrongOption) {
+        if (!previous[questionId]) return previous
+        const next = { ...previous }
+        delete next[questionId]
+        return next
+      }
+      return { ...previous, [questionId]: { wrongOption, updatedAt: new Date().toISOString() } }
+    })
+  }
+  function questionErrorRecordPicker(item: Question, status: QuestionStatus) {
+    if (subject !== 'english' || status !== 'wrong' || !isEnglishObjectiveQuestion(item) || !item.options?.length) return null
+    const record = questionErrorRecords[item.id]
+    return <label className="reading-type-picker error-option-picker">
+      <span>错误选项</span>
+      <select aria-label={`第 ${item.number} 题错误选项`} value={record?.wrongOption || ''} onChange={event => updateQuestionErrorRecord(item.id, event.target.value)}>
+        <option value="">未选择</option>
+        {item.options.map((option, index) => { const key = questionOptionKey(option, index); return <option key={key} value={key}>{key}</option> })}
+      </select>
+      <ChevronDown size={13}/>
+    </label>
+  }
   function currentStudyRounds() {
     return updateStudyRound(studyRounds, userSettings.activeRound, statuses, activities)
   }
@@ -796,7 +866,7 @@ export default function App() {
     return round === userSettings.activeRound ? { statuses, activities } : getStudyRound(studyRounds, round)
   }
   function exportData() {
-    const blob = new Blob([JSON.stringify({ version: 4, banks, rounds: currentStudyRounds(), settings: userSettings, notes: questionNotes }, null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify({ version: 5, banks, rounds: currentStudyRounds(), settings: userSettings, notes: questionNotes, errorRecords: questionErrorRecords }, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `考研学习空间备份-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url)
   }
   function exportSingleBank(targetBank: QuestionBank) {
@@ -860,7 +930,7 @@ export default function App() {
     const removableBanks = banks.filter(item => !protectedBankIds.has(item.id))
     await deleteAssets(removableBanks.flatMap(assetKeysForBank))
     const defaults = [...structuredClone(protectedBanks), ...structuredClone(builtInBanks).filter(item => !protectedBankIds.has(item.id))]
-    setBanks(defaults); setStudyRounds({ '1': emptyStudyRound() }); setStatuses({}); setActivities([]); setQuestionNotes({}); setUserSettings({ ...DEFAULT_USER_SETTINGS }); setBankId(defaults[0].id); setSectionId(defaults[0].chapters[0]?.sections[0]?.id || ''); setQuestionIndex(0); setView('section'); setSettingsOpen(false); setToast('已恢复出厂设置，默认题库已保留')
+    setBanks(defaults); setStudyRounds({ '1': emptyStudyRound() }); setStatuses({}); setActivities([]); setQuestionNotes({}); setQuestionErrorRecords({}); setUserSettings({ ...DEFAULT_USER_SETTINGS }); setBankId(defaults[0].id); setSectionId(defaults[0].chapters[0]?.sections[0]?.id || ''); setQuestionIndex(0); setView('section'); setSettingsOpen(false); setToast('已恢复出厂设置，默认题库已保留')
   }
   function printExport(job: ExportJob) {
     if (!job.questions.length) { setToast('当前条件下没有可导出的题目'); return }
@@ -881,10 +951,12 @@ export default function App() {
         const targetRound = getStudyRound(importedRounds, importedSettings.activeRound)
         setStudyRounds(importedRounds); setStatuses(targetRound.statuses); setActivities(targetRound.activities); setUserSettings(importedSettings)
       } else if (parsed.settings) setUserSettings(validateUserSettings(parsed.settings))
-      if (parsed.version >= 4 || parsed.notes) {
+      if (parsed.version >= 4 || parsed.notes || parsed.errorRecords) {
         notesLoaded.current = true
         setNotesReady(true)
         setQuestionNotes(validateQuestionNotes(parsed.notes))
+        setErrorRecordsReady(true)
+        setQuestionErrorRecords(validateQuestionErrorRecords(parsed.errorRecords))
       }
       setToast(`成功导入 ${imported.length} 个题库`)
     } catch (e) { setToast(e instanceof Error ? e.message : '导入失败') }
@@ -911,7 +983,8 @@ export default function App() {
       if (index.manifest && index.manifest.builtinEnglishVersion !== BUILTIN_ENGLISH_VERSION) {
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
-      const resolvedUserData = resolveWorkspaceUserData(index.userData, index.manifest?.statuses, currentStudyRounds(), userSettings, await loadQuestionNotes())
+      const [savedNotes, savedErrorRecords] = await Promise.all([loadQuestionNotes(), loadQuestionErrorRecords()])
+      const resolvedUserData = resolveWorkspaceUserData(index.userData, index.manifest?.statuses, currentStudyRounds(), userSettings, savedNotes, savedErrorRecords)
       const nextSettings = resolvedUserData.settings
       const nextRounds = resolvedUserData.rounds
       const nextNotes = resolvedUserData.notes
@@ -954,7 +1027,9 @@ export default function App() {
       workspaceReady.current = false
       notesLoaded.current = true
       setNotesReady(true)
+      setErrorRecordsReady(true)
       setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(null); setDefaultWorkspaceConnected(true); setWorkspaceState('connected')
+      setQuestionErrorRecords(resolvedUserData.errorRecords)
       window.setTimeout(() => {
         workspaceReady.current = true
       }, 0)
@@ -982,7 +1057,8 @@ export default function App() {
         seededEnglishCount = englishBanks.length
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
-      const resolvedUserData = resolveWorkspaceUserData(userData, manifest?.statuses, currentStudyRounds(), userSettings, await loadQuestionNotes())
+      const [savedNotes, savedErrorRecords] = await Promise.all([loadQuestionNotes(), loadQuestionErrorRecords()])
+      const resolvedUserData = resolveWorkspaceUserData(userData, manifest?.statuses, currentStudyRounds(), userSettings, savedNotes, savedErrorRecords)
       const nextSettings = resolvedUserData.settings
       const nextRounds = resolvedUserData.rounds
       const nextNotes = resolvedUserData.notes
@@ -1030,7 +1106,9 @@ export default function App() {
       workspaceReady.current = false
       notesLoaded.current = true
       setNotesReady(true)
+      setErrorRecordsReady(true)
       setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(handle); setDefaultWorkspaceConnected(false)
+      setQuestionErrorRecords(resolvedUserData.errorRecords)
       setWorkspaceState('connected')
       window.setTimeout(() => {
         workspaceReady.current = true
@@ -1070,7 +1148,7 @@ export default function App() {
   async function switchWorkspace() {
     try {
       if (workspaceHandle && workspaceState === 'connected') {
-        void Promise.all([writeWorkspaceManifest(workspaceHandle, banks, workspaceFolders), writeWorkspaceUserData(workspaceHandle, currentStudyRounds(), userSettings, questionNotes)]).catch(() => {})
+        void Promise.all([writeWorkspaceManifest(workspaceHandle, banks, workspaceFolders), writeWorkspaceUserData(workspaceHandle, currentStudyRounds(), userSettings, questionNotes, questionErrorRecords)]).catch(() => {})
       }
       const handle = await chooseWorkspace()
       await loadWorkspace(handle)
@@ -1199,7 +1277,7 @@ export default function App() {
         </div>}
         <div className="divider"/>
         <p className="eyebrow">{isMathExamKeyPointMode ? '考点导航' : '章节导航'}</p>
-        <div className="chapter-scroll">{isMathExamKeyPointMode ? <div className="exam-keypoint-tree">{examKeyPointCatalogTree.map(module => <section className="exam-keypoint-module" key={module.key}>
+        <div className="chapter-scroll" ref={chapterScrollRef}>{isMathExamKeyPointMode ? <div className="exam-keypoint-tree">{examKeyPointCatalogTree.map(module => <section className="exam-keypoint-module" key={module.key}>
           <div className="exam-keypoint-module-title"><strong>{module.label}</strong><small>{module.sections.reduce((count, sectionItem) => count + sectionItem.groups.length, 0)} 个考点</small></div>
           {module.sections.map(sectionItem => <div className="exam-keypoint-section" key={sectionItem.key}>
             <div className="exam-keypoint-section-title">{sectionItem.label}</div>
@@ -1213,7 +1291,7 @@ export default function App() {
           const sectionGroups: SidebarSectionGroup[] = bank.id === 'english-exams'
             ? groupEnglishSections(chapter.sections)
             : [{ key: 'all', label: '', sections: chapter.sections }]
-          return <div className={bank.chapters.length === 1 ? 'chapter single-chapter' : 'chapter'} key={chapter.id}>
+          return <div className={bank.chapters.length === 1 ? 'chapter single-chapter' : 'chapter'} data-chapter-id={chapter.id} key={chapter.id}>
             {bank.chapters.length > 1 && <div className="chapter-title"><button className="chapter-toggle" aria-expanded={expandedChapterIds.has(chapter.id)} onClick={() => toggleChapter(chapter.id)}>{expandedChapterIds.has(chapter.id) ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}<span>{chapter.name}</span><em>{subject === 'english' ? sectionGroups.length : chapter.sections.length}</em><small className="nav-progress" title={`已标记 ${chapterProgress.marked}/${chapterProgress.total} 题`}>{chapterProgress.label}</small></button><button className="rename-button" aria-label={`重命名章节 ${chapter.name}`} onClick={() => openRename('chapter', chapter.id, chapter.name)}><Pencil size={12}/></button></div>}
             {(bank.chapters.length === 1 || expandedChapterIds.has(chapter.id)) && sectionGroups.map(group => {
               const groupProgress = navigationProgress(group.sections.flatMap(sectionItem => sectionItem.questions), statuses, binaryFilterMode)
@@ -1222,7 +1300,8 @@ export default function App() {
                 {group.sections.map(s => {
                   const sectionProgress = navigationProgress(s.questions, statuses, binaryFilterMode)
                   const label = group.key === 'all' ? s.name : englishSectionLabel(s, group.key)
-                  return <button key={s.id} onClick={() => selectSection(s.id)} className={view === 'section' && s.id === sectionId ? 'section active' : 'section'}><span>{label}</span><small className="nav-progress" title={`已标记 ${sectionProgress.marked}/${sectionProgress.total} 题`}>{sectionProgress.label}</small></button>
+                  const isCurrentSection = s.id === currentNavigationSectionId
+                  return <button key={s.id} data-section-id={s.id} aria-current={isCurrentSection ? 'page' : undefined} onClick={() => selectSection(s.id)} className={isCurrentSection ? 'section active' : 'section'}><span>{label}</span><small className="nav-progress" title={`已标记 ${sectionProgress.marked}/${sectionProgress.total} 题`}>{sectionProgress.label}</small></button>
                 })}
               </div>
             })}
@@ -1260,7 +1339,7 @@ export default function App() {
                 <button className="passage-answer-toggle" aria-expanded={itemAnswerOpen} onClick={() => togglePassageAnswer(item.id)}><CircleHelp size={16}/>{itemAnswerOpen ? '收起答案与解析' : '查看答案与解析'}<ChevronDown className={itemAnswerOpen ? 'rotated' : ''} size={15}/></button>
                 {itemAnswerOpen && <div className="passage-answer">{!itemUsesImageAnswer && <div className="answer-result"><span>参考答案</span><strong>{item.answer}</strong></div>}<div className={itemUsesImageAnswer ? 'answer-analysis combined-image-answer' : 'answer-analysis'}><span>{itemUsesImageAnswer ? '参考答案和解析' : '原版解析'}</span>{itemHasAnswerImages ? <AssetGallery keys={item.answerImageKeys} urls={item.answerImageUrl ? [item.answerImageUrl] : []} alt={itemUsesImageAnswer ? '参考答案和解析' : '原版解析截图'} eager/> : <p className="analysis-missing">原版解析截图暂未收录</p>}</div></div>}
                 <QuestionNotePanel questionId={item.id} note={questionNotes[item.id]} onChange={note => updateQuestionNote(item.id, note)}/>
-                <div className="passage-status"><div className="passage-markers">{readingTypePicker(item)}<span>掌握情况</span></div><div>{masteryChoices(item, binaryFilterMode).map(s => { const meta = questionStatusMeta(item, s, binaryFilterMode); return <button key={s} className={itemStatus === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => markQuestion(item.id, itemStatus === s ? 'none' : s, item)}><b>{meta.icon}</b>{meta.label}</button> })}</div></div>
+                <div className="passage-status"><div className="passage-markers">{readingTypePicker(item)}</div><div><span className="mastery-status-label">掌握情况</span>{questionErrorRecordPicker(item, itemStatus)}{masteryChoices(item, binaryFilterMode).map(s => { const meta = questionStatusMeta(item, s, binaryFilterMode); return <button key={s} className={itemStatus === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => markQuestion(item.id, itemStatus === s ? 'none' : s, item)}><b>{meta.icon}</b>{meta.label}</button> })}</div></div>
               </article>
             })}
           </section>
@@ -1277,7 +1356,7 @@ export default function App() {
             <button className="answer-toggle passage-answer-toggle standard-answer-toggle" onClick={() => setAnswerOpen(v => !v)}><CircleHelp size={19}/>{answerOpen ? '收起答案与解析' : '查看答案与解析'}<ChevronDown className={answerOpen ? 'rotated' : ''} size={18}/></button>
             {answerOpen && <div className={`${hasAnswerImages ? 'answer answer-with-images' : 'answer'} passage-answer standard-answer-panel`}>{!usesImageAnswer && <div className="answer-result"><span>参考答案</span><strong>{question.answer}</strong></div>}<div className={usesImageAnswer ? 'answer-analysis combined-image-answer' : 'answer-analysis'}><span>{usesImageAnswer ? '参考答案和解析' : '原版解析'}</span>{hasAnswerImages ? <AssetGallery keys={question.answerImageKeys} urls={question.answerImageUrl ? [question.answerImageUrl] : []} alt={usesImageAnswer ? '参考答案和解析' : '原版解析截图'} eager/> : <p className="analysis-missing">原版解析截图暂未收录</p>}</div>{question.videoUrl && <a href={question.videoUrl} target="_blank" rel="noreferrer">观看视频解析 →</a>}</div>}
             <QuestionNotePanel questionId={question.id} note={questionNotes[question.id]} onChange={note => updateQuestionNote(question.id, note)}/>
-            <div className="status-bar"><div className="status-labels">{readingTypePicker(question)}<span>掌握情况</span></div><div>{masteryChoices(question, binaryFilterMode).map(s => { const meta = questionStatusMeta(question, s, binaryFilterMode); return <button key={s} className={currentQuestionStatus === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => mark(currentQuestionStatus === s ? 'none' : s)}><b>{meta.icon}</b>{meta.label}</button> })}</div></div>
+            <div className="status-bar"><div className="status-labels">{readingTypePicker(question)}</div><div><span className="mastery-status-label">掌握情况</span>{questionErrorRecordPicker(question, currentQuestionStatus)}{masteryChoices(question, binaryFilterMode).map(s => { const meta = questionStatusMeta(question, s, binaryFilterMode); return <button key={s} className={currentQuestionStatus === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => mark(currentQuestionStatus === s ? 'none' : s)}><b>{meta.icon}</b>{meta.label}</button> })}</div></div>
             <div className="pager"><button disabled={questionIndex === 0} onClick={() => moveQuestion(-1)}>← 上一题</button><span>{questionIndex + 1} / {filteredQuestions.length}</span><button disabled={questionIndex >= filteredQuestions.length - 1} onClick={() => moveQuestion(1)}>下一题 →</button></div>
           </section>
           <nav className={view === 'wrong' ? 'question-nav review-question-nav' : showKeyPointNavigation ? 'question-nav keypoint-question-nav' : 'question-nav'} aria-label={showFullPaperNavigation ? '全卷导航' : view === 'wrong' ? '不熟练题导航' : '题号导航'}>
@@ -1290,7 +1369,7 @@ export default function App() {
 
         {printMode && printJob && <section className="print-sheet" aria-hidden="true" ref={printSheetRef}>
           <div className="print-title"><h1>{printJob.title}</h1><p>{printJob.subtitle}</p></div>
-          {Array.from({ length: Math.ceil(printJob.questions.length / printJob.perPage) }, (_, index) => <ExportPage key={index} questions={printJob.questions.slice(index * printJob.perPage, (index + 1) * printJob.perPage)} statuses={printJob.statuses} pageNumber={index + 1} showType={false}/>) }
+          {Array.from({ length: Math.ceil(printJob.questions.length / printJob.perPage) }, (_, index) => <ExportPage key={index} questions={printJob.questions.slice(index * printJob.perPage, (index + 1) * printJob.perPage)} statuses={printJob.statuses} questionContext={printJob.questionContext} pageNumber={index + 1} showType={false}/>) }
         </section>}
         </>}
       </main>

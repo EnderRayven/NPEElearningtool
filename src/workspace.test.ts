@@ -55,12 +55,14 @@ describe('workspace data separation', () => {
       { '1': { statuses: { 'question-1': 'wrong' }, activities } },
       { examDate: '2026-12-19', activeRound: 1, roundCount: 5 },
       { 'question-1': { text: '复盘笔记', drawing: { version: 1, aspectRatio: 1.5, strokes: [] }, updatedAt: '2026-07-16T08:00:00.000Z' } },
+      { 'question-1': { wrongOption: 'B', updatedAt: '2026-07-16T08:00:00.000Z' } },
     )
     expect(userData.version).toBe(4)
     expect(userData.rounds?.['1'].statuses).toEqual({ 'question-1': 'wrong' })
     expect(userData.rounds?.['1'].activities).toEqual(activities)
     expect(userData.settings).toEqual({ examDate: '2026-12-19', activeRound: 1, roundCount: 5 })
     expect(userData.notes?.['question-1'].text).toBe('复盘笔记')
+    expect(userData.errorRecords?.['question-1'].wrongOption).toBe('B')
     expect(userData).not.toHaveProperty('statuses')
     expect(userData).not.toHaveProperty('activities')
     expect(userData).not.toHaveProperty('banks')

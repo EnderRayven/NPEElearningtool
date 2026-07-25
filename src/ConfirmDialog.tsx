@@ -21,10 +21,10 @@ export default function ConfirmDialog({ title, description, confirmLabel = 'ç¡®è
     className="confirm-dialog-backdrop"
     data-confirm-dialog="true"
     role="presentation"
-    onMouseDown={event => { if (event.target === event.currentTarget) onCancel() }}
+    onPointerDown={event => { if (event.target === event.currentTarget) onCancel() }}
     onKeyDown={handleKeyDown}
   >
-    <section className="confirm-dialog-card" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-description" onMouseDown={event => event.stopPropagation()}>
+    <section className="confirm-dialog-card" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-description" onPointerDown={event => event.stopPropagation()}>
       <div className="confirm-dialog-heading">
         <span className="confirm-dialog-icon" aria-hidden="true"><Trash2 size={18}/></span>
         <div><span>CONFIRM ACTION</span><h2 id="confirm-dialog-title">{title}</h2></div>
