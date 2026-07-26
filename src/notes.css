@@ -4,24 +4,25 @@
   z-index: 105;
   display: grid;
   place-items: center;
-  padding: 16px;
-  background: rgba(34, 29, 26, .5);
-  backdrop-filter: blur(7px);
+  padding: 28px;
+  background: rgba(42, 34, 29, .46);
+  backdrop-filter: blur(3px);
   overscroll-behavior: contain;
 }
 
 .notes-dialog {
   position: relative;
   display: flex;
-  width: min(1280px, calc(100vw - 32px));
-  height: min(850px, calc(100vh - 32px));
+  width: min(1504px, 100%);
+  height: min(88dvh, 900px);
   min-height: 0;
+  max-height: calc(100dvh - 56px);
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .76);
-  border-radius: 22px;
+  border: 1px solid #e2d8cf;
+  border-radius: 19px;
   background: radial-gradient(circle at 10% 4%, #fffdfb 0, #fff 43%, #faf5f0 100%);
-  box-shadow: 0 28px 80px rgba(31, 23, 19, .3);
+  box-shadow: 0 28px 80px rgba(36, 28, 23, .25);
 }
 
 .notes-dialog-header {
@@ -51,10 +52,6 @@
 .notes-dialog-context > span { flex: 0 0 auto; color: #a15c53; font-size: 7px; font-weight: 700; letter-spacing: 1.4px; white-space: nowrap; }
 .notes-dialog-context strong { min-width: 0; overflow: hidden; color: #403a35; font-size: 16px; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
 .notes-dialog-context small { flex: 0 0 auto; color: #a09890; font-size: 8px; white-space: nowrap; }
-.notes-dialog-close { display: grid; place-items: center; width: 31px; height: 31px; flex: 0 0 31px; border: 0; border-radius: 50%; background: #f4f1ed; color: #756e67; }
-.notes-dialog-close:hover { background: #f5e6e2; color: #8f3028; }
-.notes-dialog-close svg { width: 16px; }
-
 .notes-dialog-body { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 0; flex: 1; overflow: hidden; }
 .notes-sidebar { display: flex; min-width: 0; min-height: 0; flex-direction: column; overflow: hidden; overscroll-behavior: contain; padding: 12px 12px 0; border-right: 1px solid #eee7e0; background: rgba(252, 249, 246, .78); }
 
@@ -142,8 +139,6 @@
 .notes-detail-placeholder p { max-width: 340px; margin: 0; color: #a09890; font-size: 9px; line-height: 1.7; }
 
 @media screen and (max-width: 760px) {
-  .notes-modal-backdrop { padding: 9px; }
-  .notes-dialog { width: calc(100vw - 18px); height: calc(100vh - 18px); border-radius: 18px; }
   .notes-dialog-header { height: 57px; min-height: 57px; padding: 8px 14px; }
   .notes-dialog-title { gap: 8px; }
   .notes-dialog-icon { width: 32px; height: 32px; flex-basis: 32px; border-radius: 8px; }
@@ -171,6 +166,11 @@
   .notes-nav-groups { grid-template-columns: 1fr; }
   .notes-dialog-body { grid-template-rows: minmax(0, 245px) minmax(0, 1fr); }
   .notes-stream-card-title { flex-wrap: wrap; }
+}
+
+@media screen and (max-width: 580px) {
+  .notes-modal-backdrop { padding: 10px; }
+  .notes-dialog { width: 100%; height: 94dvh; max-height: calc(100dvh - 20px); border-radius: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

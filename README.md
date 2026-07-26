@@ -8,9 +8,9 @@
 
 当前默认内置 **22 个题库、7139 道题**。英语真题按“年份 → 题型”组织，数学和专业课图片题按“章节 → 小节 → 题号”组织；题库内容与个人学习记录分开存储，更新题库不会覆盖熟练度和复习历史。
 
-> 当前正式版：**v0.3.7** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
+> 当前正式版：**v0.3.8** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
 
-[**下载 v0.3.7 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.3.7/NPEE-Study-Space-v0.3.7-Software.zip) · [下载 v0.3.7 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.3.7/NPEE-Study-Space-v0.3.7-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.7) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
+[**下载 v0.3.8 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.3.8/NPEE-Study-Space-v0.3.8-Software.zip) · [下载 v0.3.8 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.3.8/NPEE-Study-Space-v0.3.8-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.8) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
 
 软件包与题库数据分开发布：软件包包含应用源码、启动脚本和运行所需配置，不包含默认题库图片；题库数据包包含 `默认题库/` 目录和题库清单。首次使用时，将两个压缩包解压到同一个目录，再运行对应系统的一键启动脚本；后续更新软件或题库时可以单独替换对应包。无需安装 Git 或克隆仓库。
 
@@ -18,7 +18,7 @@
 
 - [界面预览](#界面预览)：查看学习、看板和复习界面
 - [下载与启动](#下载与启动)：下载软件包和题库数据并一键启动
-- [v0.3.7 新内容](#v037-导出错题记录与手写交互更新)：查看本次正式版重点更新
+- [v0.3.8 新内容](#v038-计时器草稿本与界面整理)：查看本次正式版重点更新
 - [典型学习流程](#典型学习流程)：从选题库到多轮复习
 - [核心功能](#核心功能)：完整能力总览
 - [默认题库](#默认题库)：内置题库及题目数量
@@ -33,6 +33,13 @@
 - **错题复盘：** 将模糊、错误题集中到复盘入口，掌握后自动退出当前错题列表。
 - **长期进度跟踪：** 用日历查看每天做题量、正确率和待复盘数量，用多轮数据区分一刷、二刷。
 - **离线与隐私优先：** 不需要账号或云数据库，适合保存个人购买资料和学习记录。
+
+## v0.3.8 计时器、草稿本与界面整理
+
+- **计时器更完整：** 工具箱提供秒表和倒计时两种模式，支持暂停、继续、重置、结束和历史记录；倒计时状态会保存在浏览器本地。
+- **草稿本更顺手：** 缩放百分比可直接选择常用值或输入自定义比例，画布移动、笔迹粗细和选中状态在缩放后保持稳定。
+- **界面更聚焦：** 工具箱、设置、笔记和题目导航减少重复说明，弹窗关闭按钮、滚动边界和窄屏布局更一致。
+- **题库维护更干净：** 更新数学题图与题库清单，移除仅用于一次性采集的脚本和原始数据文件。
 
 ## v0.3.7 导出、错题记录与手写交互更新
 
@@ -98,7 +105,9 @@
 
 年份、题型、题目、备选项、原文、答案解析和全卷导航集中在一个学习界面；长文阅读、新题型与写作都保留适合真题的排版。
 
-![题目学习界面](./docs/screenshots/question-study.png)
+![v0.3.8 主学习界面](./docs/screenshots/question-study.png)
+
+> 截图已按 v0.3.8 当前界面重新抓取；其余专题截图仍按功能分区展示，便于快速了解完整学习流程。
 
 图中主要区域：
 
@@ -173,6 +182,15 @@
 - **完整备份：** 一次导出题库结构、全部轮次、熟练度、每日活动、复习时间线、设置与题目笔记。
 - **安全管理：** 清理标记、重置题库、删除自建题库和恢复出厂均提供明确的作用范围与确认步骤。
 
+### 工具箱、计时器与草稿本
+
+工具箱集中提供计时器、倒计时、我的笔记和全屏入口；右下角草稿本适合在做题过程中临时演算，不会混入题目笔记。
+
+- **秒表计时器：** 记录专注时长，可暂停、继续和结束；已结束的学习片段会进入历史记录。
+- **专注倒计时：** 默认 5 分钟，可随时暂停、重置或重新开始；关闭弹窗不会中断正在运行的倒计时。
+- **草稿本缩放：** 点击百分比可选择 35%–320% 的常用比例，或输入自定义值；缩放以画布中心为基准。
+- **手写协作：** 草稿本和题目笔记支持笔迹复制粘贴、套索选中和批量改色，触控笔可直接拖动页面滚动。
+
 ### 按范围导出与打印
 
 导出窗口适合制作纸质错题集、阶段练习和章节复盘材料，筛选结果与预计页数会在导出前即时计算。
@@ -211,7 +229,7 @@ flowchart LR
 
 ### 一键启动
 
-1. 在同一个 [v0.3.7 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.7) 中分别下载 `NPEE-Study-Space-v0.3.7-Software.zip` 和 `NPEE-Study-Space-v0.3.7-Question-Bank.zip`。
+1. 在同一个 [v0.3.8 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.8) 中分别下载 `NPEE-Study-Space-v0.3.8-Software.zip` 和 `NPEE-Study-Space-v0.3.8-Question-Bank.zip`。
 2. 将两个压缩包解压到同一个可长期保存的目录，使 `默认题库/` 与 `一键启动.command` 或 `一键启动.bat` 位于同一级；不要直接在压缩包预览中运行。
 3. 按系统启动：
    - macOS：双击 `一键启动.command`，自动配置 Homebrew、Node.js、pnpm 和项目依赖。

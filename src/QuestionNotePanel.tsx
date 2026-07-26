@@ -224,6 +224,13 @@ interface TransformState {
   handle?: SelectionHandle
 }
 
+interface SpacePointerBounds {
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
 function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrokeIds, onCommit, onSelectionChange, onDeleteSelection }: HandwritingCanvasProps) {
   const [currentStroke, setCurrentStroke] = useState<HandwritingStroke | null>(null)
   const [erasingStrokes, setErasingStrokes] = useState<HandwritingStroke[] | null>(null)
@@ -238,6 +245,7 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
   const transformStateRef = useRef<TransformState | null>(null)
   const lassoPointsRef = useRef<HandwritingPoint[]>([])
   const spaceStartRef = useRef<HandwritingPoint | null>(null)
+  const spacePointerBoundsRef = useRef<SpacePointerBounds | null>(null)
   const spacePreviewRef = useRef<{ y: number; amount: number } | null>(null)
   const spacePointerHeightRef = useRef(canvasHeightForDrawing(drawing))
   const canvasHeightRef = useRef(canvasHeightForDrawing(drawing))
@@ -258,6 +266,7 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
     transformStateRef.current = null
     lassoPointsRef.current = []
     spaceStartRef.current = null
+    spacePointerBoundsRef.current = null
     spacePreviewRef.current = null
     const nextHeight = canvasHeightForDrawing(drawing)
     spacePointerHeightRef.current = nextHeight
@@ -280,7 +289,10 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
   }, [tool])
 
   const pointsFromEvent = (event: ReactPointerEvent<SVGElement>): HandwritingPoint[] => {
-    const bounds = svgRef.current?.getBoundingClientRect()
+    const liveBounds = svgRef.current?.getBoundingClientRect()
+    const bounds = spaceStartRef.current && spacePointerBoundsRef.current
+      ? spacePointerBoundsRef.current
+      : liveBounds
     if (!bounds || !bounds.width || !bounds.height) return []
     const coalescedEvents = event.nativeEvent.getCoalescedEvents?.()
     const nativeEvents = coalescedEvents?.length ? coalescedEvents : [event.nativeEvent]
@@ -379,6 +391,10 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
     if (eventTool === 'space') {
       activeInteractionRef.current = 'space'
       spacePointerHeightRef.current = canvasHeightRef.current
+      const bounds = svgRef.current?.getBoundingClientRect()
+      spacePointerBoundsRef.current = bounds
+        ? { left: bounds.left, top: bounds.top, width: bounds.width, height: bounds.height }
+        : null
       spaceStartRef.current = point
       spacePreviewRef.current = { y: point.y, amount: 0 }
       setSpacePreview(spacePreviewRef.current)
@@ -417,8 +433,10 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
       const startPoint = spaceStartRef.current
       if (!point || !startPoint) return
       const amount = clampSpaceAdjustment(drawing.strokes, startPoint.y, point.y - startPoint.y, canvasHeightRef.current)
-      spacePreviewRef.current = { y: startPoint.y, amount }
-      setSpacePreview(spacePreviewRef.current)
+      if (spacePreviewRef.current?.amount !== amount) {
+        spacePreviewRef.current = { y: startPoint.y, amount }
+        setSpacePreview(spacePreviewRef.current)
+      }
       return
     }
     if (interaction === 'move' || interaction === 'scale') {
@@ -512,6 +530,7 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
         onCommit({ ...drawing, aspectRatio: aspectRatioForCanvasHeight(nextHeight), strokes: nextStrokes })
       }
       spaceStartRef.current = null
+      spacePointerBoundsRef.current = null
       spacePreviewRef.current = null
       spacePointerHeightRef.current = canvasHeightRef.current
       setSpacePreview(null)
@@ -952,7 +971,7 @@ export default function QuestionNotePanel({ questionId, note, onChange }: Questi
       <div className="question-note-tabs" role="tablist" aria-label="笔记类型">
         <button role="tab" aria-selected={mode === 'handwriting'} className={mode === 'handwriting' ? 'active' : ''} onClick={() => setMode('handwriting')}>手写笔记</button>
         <button role="tab" aria-selected={mode === 'text'} className={mode === 'text' ? 'active' : ''} onClick={() => setMode('text')}>文字笔记</button>
-        <small>{value.updatedAt ? '已自动保存' : '输入或书写后自动保存'}</small>
+        <small>{value.updatedAt ? '已保存' : '自动保存'}</small>
       </div>
       {mode === 'text'
         ? <textarea aria-label="文字笔记" value={value.text} onChange={event => change({ text: event.target.value })} placeholder="记录思路、易错点、公式或复习提醒……"/>

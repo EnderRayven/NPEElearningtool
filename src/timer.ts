@@ -1,4 +1,5 @@
 export type TimerStatus = 'idle' | 'running' | 'paused' | 'ended'
+export type CountdownStatus = 'idle' | 'running' | 'paused' | 'ended'
 
 export type TimerPauseEvent = {
   at: number
@@ -31,11 +32,25 @@ export type TimerData = {
   history: TimerHistoryRecord[]
 }
 
+export type CountdownState = {
+  status: CountdownStatus
+  durationMs: number
+  remainingMs: number
+  runningAt: number | null
+}
+
 const TIMER_STORAGE_KEY = 'npee:timer:v1'
+const COUNTDOWN_STORAGE_KEY = 'npee:countdown:v1'
+export const defaultCountdownDurationMs = 5 * 60 * 1000
 export const emptyTimerState: TimerState = { status: 'idle', elapsedMs: 0, startedAt: null, runningAt: null, pauseEvents: [], resumeEvents: [] }
 export const emptyTimerData: TimerData = { current: emptyTimerState, history: [] }
+export const emptyCountdownState: CountdownState = { status: 'idle', durationMs: defaultCountdownDurationMs, remainingMs: defaultCountdownDurationMs, runningAt: null }
 
 function isTimerStatus(value: unknown): value is TimerStatus {
+  return value === 'idle' || value === 'running' || value === 'paused' || value === 'ended'
+}
+
+function isCountdownStatus(value: unknown): value is CountdownStatus {
   return value === 'idle' || value === 'running' || value === 'paused' || value === 'ended'
 }
 
@@ -105,6 +120,17 @@ export function validateTimerData(value: unknown): TimerData {
   return { current, history }
 }
 
+export function validateCountdownState(value: unknown): CountdownState {
+  if (!value || typeof value !== 'object') return { ...emptyCountdownState }
+  const candidate = value as Partial<CountdownState>
+  const durationMs = isValidDuration(candidate.durationMs) && candidate.durationMs >= 1_000 ? Math.floor(candidate.durationMs) : defaultCountdownDurationMs
+  const remainingMs = isValidDuration(candidate.remainingMs) ? Math.min(durationMs, Math.floor(candidate.remainingMs)) : durationMs
+  const requestedStatus = isCountdownStatus(candidate.status) ? candidate.status : 'idle'
+  const runningAt = isValidTimestamp(candidate.runningAt) ? candidate.runningAt : null
+  const status = requestedStatus === 'running' && runningAt === null ? 'paused' : requestedStatus
+  return { status, durationMs, remainingMs, runningAt: status === 'running' ? runningAt : null }
+}
+
 export function loadTimerData(): TimerData {
   try {
     return validateTimerData(JSON.parse(localStorage.getItem(TIMER_STORAGE_KEY) || 'null'))
@@ -116,6 +142,23 @@ export function loadTimerData(): TimerData {
 export function saveTimerData(data: TimerData): boolean {
   try {
     localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(validateTimerData(data)))
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function loadCountdownState(): CountdownState {
+  try {
+    return validateCountdownState(JSON.parse(localStorage.getItem(COUNTDOWN_STORAGE_KEY) || 'null'))
+  } catch {
+    return { ...emptyCountdownState }
+  }
+}
+
+export function saveCountdownState(state: CountdownState): boolean {
+  try {
+    localStorage.setItem(COUNTDOWN_STORAGE_KEY, JSON.stringify(validateCountdownState(state)))
     return true
   } catch {
     return false
@@ -134,6 +177,30 @@ export function saveTimerState(state: TimerState): boolean {
 export function getTimerElapsedMs(state: TimerState, now = Date.now()): number {
   if (state.status !== 'running' || state.runningAt === null) return state.elapsedMs
   return state.elapsedMs + Math.max(0, now - state.runningAt)
+}
+
+export function getCountdownRemainingMs(state: CountdownState, now = Date.now()): number {
+  if (state.status !== 'running' || state.runningAt === null) return state.remainingMs
+  return Math.max(0, state.remainingMs - Math.max(0, now - state.runningAt))
+}
+
+export function startCountdown(state: CountdownState, now = Date.now()): CountdownState {
+  const shouldReset = state.status === 'idle' || state.status === 'ended'
+  return { status: 'running', durationMs: state.durationMs, remainingMs: shouldReset ? state.durationMs : state.remainingMs, runningAt: now }
+}
+
+export function pauseCountdown(state: CountdownState, now = Date.now()): CountdownState {
+  if (state.status !== 'running') return state
+  return { ...state, status: 'paused', remainingMs: getCountdownRemainingMs(state, now), runningAt: null }
+}
+
+export function resetCountdown(state: CountdownState): CountdownState {
+  return { ...state, status: 'idle', remainingMs: state.durationMs, runningAt: null }
+}
+
+export function completeCountdown(state: CountdownState, now = Date.now()): CountdownState {
+  if (state.status !== 'running') return state
+  return { ...state, status: 'ended', remainingMs: getCountdownRemainingMs(state, now), runningAt: null }
 }
 
 export function startTimer(state: TimerState, now = Date.now()): TimerState {

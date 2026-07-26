@@ -73,6 +73,16 @@ describe('QuestionNotePanel', () => {
     expect(result[1].points[0].y).toBe(1.05)
   })
 
+  it('allows inserting space when the canvas still has room below the strokes', () => {
+    const strokes = [
+      { id: 'above', color: '#000000', size: 2, input: 'pen' as const, points: [{ x: .2, y: .2 }] },
+      { id: 'below', color: '#000000', size: 2, input: 'pen' as const, points: [{ x: .2, y: .8 }] },
+    ]
+    const amount = clampSpaceAdjustment(strokes, .5, .4, 1200)
+    expect(amount).toBe(.4)
+    expect(insertSpaceIntoStrokes(strokes, .5, amount)[1].points[0].y).toBeCloseTo(1.2)
+  })
+
   it('removes space by moving strokes below the line upward without clipping them', () => {
     const strokes = [
       { id: 'above', color: '#000000', size: 2, input: 'pen' as const, points: [{ x: .2, y: .2 }] },

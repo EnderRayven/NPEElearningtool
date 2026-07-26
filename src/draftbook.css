@@ -69,6 +69,7 @@
 }
 
 .draftbook-toolbar {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -209,11 +210,123 @@
 }
 
 .draftbook-zoom-value {
-  min-width: 31px;
+  flex: 0 0 39px;
+  min-width: 39px;
+  height: 25px;
+  padding: 0 3px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
   color: #9d8d83;
   font-size: 8px;
   text-align: center;
   user-select: none;
+}
+
+.draftbook-tool-actions button.draftbook-zoom-trigger:hover,
+.draftbook-tool-actions button.draftbook-zoom-trigger:focus-visible,
+.draftbook-tool-actions button.draftbook-zoom-trigger[aria-expanded='true'] {
+  background: #f5e6e2;
+  color: #8f3028;
+}
+
+.draftbook-zoom-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 5px;
+  z-index: 2;
+  width: 202px;
+  padding: 11px;
+  border: 1px solid #e2d3ca;
+  border-radius: 9px;
+  background: #fffdfa;
+  box-shadow: 0 10px 24px rgba(46, 32, 25, .18);
+  color: #796c63;
+  cursor: default;
+  user-select: none;
+}
+
+.draftbook-zoom-popover strong,
+.draftbook-custom-zoom > span {
+  display: block;
+  color: #6c5c53;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.draftbook-zoom-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin: 8px 0 11px;
+}
+
+.draftbook-zoom-presets button,
+.draftbook-custom-zoom button {
+  height: 25px;
+  padding: 0 5px;
+  border: 1px solid #e3d8d1;
+  border-radius: 6px;
+  background: #fff;
+  color: #806f66;
+  font-size: 9px;
+}
+
+.draftbook-zoom-presets button:hover,
+.draftbook-zoom-presets button:focus-visible,
+.draftbook-zoom-presets button.active {
+  border-color: #c98f86;
+  background: #f8eae7;
+  color: #8f3028;
+}
+
+.draftbook-custom-zoom > div {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.draftbook-custom-zoom input {
+  width: 64px;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid #e3d8d1;
+  border-radius: 6px;
+  outline: 0;
+  color: #50463f;
+  font-size: 10px;
+  text-align: right;
+}
+
+.draftbook-custom-zoom input:focus {
+  border-color: #c98f86;
+  box-shadow: 0 0 0 2px rgba(159, 46, 37, .1);
+}
+
+.draftbook-custom-zoom > div > span {
+  color: #97877e;
+  font-size: 10px;
+}
+
+.draftbook-custom-zoom button {
+  margin-left: auto;
+  border-color: #9f2e25;
+  background: #9f2e25;
+  color: #fff;
+}
+
+.draftbook-custom-zoom button:hover,
+.draftbook-custom-zoom button:focus-visible {
+  background: #84261f;
+}
+
+.draftbook-zoom-popover small {
+  display: block;
+  margin-top: 9px;
+  color: #a6968d;
+  font-size: 8px;
+  line-height: 1.4;
 }
 
 .draftbook-canvas-wrap {

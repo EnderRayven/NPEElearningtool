@@ -37,7 +37,7 @@ export default function SettingsDialog(props: Props) {
 
       <section className="settings-section settings-create-bank">
         <div className="settings-section-title"><BookOpen/><div><h3>题库管理</h3><p>从这里新建、导出、重置或删除题库</p></div></div>
-        <button className="settings-create-bank-action" onClick={props.onOpenNewBank}><span><Plus/></span><div><strong>新建题库</strong><small>选择学科和数学板块，自动建立清晰的目录结构</small></div><span className="settings-create-bank-arrow">›</span></button>
+        <button className="settings-create-bank-action" onClick={props.onOpenNewBank}><span><Plus/></span><div><strong>新建题库</strong></div><span className="settings-create-bank-arrow">›</span></button>
       </section>
 
       <section className="settings-section">

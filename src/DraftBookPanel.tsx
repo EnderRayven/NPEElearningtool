@@ -64,6 +64,9 @@ const MIN_ZOOM = .35
 const MAX_ZOOM = 3.2
 const GRID_SIZE = 28
 const ERASER_RADIUS = 12
+const INK_STROKE_WIDTH = 2.4
+const INK_DOT_RADIUS = 1.25
+const COMMON_ZOOM_PERCENTAGES = [35, 50, 75, 100, 125, 150, 200, 250, 320]
 const COMMON_INK_COLORS = [
   { value: '#2f2b28', label: '黑色' },
   { value: '#8f3028', label: '砖红' },
@@ -264,7 +267,9 @@ function drawStrokes(canvas: HTMLCanvasElement, strokes: DraftStroke[], view: Dr
   context.clearRect(0, 0, canvas.width, canvas.height)
   context.setTransform(dpr * view.zoom, 0, 0, dpr * view.zoom, -view.x * dpr * view.zoom, -view.y * dpr * view.zoom)
   drawGrid(context, view, width, height)
-  context.lineWidth = 2.4 / view.zoom
+  // Ink is stored in canvas/world coordinates. Let the view transform scale it
+  // together with the handwriting instead of keeping a fixed screen width.
+  context.lineWidth = INK_STROKE_WIDTH
   context.lineCap = 'round'
   context.lineJoin = 'round'
   strokes.forEach((stroke, index) => {
@@ -275,17 +280,17 @@ function drawStrokes(canvas: HTMLCanvasElement, strokes: DraftStroke[], view: Dr
     if (selected.has(index)) {
       context.strokeStyle = 'rgba(191, 129, 121, .55)'
       context.fillStyle = 'rgba(191, 129, 121, .55)'
-      context.lineWidth = 7 / view.zoom
-      traceDraftStroke(context, stroke.points, 2.8 / view.zoom)
+      context.lineWidth = 7
+      traceDraftStroke(context, stroke.points, 2.8)
       if (stroke.points.length === 1) {
         context.fill()
       }
       else context.stroke()
-      context.lineWidth = 2.4 / view.zoom
+      context.lineWidth = INK_STROKE_WIDTH
       context.strokeStyle = stroke.color
     }
     if (stroke.points.length === 1) {
-      traceDraftStroke(context, stroke.points, 1.25 / view.zoom)
+      traceDraftStroke(context, stroke.points, INK_DOT_RADIUS)
       context.fill()
       return
     }
@@ -326,7 +331,7 @@ function drawStrokeDot(canvas: HTMLCanvasElement, point: DraftBookPoint, view: D
   const { context } = metrics
   context.fillStyle = color
   context.beginPath()
-  context.arc(point.x, point.y, 1.25 / view.zoom, 0, Math.PI * 2)
+  context.arc(point.x, point.y, INK_DOT_RADIUS, 0, Math.PI * 2)
   context.fill()
 }
 
@@ -383,6 +388,8 @@ export default function DraftBook() {
   const [open, setOpen] = useState(false)
   const [tool, setTool] = useState<CanvasTool>('pen')
   const [colorPickerOpen, setColorPickerOpen] = useState(false)
+  const [zoomMenuOpen, setZoomMenuOpen] = useState(false)
+  const [customZoomPercent, setCustomZoomPercent] = useState('100')
   const [interaction, setInteraction] = useState<Interaction | null>(null)
   const [previewStrokes, setPreviewStrokes] = useState<DraftStroke[] | null>(null)
   const [transformPreviewStrokes, setTransformPreviewStrokes] = useState<DraftStroke[] | null>(null)
@@ -395,6 +402,7 @@ export default function DraftBook() {
   const draftFabRef = useRef<HTMLButtonElement>(null)
   const draftWindowRef = useRef<HTMLElement>(null)
   const colorPickerRef = useRef<HTMLDivElement>(null)
+  const zoomMenuRef = useRef<HTMLDivElement>(null)
   const currentStrokeRef = useRef<CurrentStroke | null>(null)
   const currentStrokePreviewFrameRef = useRef<number | null>(null)
   const currentPanRef = useRef<CurrentPan | null>(null)
@@ -434,6 +442,17 @@ export default function DraftBook() {
     document.addEventListener('pointerdown', closeOnOutsidePointer)
     return () => document.removeEventListener('pointerdown', closeOnOutsidePointer)
   }, [colorPickerOpen])
+
+  useEffect(() => {
+    if (!zoomMenuOpen) return
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      const target = event.target
+      if (target instanceof Node && zoomMenuRef.current?.contains(target)) return
+      setZoomMenuOpen(false)
+    }
+    document.addEventListener('pointerdown', closeOnOutsidePointer)
+    return () => document.removeEventListener('pointerdown', closeOnOutsidePointer)
+  }, [zoomMenuOpen])
 
   useEffect(() => {
     if (!open) return
@@ -830,6 +849,30 @@ export default function DraftBook() {
     setDraft(previous => ({ ...previous, canvasView: zoomAt(previous.canvasView, factor, rect.width / 2, rect.height / 2) }))
   }
 
+  function setCanvasZoomPercent(percent: number) {
+    const canvas = canvasRef.current
+    if (!canvas || !Number.isFinite(percent)) return
+    const rect = canvas.getBoundingClientRect()
+    const nextZoom = clamp(percent / 100, MIN_ZOOM, MAX_ZOOM)
+    setDraft(previous => ({
+      ...previous,
+      canvasView: zoomAt(previous.canvasView, nextZoom / previous.canvasView.zoom, rect.width / 2, rect.height / 2),
+    }))
+    setCustomZoomPercent(String(Math.round(nextZoom * 100)))
+    setZoomMenuOpen(false)
+  }
+
+  function toggleZoomMenu() {
+    setCustomZoomPercent(String(zoomPercent))
+    setZoomMenuOpen(previous => !previous)
+  }
+
+  function applyCustomZoom() {
+    const percent = Number(customZoomPercent)
+    if (!Number.isFinite(percent)) return
+    setCanvasZoomPercent(percent)
+  }
+
   function handleCanvasWheel(event: ReactWheelEvent<HTMLCanvasElement>) {
     event.preventDefault()
     event.stopPropagation()
@@ -894,13 +937,13 @@ export default function DraftBook() {
       onPointerDown={event => event.stopPropagation()}
       onKeyDown={handleShortcutKeyDown}
     >
-      <div className="draftbook-toolbar" onPointerDown={event => beginInteraction(event, 'window')}>
+      <div ref={zoomMenuRef} className="draftbook-toolbar" onPointerDown={event => beginInteraction(event, 'window')}>
         <span className="draftbook-drag-grip" aria-label="拖动移动草稿本"><GripVertical aria-hidden="true"/></span>
         <div className="draftbook-tool-actions">
           <button className={tool === 'eraser' ? 'active' : ''} type="button" aria-label="橡皮擦" aria-keyshortcuts="1" title="橡皮擦（快捷键 1）" onPointerDown={event => event.stopPropagation()} onClick={() => selectTool('eraser')}><Eraser/></button>
           <button className={tool === 'pen' ? 'active' : ''} type="button" aria-label="画笔" aria-keyshortcuts="2" title="画笔（快捷键 2）" onPointerDown={event => event.stopPropagation()} onClick={() => selectTool('pen')}><Pencil/></button>
           <button className={tool === 'lasso' ? 'active' : ''} type="button" aria-label="套索选择" aria-keyshortcuts="3" title="套索选择（快捷键 3）" onPointerDown={event => event.stopPropagation()} onClick={() => selectTool('lasso')}><Lasso/></button>
-          <button className={tool === 'pan' ? 'active' : ''} type="button" aria-label={tool === 'pan' ? '切换为画笔' : '移动画布'} title={tool === 'pan' ? '切换为画笔' : '移动画布'} onPointerDown={event => event.stopPropagation()} onClick={() => selectTool(tool === 'pan' ? 'pen' : 'pan')}>{tool === 'pan' ? <Pencil/> : <Hand/>}</button>
+          <button className={tool === 'pan' ? 'active' : ''} type="button" aria-pressed={tool === 'pan'} aria-label={tool === 'pan' ? '移动画布（已选中）' : '移动画布'} title="移动画布" onPointerDown={event => event.stopPropagation()} onClick={() => selectTool('pan')}><Hand/></button>
           <div ref={colorPickerRef} className="draftbook-color-picker" role="group" aria-label="笔迹颜色" onPointerDown={event => event.stopPropagation()}>
             <button
               className="draftbook-color-current"
@@ -926,7 +969,7 @@ export default function DraftBook() {
             </div>}
           </div>
           <button type="button" aria-label="缩小画布" title="缩小画布" onPointerDown={event => event.stopPropagation()} onClick={() => zoomCanvas(.82)}><ZoomOut/></button>
-          <span className="draftbook-zoom-value" aria-label={`当前缩放 ${zoomPercent}%`}>{zoomPercent}%</span>
+          <button className="draftbook-zoom-value draftbook-zoom-trigger" type="button" aria-label={`当前缩放 ${zoomPercent}%`} aria-haspopup="menu" aria-expanded={zoomMenuOpen} title="选择缩放比例" onPointerDown={event => event.stopPropagation()} onClick={toggleZoomMenu}>{zoomPercent}%</button>
           <button type="button" aria-label="放大画布" title="放大画布" onPointerDown={event => event.stopPropagation()} onClick={() => zoomCanvas(1.22)}><ZoomIn/></button>
           <button type="button" aria-label="重置画布视图" title="重置画布视图" onPointerDown={event => event.stopPropagation()} onClick={resetCanvasView}><RotateCcw/></button>
           <button type="button" aria-label="撤销" aria-keyshortcuts="Control+Z Meta+Z" title="撤销（Ctrl/⌘+Z）" disabled={!undoStackRef.current.length} onPointerDown={event => event.stopPropagation()} onClick={undo}><Undo2/></button>
@@ -935,6 +978,21 @@ export default function DraftBook() {
           <button type="button" aria-label="清空手写内容" title="清空手写内容" onPointerDown={event => event.stopPropagation()} onClick={clearDraft}><Trash2/></button>
           <button type="button" aria-label="关闭草稿本" title="关闭" onPointerDown={event => event.stopPropagation()} onClick={() => setOpen(false)}><X/></button>
         </div>
+        {zoomMenuOpen && <div className="draftbook-zoom-popover" role="menu" aria-label="缩放比例" onPointerDown={event => event.stopPropagation()}>
+          <strong>常用缩放</strong>
+          <div className="draftbook-zoom-presets">
+            {COMMON_ZOOM_PERCENTAGES.map(percent => <button key={percent} type="button" role="menuitem" className={percent === zoomPercent ? 'active' : ''} onClick={() => setCanvasZoomPercent(percent)}>{percent}%</button>)}
+          </div>
+          <label className="draftbook-custom-zoom">
+            <span>自定义比例</span>
+            <div>
+              <input type="number" min={MIN_ZOOM * 100} max={MAX_ZOOM * 100} step="1" value={customZoomPercent} aria-label="自定义缩放百分比" onChange={event => setCustomZoomPercent(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') applyCustomZoom(); if (event.key === 'Escape') setZoomMenuOpen(false) }}/>
+              <span>%</span>
+              <button type="button" onClick={applyCustomZoom}>应用</button>
+            </div>
+          </label>
+          <small>范围 {MIN_ZOOM * 100}%–{MAX_ZOOM * 100}% · 以画布中心缩放</small>
+        </div>}
       </div>
       <div className="draftbook-canvas-wrap">
         <canvas

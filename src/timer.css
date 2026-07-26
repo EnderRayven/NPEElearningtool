@@ -47,19 +47,12 @@
   border-bottom: 1px solid #eee8e1;
 }
 
-.toolbox-heading strong,
-.toolbox-heading small {
+.toolbox-heading strong {
   display: block;
 }
 
 .toolbox-heading strong {
   font-size: 14px;
-}
-
-.toolbox-heading small {
-  margin-top: 4px;
-  color: #999087;
-  font-size: 9px;
 }
 
 .toolbox-heading > button {
@@ -143,23 +136,23 @@
   z-index: 110;
   display: grid;
   place-items: center;
-  padding: 18px;
-  background: rgba(34, 29, 26, .52);
-  backdrop-filter: blur(7px);
+  padding: 28px;
+  background: rgba(42, 34, 29, .46);
+  backdrop-filter: blur(3px);
 }
 
 .timer-dialog {
   position: relative;
-  width: min(1040px, calc(100vw - 36px));
-  height: min(780px, calc(100vh - 36px));
+  width: min(1504px, 100%);
+  height: min(88dvh, 900px);
   min-height: 0;
-  max-height: calc(100vh - 36px);
+  max-height: calc(100dvh - 56px);
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .7);
-  border-radius: 26px;
+  border: 1px solid #e2d8cf;
+  border-radius: 19px;
   background: radial-gradient(circle at 50% 37%, #fffdfb 0, #fff 45%, #faf6f1 100%);
-  box-shadow: 0 28px 80px rgba(31, 23, 19, .3);
+  box-shadow: 0 28px 80px rgba(36, 28, 23, .25);
 }
 
 .timer-dialog-scroll {
@@ -211,36 +204,56 @@
   pointer-events: none;
 }
 
-.timer-dialog-close {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 50%;
-  background: #f4f1ed;
-  color: #756e67;
-}
-
-.timer-dialog-close:hover {
-  background: #f5e6e2;
-  color: #8f3028;
-}
-
-.timer-dialog-close svg {
-  width: 17px;
-}
-
-.timer-dialog-heading {
+.timer-dialog-toolbar {
   position: relative;
   z-index: 1;
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.timer-dialog-heading {
+  display: flex;
   align-items: center;
   gap: 13px;
+}
+
+.timer-mode-switch,
+.timer-face-switch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 3px;
+  border: 1px solid #e5ddd5;
+  border-radius: 10px;
+  background: rgba(250, 247, 243, .92);
+}
+
+.timer-mode-switch button,
+.timer-face-switch button {
+  min-width: 78px;
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #958b83;
+  font-size: 10px;
+  transition: background .16s ease, color .16s ease, box-shadow .16s ease;
+}
+
+.timer-mode-switch button:hover,
+.timer-face-switch button:hover { color: #8f3028; }
+.timer-mode-switch button.active,
+.timer-face-switch button.active { background: #fff; color: #8f3028; box-shadow: 0 3px 9px rgba(95, 56, 42, .1); font-weight: 700; }
+.timer-mode-switch button:disabled,
+.timer-face-switch button:disabled { cursor: not-allowed; opacity: .45; }
+
+.timer-face-switch {
+  position: relative;
+  z-index: 1;
+  justify-content: flex-end;
+  margin-top: 14px;
 }
 
 .timer-dialog-icon {
@@ -305,6 +318,529 @@
 .timer-clock.is-running {
   animation: timer-breathe 2.5s ease-in-out infinite;
 }
+
+.flip-timer-clock {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  width: min(100%, 1160px);
+  margin: 48px auto 43px;
+}
+
+.flip-timer-clock.is-running .flip-timer-digit {
+  box-shadow: 0 16px 34px rgba(77, 57, 48, .18), 0 0 0 1px rgba(159, 46, 37, .1);
+}
+
+.flip-timer-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.flip-timer-digit {
+  position: relative;
+  display: block;
+  min-width: 0;
+  width: 100%;
+  aspect-ratio: .67;
+  isolation: isolate;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #887a71 0%, #71635b 49.4%, #5c514b 50.6%, #796b62 100%);
+  box-shadow: 0 12px 28px rgba(77, 57, 48, .14), inset 0 1px 0 rgba(255, 255, 255, .16);
+  color: #fffdfb;
+  perspective: 720px;
+}
+
+.flip-timer-half {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  height: 50%;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  backface-visibility: hidden;
+  background: linear-gradient(180deg, #887a71 0%, #71635b 49.4%, #5c514b 50.6%, #796b62 100%);
+  background-size: 100% 200%;
+}
+
+.flip-timer-half-top {
+  top: 0;
+  border-radius: 14px 14px 0 0;
+  background-position: center top;
+}
+
+.flip-timer-half-bottom {
+  bottom: 0;
+  border-radius: 0 0 14px 14px;
+  background-position: center bottom;
+}
+
+.flip-timer-half > span {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 200%;
+  color: #fff;
+  font: 500 clamp(58px, 8vw, 132px)/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: -.09em;
+  text-align: center;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .25);
+  transform: translateX(-.04em);
+}
+
+.flip-timer-half-top > span { top: 0; }
+.flip-timer-half-bottom > span { top: -100%; }
+
+.flip-timer-top-flap {
+  z-index: 4;
+  transform-origin: 50% 100%;
+}
+
+.flip-timer-bottom-flap {
+  z-index: 3;
+  transform: rotateX(90deg);
+  transform-origin: 50% 0;
+}
+
+.flip-timer-digit.is-changing .flip-timer-top-flap {
+  animation: flip-timer-top .22s cubic-bezier(.37, 0, .63, 1) forwards;
+}
+
+.flip-timer-digit.is-changing .flip-timer-bottom-flap {
+  animation: flip-timer-bottom .22s .22s cubic-bezier(.37, 0, .63, 1) forwards;
+}
+
+.flip-timer-digit::before,
+.flip-timer-digit::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  content: '';
+  pointer-events: none;
+}
+
+.flip-timer-digit::before {
+  top: 50%;
+  height: 1px;
+  background: rgba(255, 255, 255, .32);
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, .22), 0 1px 0 rgba(255, 255, 255, .06);
+}
+
+.flip-timer-digit::after {
+  top: 0;
+  z-index: 5;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .08), transparent 35%);
+}
+
+.flip-timer-separator {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: #8f5e56;
+  font: 700 clamp(36px, 5vw, 78px)/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  transform: translateY(-1px);
+}
+
+.countdown-settings {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 880px);
+  margin: 0 auto 30px;
+  padding: 16px 18px 15px;
+  border-radius: 18px;
+  background-color: transparent;
+}
+
+.countdown-transition-view {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  pointer-events: none;
+  visibility: visible;
+}
+
+.countdown-transition-stage {
+  display: grid;
+  align-items: start;
+}
+
+.countdown-transition-stage.is-picker .countdown-transition-view.is-picker,
+.countdown-transition-stage.is-flip .countdown-transition-view.is-flip {
+  pointer-events: auto;
+}
+
+.countdown-transition-view.is-flip {
+  pointer-events: none;
+}
+
+.countdown-settings-heading,
+.countdown-preset-heading,
+.countdown-presets {
+  transition: opacity 220ms ease, transform 360ms cubic-bezier(.16, 1, .3, 1);
+}
+
+.countdown-transition-stage.is-flip .countdown-settings-heading,
+.countdown-transition-stage.is-flip .countdown-preset-heading,
+.countdown-transition-stage.is-flip .countdown-presets {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
+.countdown-transition-stage .countdown-picker-column,
+.countdown-transition-stage .countdown-picker > b,
+.countdown-transition-stage .flip-timer-group,
+.countdown-transition-stage .flip-timer-separator {
+  will-change: opacity, transform;
+  transition: opacity 320ms ease-out, transform 460ms cubic-bezier(.16, 1, .3, 1);
+  transition-delay: 0ms;
+}
+
+.countdown-transition-stage .hours,
+.countdown-transition-stage .flip-timer-group.hours {
+  --countdown-morph-x: clamp(-340px, -24vw, -180px);
+}
+
+.countdown-transition-stage .minutes,
+.countdown-transition-stage .flip-timer-group.minutes {
+  --countdown-morph-x: 0px;
+}
+
+.countdown-transition-stage .seconds,
+.countdown-transition-stage .flip-timer-group.seconds {
+  --countdown-morph-x: clamp(180px, 24vw, 340px);
+}
+
+.countdown-transition-stage .countdown-picker > b {
+  transition: opacity 260ms ease-out, transform 360ms cubic-bezier(.16, 1, .3, 1);
+  transition-delay: 0ms;
+}
+
+.countdown-transition-stage.is-flip .countdown-picker-column {
+  opacity: 0;
+  transform: translate3d(var(--countdown-morph-x), -16px, 0) scale(.84);
+  animation: countdown-wheel-to-flip 720ms linear 0ms both;
+}
+
+.countdown-transition-stage.is-flip .countdown-picker > b {
+  opacity: 0;
+  transform: translateY(-14px);
+}
+
+.countdown-transition-stage.is-measuring .countdown-picker-column,
+.countdown-transition-stage.is-measuring .flip-timer-group,
+.countdown-transition-stage.is-measuring .flip-timer-separator {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+.countdown-transition-stage .flip-timer-group,
+.countdown-transition-stage .flip-timer-separator {
+  opacity: 0;
+  transform: translate3d(calc(var(--countdown-morph-x) * -1), 18px, 0) scale(.92);
+}
+
+.countdown-transition-stage.is-flip .flip-timer-group,
+.countdown-transition-stage.is-flip .flip-timer-separator {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.countdown-transition-stage.is-flip .flip-timer-group {
+  animation: countdown-flip-from-wheel 720ms linear 0ms both;
+}
+
+.countdown-transition-stage.is-flip .flip-timer-separator {
+  animation: countdown-flip-separator 720ms linear 0ms both;
+}
+
+@keyframes countdown-wheel-to-flip {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  32% {
+    opacity: 1;
+    transform: translate3d(calc(var(--countdown-morph-x) * .32), calc(var(--countdown-morph-y, 0px) * .32), 0) scale(calc(var(--countdown-wheel-handoff-scale, 2.4) * .67));
+  }
+  48% {
+    opacity: .95;
+    transform: translate3d(calc(var(--countdown-morph-x) * .52), calc(var(--countdown-morph-y, 0px) * .52), 0) scale(var(--countdown-wheel-handoff-scale, 2.4));
+  }
+  58% {
+    opacity: .36;
+    transform: translate3d(calc(var(--countdown-morph-x) * .7), calc(var(--countdown-morph-y, 0px) * .7), 0) scale(var(--countdown-wheel-handoff-scale, 2.4));
+  }
+  68% {
+    opacity: 0;
+    transform: translate3d(calc(var(--countdown-morph-x) * .82), calc(var(--countdown-morph-y, 0px) * .82), 0) scale(calc(var(--countdown-wheel-handoff-scale, 2.4) * .92));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--countdown-morph-x), var(--countdown-morph-y, 0px), 0) scale(calc(var(--countdown-wheel-handoff-scale, 2.4) * .84));
+  }
+}
+
+@keyframes countdown-flip-from-wheel {
+  0% {
+    opacity: 0;
+    transform: translate3d(calc(var(--countdown-morph-x) * -1), calc(var(--countdown-morph-y, 0px) * -1), 0) scale(calc(var(--countdown-flip-handoff-scale, .6) * .6));
+  }
+  32% {
+    opacity: .04;
+    transform: translate3d(calc(var(--countdown-morph-x) * -.68), calc(var(--countdown-morph-y, 0px) * -.68), 0) scale(calc(var(--countdown-flip-handoff-scale, .6) * .73));
+  }
+  48% {
+    opacity: .3;
+    transform: translate3d(calc(var(--countdown-morph-x) * -.48), calc(var(--countdown-morph-y, 0px) * -.48), 0) scale(var(--countdown-flip-handoff-scale, .6));
+  }
+  58% {
+    opacity: .72;
+    transform: translate3d(calc(var(--countdown-morph-x) * -.3), calc(var(--countdown-morph-y, 0px) * -.3), 0) scale(calc(var(--countdown-flip-handoff-scale, .6) * 1.2));
+  }
+  68% {
+    opacity: .94;
+    transform: translate3d(calc(var(--countdown-morph-x) * -.18), calc(var(--countdown-morph-y, 0px) * -.18), 0) scale(calc(var(--countdown-flip-handoff-scale, .6) * 1.4));
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes countdown-flip-separator {
+  from { opacity: 0; transform: translateY(8px) scale(.84); }
+  48% { opacity: .26; transform: translateY(3px) scale(.9); }
+  68% { opacity: .82; transform: translateY(1px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown-transition-view,
+  .countdown-settings,
+  .countdown-settings-heading,
+  .countdown-preset-heading,
+  .countdown-presets,
+  .countdown-picker-column,
+  .flip-timer-group,
+  .flip-timer-separator,
+  .countdown-picker-column strong,
+  .countdown-picker-column button {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .countdown-transition-stage .hours,
+  .countdown-transition-stage .flip-timer-group.hours {
+    --countdown-morph-x: clamp(-190px, -22vw, -100px);
+  }
+
+  .countdown-transition-stage .seconds,
+  .countdown-transition-stage .flip-timer-group.seconds {
+    --countdown-morph-x: clamp(100px, 22vw, 190px);
+  }
+}
+
+.countdown-settings-heading,
+.countdown-preset-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-end;
+}
+
+.countdown-settings-heading > div > span,
+.countdown-preset-heading > span {
+  display: block;
+  color: #a15c53;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.countdown-settings-heading strong {
+  display: block;
+  margin-top: 4px;
+  color: #514840;
+  font-size: 14px;
+}
+
+.countdown-settings-heading small,
+.countdown-preset-heading small {
+  color: #9b938a;
+  font-size: 8px;
+}
+
+.countdown-picker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin: 11px auto 15px;
+}
+
+.countdown-picker > b {
+  color: #8f5e56;
+  font: 600 24px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.countdown-picker-column {
+  position: relative;
+  display: grid;
+  grid-template-rows: 26px 34px 48px 34px 26px;
+  width: 88px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: transparent;
+  user-select: none;
+  touch-action: none;
+  overscroll-behavior: contain;
+  cursor: ns-resize;
+}
+
+.countdown-picker-column.disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.countdown-picker-column::before,
+.countdown-picker-column::after {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: 18px;
+  content: '';
+  pointer-events: none;
+}
+
+.countdown-picker-column::before { top: 0; height: 34px; background: linear-gradient(rgba(255, 255, 255, .92), rgba(255, 255, 255, 0)); }
+.countdown-picker-column::after { bottom: 0; height: 34px; background: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, .92)); }
+
+.countdown-picker-column button {
+  z-index: 2;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #d8d0ca;
+  font: 500 16px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.countdown-picker-column button:hover { color: #9f6a61; }
+
+.countdown-picker-column button:nth-child(2),
+.countdown-picker-column button:nth-child(4) {
+  color: #c9c2bc;
+  font-size: 22px;
+}
+
+.countdown-picker-column button:first-child,
+.countdown-picker-column button:nth-child(5) {
+  color: #eeeae7;
+  font-size: 15px;
+}
+
+.countdown-picker-column.is-step-up button {
+  animation: countdown-picker-row-up 240ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.countdown-picker-column.is-step-down button {
+  animation: countdown-picker-row-down 240ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+@keyframes countdown-picker-row-up {
+  from { opacity: .35; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes countdown-picker-row-down {
+  from { opacity: .35; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.countdown-picker-column button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.countdown-picker-column strong {
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #493e36;
+  font: 600 25px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.countdown-picker-column strong.is-step-up {
+  animation: countdown-picker-step-up 240ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.countdown-picker-column strong.is-step-down {
+  animation: countdown-picker-step-down 240ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+@keyframes countdown-picker-step-up {
+  from { opacity: .2; transform: translateY(22px); }
+  72% { opacity: 1; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes countdown-picker-step-down {
+  from { opacity: .2; transform: translateY(-22px); }
+  72% { opacity: 1; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.countdown-picker-column small {
+  position: absolute;
+  right: 7px;
+  bottom: 5px;
+  z-index: 3;
+  color: #a15c53;
+  font-size: 8px;
+}
+
+.countdown-preset-heading { margin-bottom: 7px; }
+.countdown-preset-heading > span { letter-spacing: 0; font-weight: 600; }
+
+.countdown-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.countdown-presets button {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid #e5dcd4;
+  border-radius: 8px;
+  background: #fff;
+  color: #756b63;
+  font-size: 9px;
+  transition: border-color .16s ease, background .16s ease, color .16s ease, transform .16s ease;
+}
+
+.countdown-presets button:hover:not(:disabled) { border-color: #c6a39c; background: #fff8f6; color: #8f3028; transform: translateY(-1px); }
+.countdown-presets button.active { border-color: #c9a49c; background: #f5e8e4; color: #8f3028; font-weight: 700; }
+.countdown-presets button:disabled { cursor: not-allowed; opacity: .52; }
 
 .timer-clock-inner {
   position: absolute;
@@ -765,6 +1301,21 @@
   50% { box-shadow: 0 14px 38px rgba(159, 46, 37, .19); }
 }
 
+@keyframes flip-timer-top {
+  from { transform: rotateX(0); }
+  to { transform: rotateX(-90deg); }
+}
+
+@keyframes flip-timer-bottom {
+  from { transform: rotateX(90deg); }
+  to { transform: rotateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-timer-digit.is-changing .flip-timer-top-flap { display: none; }
+  .flip-timer-digit.is-changing .flip-timer-bottom-flap { animation: none; transform: none; }
+}
+
 @media screen and (max-width: 1400px) {
   .toolbox-trigger svg:last-child { display: none; }
 }
@@ -779,21 +1330,66 @@
   }
 
   .timer-modal-backdrop {
-    padding: 12px;
+    padding: 10px;
   }
 
   .timer-dialog {
-    height: min(700px, calc(100vh - 24px));
-    border-radius: 21px;
+    width: 100%;
+    height: 94dvh;
+    max-height: calc(100dvh - 20px);
+    border-radius: 14px;
   }
 
   .timer-dialog-scroll {
-    margin-right: 56px;
+    margin-right: 0;
     padding: 31px 20px 24px;
   }
 
   .timer-dialog-description {
     padding-right: 18px;
+  }
+
+  .timer-dialog-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .timer-mode-switch,
+  .timer-face-switch {
+    width: 100%;
+  }
+
+  .timer-mode-switch button,
+  .timer-face-switch button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .countdown-settings {
+    padding: 13px 11px 12px;
+  }
+
+  .countdown-settings-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .countdown-picker {
+    gap: 5px;
+  }
+
+  .countdown-picker-column {
+    width: clamp(62px, 22vw, 82px);
+  }
+
+  .countdown-picker > b {
+    font-size: 18px;
+  }
+
+  .countdown-presets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .timer-clock {
@@ -809,6 +1405,27 @@
 
   .timer-clock-inner > strong {
     font-size: 34px;
+  }
+
+  .flip-timer-clock {
+    gap: 5px;
+    margin: 28px auto 30px;
+  }
+
+  .flip-timer-group {
+    gap: 5px;
+  }
+
+  .flip-timer-digit {
+    border-radius: 8px;
+  }
+
+  .flip-timer-half > span {
+    font-size: clamp(28px, 12vw, 58px);
+  }
+
+  .flip-timer-separator {
+    font-size: clamp(22px, 8vw, 38px);
   }
 
   .timer-controls {

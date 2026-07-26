@@ -275,7 +275,7 @@ export default function NotesDialog({ banks, notes, onClose, onOpenQuestion }: N
     setActiveSectionKey(bankGroup.sections[0]?.key || '')
   }
 
-  return <div className="notes-modal-backdrop" role="presentation" onClick={onClose}>
+  return <div className="notes-modal-backdrop" role="presentation" onClick={event => { if (event.target === event.currentTarget) onClose() }}>
     <section className="notes-dialog" role="dialog" aria-modal="true" aria-labelledby="notes-dialog-title" onClick={event => event.stopPropagation()}>
       <header className="notes-dialog-header">
         <div className="notes-dialog-title">
@@ -283,7 +283,6 @@ export default function NotesDialog({ banks, notes, onClose, onOpenQuestion }: N
           <div><span>STUDY NOTES</span><h2 id="notes-dialog-title">我的笔记</h2></div>
         </div>
         {activeBankGroup && <div className="notes-dialog-context" aria-live="polite"><span>{activeBankGroup.subjectLabel} · NOTE STREAM</span><strong>{activeBankGroup.bankName}</strong><small>共 {activeBankGroup.entries.length} 条笔记</small></div>}
-        <button className="notes-dialog-close" type="button" aria-label="关闭我的笔记" onClick={onClose}><X/></button>
       </header>
       <div className="notes-dialog-body">
         <aside className="notes-sidebar">
@@ -308,5 +307,6 @@ export default function NotesDialog({ banks, notes, onClose, onOpenQuestion }: N
         </main>
       </div>
     </section>
+    <button className="dashboard-question-dialog-close" type="button" aria-label="关闭我的笔记" onClick={onClose}><X size={19}/></button>
   </div>
 }
