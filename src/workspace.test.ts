@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { QuestionBank } from './types'
-import { createWorkspaceManifest, createWorkspaceUserData, resolveWorkspaceImagePath, resolveWorkspaceUserData, workspaceBankFoldersFromDirectoryPaths } from './workspace'
+import { createWorkspaceManifest, createWorkspaceMetadata, createWorkspaceUserData, resolveWorkspaceImagePath, resolveWorkspaceUserData, workspaceBankFoldersFromDirectoryPaths } from './workspace'
 
 const bank: QuestionBank = {
   id: 'bank-1',
@@ -67,6 +67,12 @@ describe('workspace data separation', () => {
     expect(userData).not.toHaveProperty('activities')
     expect(userData).not.toHaveProperty('banks')
     expect(userData).not.toHaveProperty('folders')
+  })
+
+  it('keeps chapter notes out of the workspace metadata file', () => {
+    const metadata = createWorkspaceMetadata({ '1': { statuses: {}, activities: [] } }, { examDate: '', activeRound: 1, roundCount: 5 }, {})
+    expect(metadata).not.toHaveProperty('notes')
+    expect(metadata).toHaveProperty('rounds')
   })
 
   it('recognizes a bank stored below a grouping folder', () => {

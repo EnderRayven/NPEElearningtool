@@ -2,13 +2,14 @@ import type { QuestionBank, QuestionStatus } from './types'
 import type { StudyActivity } from './studyActivity'
 import { migrateStudyRounds, validateStudyRounds, type StudyRounds } from './studyRounds'
 import { DEFAULT_USER_SETTINGS, validateUserSettings, type UserSettings } from './userSettings'
-import { validateQuestionErrorRecords, validateQuestionNotes, type QuestionErrorRecords, type QuestionNotes } from './questionNotes'
+import { mergeQuestionNoteBuckets, parseQuestionNoteBucketKey, questionNoteBucketsForKeys, splitQuestionNotes, validateQuestionErrorRecords, validateQuestionNotes, type QuestionErrorRecords, type QuestionNoteBucket, type QuestionNotes } from './questionNotes'
 
 const DB_NAME = 'npee-workspace'
 const STORE_NAME = 'handles'
 const HANDLE_KEY = 'question-bank-root'
 export const WORKSPACE_MANIFEST = '题库数据.json'
 export const WORKSPACE_USER_DATA = '用户数据.json'
+export const WORKSPACE_NOTES_FOLDER = '用户笔记'
 export const BUILTIN_ENGLISH_VERSION = 6
 
 type WritableDirectoryHandle = FileSystemDirectoryHandle & {
@@ -51,6 +52,7 @@ export interface DefaultWorkspaceIndex {
   name: string
   manifest: WorkspaceManifest | null
   userData: WorkspaceUserData | null
+  notes?: QuestionNotes
   bankFolders?: string[]
   images: Array<{ name: string; relativePath: string; bankFolder: string; url: string }>
 }
@@ -100,6 +102,11 @@ export function createWorkspaceUserData(rounds: StudyRounds, settings: UserSetti
   return { version: 4, updatedAt: new Date().toISOString(), rounds: validateStudyRounds(rounds), settings: validateUserSettings(settings), notes: validateQuestionNotes(notes), errorRecords: validateQuestionErrorRecords(errorRecords) }
 }
 
+export function createWorkspaceMetadata(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, errorRecords: QuestionErrorRecords = {}): WorkspaceUserData {
+  const { notes: _notes, ...metadata } = createWorkspaceUserData(rounds, settings, {}, errorRecords)
+  return metadata
+}
+
 export function resolveWorkspaceUserData(userData: WorkspaceUserData | null | undefined, manifestStatuses: unknown, fallbackRounds: StudyRounds, fallbackSettings: UserSettings, fallbackNotes: QuestionNotes = {}, fallbackErrorRecords: QuestionErrorRecords = {}) {
   const settings = userData?.settings ? validateUserSettings(userData.settings) : fallbackSettings
   const rounds = userData || manifestStatuses
@@ -117,9 +124,84 @@ export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], folde
 }
 
 export async function writeDefaultWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}) {
-  const userData = createWorkspaceUserData(rounds, settings, notes, errorRecords)
+  const userData = createWorkspaceMetadata(rounds, settings, errorRecords)
   const response = await fetch('/api/default-workspace/user-data', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(userData, null, 2) })
   if (!response.ok) throw new Error('用户数据写入失败')
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+export function workspaceNoteSegment(value: string) {
+  return encodeURIComponent(value).replace(/[!'()*]/g, character => `%${character.charCodeAt(0).toString(16).toUpperCase()}`)
+}
+
+function decodeWorkspaceNoteSegment(value: string) {
+  try { return decodeURIComponent(value) } catch { return value }
+}
+
+function parseWorkspaceNoteBucket(value: unknown, fallbackBankId = '', fallbackChapterId = ''): QuestionNoteBucket | null {
+  if (!isRecord(value)) return null
+  const bankId = typeof value.bankId === 'string' ? value.bankId : fallbackBankId
+  const chapterId = typeof value.chapterId === 'string' ? value.chapterId : fallbackChapterId
+  if (!bankId || !chapterId) return null
+  return { bankId, chapterId, notes: validateQuestionNotes(value.notes) }
+}
+
+export async function readWorkspaceNoteBuckets(handle: FileSystemDirectoryHandle): Promise<QuestionNotes> {
+  try {
+    const notesDirectory = await handle.getDirectoryHandle(WORKSPACE_NOTES_FOLDER)
+    const buckets: QuestionNoteBucket[] = []
+    for await (const [bankSegment, bankEntry] of notesDirectory.entries()) {
+      if (bankEntry.kind !== 'directory') continue
+      const bankDirectory = bankEntry as FileSystemDirectoryHandle
+      for await (const [fileName, fileEntry] of bankDirectory.entries()) {
+        if (fileEntry.kind !== 'file' || !fileName.endsWith('.json')) continue
+        try {
+          const file = await (fileEntry as FileSystemFileHandle).getFile()
+          const parsed = parseWorkspaceNoteBucket(JSON.parse(await file.text()), decodeWorkspaceNoteSegment(bankSegment), decodeWorkspaceNoteSegment(fileName.slice(0, -5)))
+          if (parsed) buckets.push(parsed)
+        } catch {}
+      }
+    }
+    return mergeQuestionNoteBuckets(buckets)
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'NotFoundError') return {}
+    throw error
+  }
+}
+
+export async function writeWorkspaceNoteBucket(handle: FileSystemDirectoryHandle, bucket: QuestionNoteBucket) {
+  const notesDirectory = await handle.getDirectoryHandle(WORKSPACE_NOTES_FOLDER, { create: true })
+  const bankDirectory = await notesDirectory.getDirectoryHandle(workspaceNoteSegment(bucket.bankId), { create: true })
+  const fileHandle = await bankDirectory.getFileHandle(`${workspaceNoteSegment(bucket.chapterId)}.json`, { create: true })
+  const writable = await fileHandle.createWritable()
+  await writable.write(JSON.stringify({ version: 1, bankId: bucket.bankId, chapterId: bucket.chapterId, updatedAt: new Date().toISOString(), notes: validateQuestionNotes(bucket.notes) }, null, 2))
+  await writable.close()
+}
+
+export async function writeWorkspaceNoteBuckets(handle: FileSystemDirectoryHandle, notes: QuestionNotes, banks: QuestionBank[], bucketKeys?: Iterable<string>) {
+  const keys = bucketKeys ? [...bucketKeys] : undefined
+  const buckets = keys ? questionNoteBucketsForKeys(notes, banks, keys) : splitQuestionNotes(notes, banks)
+  const selected = keys
+    ? keys.map(key => buckets.get(key) || { ...parseQuestionNoteBucketKey(key), notes: {} })
+    : [...buckets.values()]
+  await Promise.all(selected.map(bucket => writeWorkspaceNoteBucket(handle, bucket)))
+}
+
+export async function writeDefaultWorkspaceNoteBucket(bucket: QuestionNoteBucket) {
+  const response = await fetch('/api/default-workspace/note-bucket', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...bucket, notes: validateQuestionNotes(bucket.notes) }) })
+  if (!response.ok) throw new Error('章节笔记保存失败')
+}
+
+export async function writeDefaultWorkspaceNoteBuckets(notes: QuestionNotes, banks: QuestionBank[], bucketKeys?: Iterable<string>) {
+  const keys = bucketKeys ? [...bucketKeys] : undefined
+  const buckets = keys ? questionNoteBucketsForKeys(notes, banks, keys) : splitQuestionNotes(notes, banks)
+  const selected = keys
+    ? keys.map(key => buckets.get(key) || { ...parseQuestionNoteBucketKey(key), notes: {} })
+    : [...buckets.values()]
+  await Promise.all(selected.map(writeDefaultWorkspaceNoteBucket))
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -194,7 +276,7 @@ export async function writeWorkspaceManifest(handle: FileSystemDirectoryHandle, 
 export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}) {
   const fileHandle = await handle.getFileHandle(WORKSPACE_USER_DATA, { create: true })
   const writable = await fileHandle.createWritable()
-  await writable.write(JSON.stringify(createWorkspaceUserData(rounds, settings, notes, errorRecords), null, 2))
+  await writable.write(JSON.stringify(createWorkspaceMetadata(rounds, settings, errorRecords), null, 2))
   await writable.close()
 }
 
@@ -246,7 +328,7 @@ async function collectImages(directory: FileSystemDirectoryHandle, prefix: strin
 
 async function collectDirectoryPaths(directory: FileSystemDirectoryHandle, prefix: string, output: string[]) {
   for await (const [name, handle] of directory.entries()) {
-    if (name.startsWith('.') || name === WORKSPACE_MANIFEST || name === WORKSPACE_USER_DATA || handle.kind !== 'directory') continue
+    if (name.startsWith('.') || name === WORKSPACE_MANIFEST || name === WORKSPACE_USER_DATA || name === WORKSPACE_NOTES_FOLDER || handle.kind !== 'directory') continue
     const relativePath = prefix ? `${prefix}/${name}` : name
     output.push(relativePath)
     await collectDirectoryPaths(handle, relativePath, output)
@@ -262,7 +344,7 @@ export async function scanWorkspaceBankFolders(handle: FileSystemDirectoryHandle
 export async function scanWorkspaceImages(handle: FileSystemDirectoryHandle, bankFolders: string[] = []) {
   const output: WorkspaceImageFile[] = []
   for await (const [name, child] of handle.entries()) {
-    if (name.startsWith('.') || name === WORKSPACE_MANIFEST || name === WORKSPACE_USER_DATA) continue
+    if (name.startsWith('.') || name === WORKSPACE_MANIFEST || name === WORKSPACE_USER_DATA || name === WORKSPACE_NOTES_FOLDER) continue
     if (child.kind === 'directory') await collectImages(child, name, bankFolders, output)
     else if (/\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(name)) output.push({ file: await child.getFile(), relativePath: name, bankFolder: '' })
   }

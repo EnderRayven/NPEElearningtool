@@ -9,7 +9,7 @@ import SettingsDialog from './SettingsDialog'
 import { assetKeysForBank, clearQuestionStatuses, orderedQuestionEntriesForBank, questionIdsForBank, removeBank, resetBankData } from './bankManagement'
 import { builtInBanks, defaultBankIds, englishBanks } from './data'
 import { mergeImageEntries } from './imageImport'
-import { BUILTIN_ENGLISH_VERSION, chooseWorkspace, clearWorkspaceHandle, createBankFolder, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, readWorkspaceUserData, removeBankFolder, resolveWorkspaceUserData, safeFolderName, scanWorkspaceBankFolders, scanWorkspaceImages, workspaceBankName, writeDefaultWorkspaceManifest, writeDefaultWorkspaceUserData, writeWorkspaceManifest, writeWorkspaceUserData } from './workspace'
+import { BUILTIN_ENGLISH_VERSION, chooseWorkspace, clearWorkspaceHandle, createBankFolder, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, readWorkspaceNoteBuckets, readWorkspaceUserData, removeBankFolder, resolveWorkspaceUserData, safeFolderName, scanWorkspaceBankFolders, scanWorkspaceImages, workspaceBankName, writeDefaultWorkspaceManifest, writeDefaultWorkspaceNoteBuckets, writeDefaultWorkspaceUserData, writeWorkspaceManifest, writeWorkspaceNoteBuckets, writeWorkspaceUserData } from './workspace'
 import { formatPassageParagraphs } from './passageFormatting'
 import { isImageAnswerPlaceholder } from './questionPresentation'
 import { sortBanksForDisplay } from './bankSorting'
@@ -26,7 +26,7 @@ import { countMarkedQuestions, emptyStudyRound, getStudyRound, loadStudyRounds, 
 import QuestionNotePanel from './QuestionNotePanel'
 import TimerDialog from './TimerDialog'
 import NotesDialog from './NotesDialog'
-import { hasQuestionNote, loadQuestionErrorRecords, loadQuestionNotes, saveQuestionErrorRecords, saveQuestionNotes, validateQuestionErrorRecords, validateQuestionNotes, type QuestionErrorRecords, type QuestionNote, type QuestionNotes } from './questionNotes'
+import { hasQuestionNote, loadQuestionErrorRecords, loadQuestionNotes, questionNoteBucketKey, saveQuestionErrorRecords, saveQuestionNoteBuckets, splitQuestionNotes, validateQuestionErrorRecords, validateQuestionNotes, type QuestionErrorRecords, type QuestionNote, type QuestionNotes } from './questionNotes'
 import { bankMathModule, bankMathModules, bankSubject, mathModuleLabels, mathModuleOrder, subjectLabels } from './subjects'
 import { englishSectionLabel, groupEnglishSections, type EnglishSectionGroupKey } from './englishNavigation'
 
@@ -57,6 +57,15 @@ const questionOptionKey = (option: string, index: number) => option.trim().match
 const effectiveQuestionStatus = (item: Question | undefined, status: QuestionStatus, binaryMode = isBinaryMasteryQuestion(item)): QuestionStatus => binaryMode && status === 'vague' ? 'none' : status
 const questionStatusMeta = (item: Question | undefined, status: QuestionStatus, binaryMode = isBinaryMasteryQuestion(item)) => binaryMode ? binaryStatusMeta[status] : statusMeta[status]
 const masteryChoices = (item?: Question, binaryMode = isBinaryMasteryQuestion(item)): QuestionStatus[] => binaryMode ? ['proficient', 'wrong'] : ['proficient', 'vague', 'wrong']
+
+function noteBucketKeyForQuestion(banks: QuestionBank[], questionId: string) {
+  for (const bank of banks) {
+    for (const chapter of bank.chapters) {
+      if (chapter.sections.some(section => section.questions.some(question => question.id === questionId))) return questionNoteBucketKey(bank.id, chapter.id)
+    }
+  }
+  return questionNoteBucketKey('__unassigned__', '__unassigned__')
+}
 
 function navigationProgress(questions: Question[], statuses: Record<string, QuestionStatus>, binaryMode: boolean) {
   const marked = questions.reduce((count, question) => count + (effectiveQuestionStatus(question, statuses[question.id] || 'none', binaryMode) === 'none' ? 0 : 1), 0)
@@ -228,8 +237,10 @@ export default function App() {
   const [workspaceState, setWorkspaceState] = useState<'none' | 'available' | 'syncing' | 'connected' | 'error'>('none')
   const [workspaceFolders, setWorkspaceFolders] = useState<Record<string, string>>({})
   const [defaultWorkspaceConnected, setDefaultWorkspaceConnected] = useState(false)
-  const workspaceReady = useRef(false)
+  const [workspaceReady, setWorkspaceReady] = useState(false)
   const notesLoaded = useRef(false)
+  const dirtyLocalNoteBuckets = useRef(new Set<string>())
+  const dirtyWorkspaceNoteBuckets = useRef(new Set<string>())
   const studyPositions = useRef<Partial<Record<Subject, SavedNavigation>>>({})
   const mathStudyPositions = useRef<Partial<Record<MathModule, SavedNavigation>>>({})
   const reviewReturnPosition = useRef<SavedNavigation | null>(null)
@@ -250,7 +261,7 @@ export default function App() {
   useEffect(() => { if (!saveUserSettings(userSettings)) setToast('用户设置保存失败，请检查浏览器存储空间') }, [userSettings])
   useEffect(() => {
     let cancelled = false
-    Promise.all([loadQuestionNotes(), loadQuestionErrorRecords()]).then(([savedNotes, savedErrorRecords]) => {
+    Promise.all([loadQuestionNotes(banks), loadQuestionErrorRecords()]).then(([savedNotes, savedErrorRecords]) => {
       if (cancelled || notesLoaded.current) return
       notesLoaded.current = true
       setQuestionNotes(savedNotes)
@@ -263,10 +274,16 @@ export default function App() {
   useEffect(() => {
     if (!notesReady) return
     const timer = window.setTimeout(() => {
-      saveQuestionNotes(questionNotes).catch(() => setToast('笔记保存失败，请先导出完整备份'))
+      const bucketKeys = new Set(dirtyLocalNoteBuckets.current)
+      if (!bucketKeys.size) return
+      dirtyLocalNoteBuckets.current.clear()
+      saveQuestionNoteBuckets(questionNotes, banks, bucketKeys).catch(() => {
+        bucketKeys.forEach(key => dirtyLocalNoteBuckets.current.add(key))
+        setToast('笔记保存失败，请先导出完整备份')
+      })
     }, 350)
     return () => window.clearTimeout(timer)
-  }, [questionNotes, notesReady])
+  }, [banks, questionNotes, notesReady])
   useEffect(() => {
     if (!errorRecordsReady) return
     const timer = window.setTimeout(() => {
@@ -311,7 +328,7 @@ export default function App() {
     })
   }, [])
   useEffect(() => {
-    if (workspaceState !== 'connected' || !workspaceReady.current) return
+    if (workspaceState !== 'connected' || !workspaceReady) return
     const timer = window.setTimeout(() => {
       const save = defaultWorkspaceConnected
         ? writeDefaultWorkspaceManifest(banks, workspaceFolders)
@@ -321,16 +338,32 @@ export default function App() {
     return () => window.clearTimeout(timer)
   }, [banks, workspaceFolders, workspaceHandle, workspaceState, defaultWorkspaceConnected])
   useEffect(() => {
-    if (workspaceState !== 'connected' || !workspaceReady.current) return
+    if (workspaceState !== 'connected' || !workspaceReady) return
     const timer = window.setTimeout(() => {
       const rounds = updateStudyRound(studyRounds, userSettings.activeRound, statuses, activities)
       const save = defaultWorkspaceConnected
-        ? writeDefaultWorkspaceUserData(rounds, userSettings, questionNotes, questionErrorRecords)
-        : workspaceHandle ? writeWorkspaceUserData(workspaceHandle, rounds, userSettings, questionNotes, questionErrorRecords) : Promise.resolve()
+        ? writeDefaultWorkspaceUserData(rounds, userSettings, {}, questionErrorRecords)
+        : workspaceHandle ? writeWorkspaceUserData(workspaceHandle, rounds, userSettings, {}, questionErrorRecords) : Promise.resolve()
       save.catch(() => setWorkspaceState('error'))
     }, 450)
     return () => window.clearTimeout(timer)
-  }, [studyRounds, statuses, activities, userSettings, questionNotes, questionErrorRecords, workspaceHandle, workspaceState, defaultWorkspaceConnected])
+  }, [studyRounds, statuses, activities, userSettings, questionErrorRecords, workspaceHandle, workspaceState, defaultWorkspaceConnected, workspaceReady])
+  useEffect(() => {
+    if (workspaceState !== 'connected' || !workspaceReady) return
+    const bucketKeys = new Set(dirtyWorkspaceNoteBuckets.current)
+    if (!bucketKeys.size) return
+    const timer = window.setTimeout(() => {
+      dirtyWorkspaceNoteBuckets.current.clear()
+      const save = defaultWorkspaceConnected
+        ? writeDefaultWorkspaceNoteBuckets(questionNotes, banks, bucketKeys)
+        : workspaceHandle ? writeWorkspaceNoteBuckets(workspaceHandle, questionNotes, banks, bucketKeys) : Promise.resolve()
+      save.catch(() => {
+        bucketKeys.forEach(key => dirtyWorkspaceNoteBuckets.current.add(key))
+        setWorkspaceState('error')
+      })
+    }, 450)
+    return () => window.clearTimeout(timer)
+  }, [banks, questionNotes, workspaceHandle, workspaceState, defaultWorkspaceConnected, workspaceReady])
   useEffect(() => {
     restoreSavedNavigation(banks, statuses)
     setNavigationReady(true)
@@ -833,7 +866,20 @@ export default function App() {
   function currentStudyRounds() {
     return updateStudyRound(studyRounds, userSettings.activeRound, statuses, activities)
   }
+  function markNoteBucketDirty(questionId: string, targetBanks = banks) {
+    const key = noteBucketKeyForQuestion(targetBanks, questionId)
+    dirtyLocalNoteBuckets.current.add(key)
+    dirtyWorkspaceNoteBuckets.current.add(key)
+  }
+  function markAllNoteBucketsDirty(notes: QuestionNotes, targetBanks = banks, includeWorkspace = true) {
+    const keys = splitQuestionNotes(notes, targetBanks).keys()
+    for (const key of keys) {
+      dirtyLocalNoteBuckets.current.add(key)
+      if (includeWorkspace) dirtyWorkspaceNoteBuckets.current.add(key)
+    }
+  }
   function updateQuestionNote(questionId: string, note: QuestionNote) {
+    markNoteBucketDirty(questionId)
     setQuestionNotes(previous => {
       if (!hasQuestionNote(note)) {
         if (!previous[questionId]) return previous
@@ -983,8 +1029,8 @@ export default function App() {
       if (index.manifest && index.manifest.builtinEnglishVersion !== BUILTIN_ENGLISH_VERSION) {
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
-      const [savedNotes, savedErrorRecords] = await Promise.all([loadQuestionNotes(), loadQuestionErrorRecords()])
-      const resolvedUserData = resolveWorkspaceUserData(index.userData, index.manifest?.statuses, currentStudyRounds(), userSettings, savedNotes, savedErrorRecords)
+      const [savedNotes, savedErrorRecords] = await Promise.all([loadQuestionNotes(banks), loadQuestionErrorRecords()])
+      const resolvedUserData = resolveWorkspaceUserData(index.userData, index.manifest?.statuses, currentStudyRounds(), userSettings, { ...savedNotes, ...(index.notes || {}) }, savedErrorRecords)
       const nextSettings = resolvedUserData.settings
       const nextRounds = resolvedUserData.rounds
       const nextNotes = resolvedUserData.notes
@@ -1017,6 +1063,9 @@ export default function App() {
         return { file: new File([], item.name), relativePath: item.relativePath, bankId: target!.id, assetUrl: item.url }
       })
       const result = await mergeImageEntries(nextBanks, entries, { replaceExistingAssets: true })
+      await writeDefaultWorkspaceNoteBuckets(nextNotes, result.banks)
+      await writeDefaultWorkspaceUserData(nextRounds, nextSettings, {}, resolvedUserData.errorRecords)
+      markAllNoteBucketsDirty(nextNotes, result.banks, false)
       if (!restoreSavedNavigation(result.banks, nextStatuses)) {
         const activeBank = result.banks.find(item => item.id === bankId) || result.banks[0]
         const activeSections = activeBank?.chapters.flatMap(chapter => chapter.sections) || []
@@ -1024,15 +1073,13 @@ export default function App() {
           setBankId(activeBank.id); setSectionId(activeSections[0]?.id || ''); setQuestionIndex(0)
         }
       }
-      workspaceReady.current = false
+      setWorkspaceReady(false)
       notesLoaded.current = true
       setNotesReady(true)
       setErrorRecordsReady(true)
       setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(null); setDefaultWorkspaceConnected(true); setWorkspaceState('connected')
       setQuestionErrorRecords(resolvedUserData.errorRecords)
-      window.setTimeout(() => {
-        workspaceReady.current = true
-      }, 0)
+      window.setTimeout(() => setWorkspaceReady(true), 0)
       setToast(`已自动连接“${index.name}”${result.imported ? `，识别 ${result.imported} 张图片` : ''}`)
       return true
     } catch {
@@ -1057,8 +1104,8 @@ export default function App() {
         seededEnglishCount = englishBanks.length
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
-      const [savedNotes, savedErrorRecords] = await Promise.all([loadQuestionNotes(), loadQuestionErrorRecords()])
-      const resolvedUserData = resolveWorkspaceUserData(userData, manifest?.statuses, currentStudyRounds(), userSettings, savedNotes, savedErrorRecords)
+      const [savedNotes, savedErrorRecords, workspaceNotes] = await Promise.all([loadQuestionNotes(banks), loadQuestionErrorRecords(), readWorkspaceNoteBuckets(handle)])
+      const resolvedUserData = resolveWorkspaceUserData(userData, manifest?.statuses, currentStudyRounds(), userSettings, { ...savedNotes, ...workspaceNotes }, savedErrorRecords)
       const nextSettings = resolvedUserData.settings
       const nextRounds = resolvedUserData.rounds
       const nextNotes = resolvedUserData.notes
@@ -1094,6 +1141,9 @@ export default function App() {
         return { file: item.file, relativePath: item.relativePath, bankId: target!.id, assetUrl: URL.createObjectURL(item.file) }
       })
       const result = await mergeImageEntries(nextBanks, entries, { replaceExistingAssets: true })
+      await writeWorkspaceNoteBuckets(handle, nextNotes, result.banks)
+      await writeWorkspaceUserData(handle, nextRounds, nextSettings, {}, resolvedUserData.errorRecords)
+      markAllNoteBucketsDirty(nextNotes, result.banks, false)
       if (!restoreSavedNavigation(result.banks, nextStatuses)) {
         const activeBank = result.banks.find(item => item.id === bankId) || result.banks[0]
         const activeSections = activeBank?.chapters.flatMap(chapter => chapter.sections) || []
@@ -1103,16 +1153,14 @@ export default function App() {
           setQuestionIndex(0)
         }
       }
-      workspaceReady.current = false
+      setWorkspaceReady(false)
       notesLoaded.current = true
       setNotesReady(true)
       setErrorRecordsReady(true)
       setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(handle); setDefaultWorkspaceConnected(false)
       setQuestionErrorRecords(resolvedUserData.errorRecords)
       setWorkspaceState('connected')
-      window.setTimeout(() => {
-        workspaceReady.current = true
-      }, 0)
+      window.setTimeout(() => setWorkspaceReady(true), 0)
       setToast(`已连接“${handle.name}”${seededEnglishCount ? `，更新 ${seededEnglishCount} 个内置英语题库` : ''}${result.imported ? `，同步 ${result.imported} 张图片` : ''}`)
       return true
     } catch (error) {
@@ -1148,7 +1196,11 @@ export default function App() {
   async function switchWorkspace() {
     try {
       if (workspaceHandle && workspaceState === 'connected') {
-        void Promise.all([writeWorkspaceManifest(workspaceHandle, banks, workspaceFolders), writeWorkspaceUserData(workspaceHandle, currentStudyRounds(), userSettings, questionNotes, questionErrorRecords)]).catch(() => {})
+        void Promise.all([
+          writeWorkspaceManifest(workspaceHandle, banks, workspaceFolders),
+          writeWorkspaceNoteBuckets(workspaceHandle, questionNotes, banks),
+          writeWorkspaceUserData(workspaceHandle, currentStudyRounds(), userSettings, {}, questionErrorRecords),
+        ]).catch(() => {})
       }
       const handle = await chooseWorkspace()
       await loadWorkspace(handle)

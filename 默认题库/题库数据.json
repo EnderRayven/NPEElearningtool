@@ -1,7 +1,7 @@
 {
   "version": 2,
   "builtinEnglishVersion": 6,
-  "updatedAt": "2026-07-26T08:48:48.551Z",
+  "updatedAt": "2026-07-27T12:54:34.857Z",
   "banks": [
     {
       "id": "workspace-1783924545931-2",
@@ -21242,8 +21242,7 @@
                     "default-880-calculus-01-3-04/question/1-Q-01-3-04.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-880-calculus-01-3-04/answer/1-A-01-3-04.1.png",
-                    "default-880-calculus-01-3-04/answer/2-A-01-3-04.2.png"
+                    "default-880-calculus-01-3-04/answer/1-A-01-3-04.1.png"
                   ]
                 }
               ]
@@ -25430,8 +25429,7 @@
                   ],
                   "answerImageKeys": [
                     "default-880-calculus-03-3-06/answer/1-A-03-3-06.1.png",
-                    "default-880-calculus-03-3-06/answer/2-A-03-3-06.2.png",
-                    "default-880-calculus-03-3-06/answer/3-A-03-3-06.3.png"
+                    "default-880-calculus-03-3-06/answer/2-A-03-3-06.2.png"
                   ]
                 }
               ]
@@ -26452,8 +26450,7 @@
                     "default-880-calculus-04-3-02/question/1-Q-04-3-02.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-880-calculus-04-3-02/answer/1-A-04-3-02.1.png",
-                    "default-880-calculus-04-3-02/answer/2-A-04-3-02.2.png"
+                    "default-880-calculus-04-3-02/answer/1-A-04-3-02.1.png"
                   ]
                 }
               ]
@@ -27509,8 +27506,7 @@
                   ],
                   "answerImageKeys": [
                     "default-880-calculus-05-3-05/answer/1-A-05-3-05.1.png",
-                    "default-880-calculus-05-3-05/answer/2-A-05-3-05.2.png",
-                    "default-880-calculus-05-3-05/answer/3-A-05-3-05.3.png"
+                    "default-880-calculus-05-3-05/answer/2-A-05-3-05.2.png"
                   ]
                 }
               ]

@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { emptyQuestionNote, eraseHandwritingStrokes, hasQuestionNote, validateHandwritingDrawing, validateQuestionErrorRecords, validateQuestionNotes } from './questionNotes'
+import { emptyQuestionNote, eraseHandwritingStrokes, hasQuestionNote, mergeQuestionNoteBuckets, questionNoteBucketKey, splitQuestionNotes, validateHandwritingDrawing, validateQuestionErrorRecords, validateQuestionNotes } from './questionNotes'
+import type { QuestionBank } from './types'
 
 describe('questionNotes', () => {
+  it('partitions legacy notes by bank chapter', () => {
+    const banks: QuestionBank[] = [{ id: 'bank-a', name: '题库', source: 'local', chapters: [{ id: 'chapter-1', name: '第一章', sections: [{ id: 'section-1', name: '小节', questions: [{ id: 'q1', number: 1, text: '题目', answer: 'A', analysis: '' }] }] }] }]
+    const notes = { q1: { ...emptyQuestionNote(), text: '章节笔记' }, unknown: { ...emptyQuestionNote(), text: '未匹配笔记' } }
+    const buckets = splitQuestionNotes(notes, banks)
+    expect(buckets.get(questionNoteBucketKey('bank-a', 'chapter-1'))?.notes.q1.text).toBe('章节笔记')
+    expect(mergeQuestionNoteBuckets([...buckets.values()])).toEqual(notes)
+  })
+
   it('validates text and editable vector strokes', () => {
     const notes = validateQuestionNotes({
       q1: {

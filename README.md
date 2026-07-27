@@ -8,9 +8,9 @@
 
 当前默认内置 **22 个题库、7139 道题**。英语真题按“年份 → 题型”组织，数学和专业课图片题按“章节 → 小节 → 题号”组织；题库内容与个人学习记录分开存储，更新题库不会覆盖熟练度和复习历史。
 
-> 当前正式版：**v0.3.8** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
+> 当前正式版：**v0.3.9** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
 
-[**下载 v0.3.8 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.3.8/NPEE-Study-Space-v0.3.8-Software.zip) · [下载 v0.3.8 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.3.8/NPEE-Study-Space-v0.3.8-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.8) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
+[**下载 v0.3.9 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.3.9/NPEE-Study-Space-v0.3.9-Software.zip) · [下载 v0.3.9 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.3.9/NPEE-Study-Space-v0.3.9-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.9) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
 
 软件包与题库数据分开发布：软件包包含应用源码、启动脚本和运行所需配置，不包含默认题库图片；题库数据包包含 `默认题库/` 目录和题库清单。首次使用时，将两个压缩包解压到同一个目录，再运行对应系统的一键启动脚本；后续更新软件或题库时可以单独替换对应包。无需安装 Git 或克隆仓库。
 
@@ -18,7 +18,7 @@
 
 - [界面预览](#界面预览)：查看学习、看板和复习界面
 - [下载与启动](#下载与启动)：下载软件包和题库数据并一键启动
-- [v0.3.8 新内容](#v038-计时器草稿本与界面整理)：查看本次正式版重点更新
+- [v0.3.9 新内容](#v039-分章节笔记与题库修复)：查看本次正式版重点更新
 - [典型学习流程](#典型学习流程)：从选题库到多轮复习
 - [核心功能](#核心功能)：完整能力总览
 - [默认题库](#默认题库)：内置题库及题目数量
@@ -33,6 +33,13 @@
 - **错题复盘：** 将模糊、错误题集中到复盘入口，掌握后自动退出当前错题列表。
 - **长期进度跟踪：** 用日历查看每天做题量、正确率和待复盘数量，用多轮数据区分一刷、二刷。
 - **离线与隐私优先：** 不需要账号或云数据库，适合保存个人购买资料和学习记录。
+
+## v0.3.9 分章节笔记与题库修复
+
+- **笔记按章节保存：** 题目文字笔记和手写笔记按题库、章节拆分写入 `用户笔记/题库编码/章节编码.json`，降低频繁书写时的写入范围；旧版总文件会自动迁移。
+- **工作区同步更轻：** 默认工作区、文件夹工作区和完整备份均支持笔记分桶，题库清单不再夹带个人笔记。
+- **手写反馈更及时：** 当前笔迹采用实时画布绘制，调整选中笔迹粗细会立即刷新，缩放和连续书写更顺滑。
+- **题图与发布更干净：** 修复 880 数学题答案图裁剪和清单引用，移除无效题图；本地答案校验 PDF 仅用于核对，不进入仓库。
 
 ## v0.3.8 计时器、草稿本与界面整理
 
@@ -105,9 +112,9 @@
 
 年份、题型、题目、备选项、原文、答案解析和全卷导航集中在一个学习界面；长文阅读、新题型与写作都保留适合真题的排版。
 
-![v0.3.8 主学习界面](./docs/screenshots/question-study.png)
+![v0.3.9 主学习界面](./docs/screenshots/question-study.png)
 
-> 截图已按 v0.3.8 当前界面重新抓取；其余专题截图仍按功能分区展示，便于快速了解完整学习流程。
+> 截图已按 v0.3.9 当前界面重新抓取；其余专题截图仍按功能分区展示，便于快速了解完整学习流程。
 
 图中主要区域：
 
@@ -229,7 +236,7 @@ flowchart LR
 
 ### 一键启动
 
-1. 在同一个 [v0.3.8 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.8) 中分别下载 `NPEE-Study-Space-v0.3.8-Software.zip` 和 `NPEE-Study-Space-v0.3.8-Question-Bank.zip`。
+1. 在同一个 [v0.3.9 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.3.9) 中分别下载 `NPEE-Study-Space-v0.3.9-Software.zip` 和 `NPEE-Study-Space-v0.3.9-Question-Bank.zip`。
 2. 将两个压缩包解压到同一个可长期保存的目录，使 `默认题库/` 与 `一键启动.command` 或 `一键启动.bat` 位于同一级；不要直接在压缩包预览中运行。
 3. 按系统启动：
    - macOS：双击 `一键启动.command`，自动配置 Homebrew、Node.js、pnpm 和项目依赖。
@@ -365,6 +372,7 @@ flowchart TD
     D[熟练度 / 每日活动 / 分次复习] --> E[用户数据.json]
     F[浏览器本地缓存] --> G[题库索引与导航位置]
     F --> H[IndexedDB 图片素材]
+    D --> J[用户笔记/题库/章节.json]
     B --> I[应用界面]
     C --> I
     E --> I
@@ -373,7 +381,7 @@ flowchart TD
 ```
 
 - `题库数据.json` 只描述题库、章节、小节、题目和文件映射。
-- `用户数据.json` 保存学习轮次、熟练度、每日活动、分次复习、题目笔记和考试日期等个人信息。
+- `用户数据.json` 保存学习轮次、熟练度、每日活动、分次复习和考试日期等个人信息；题目笔记按题库章节拆分保存到 `用户笔记/`，避免每次书写都重写全部笔记。
 - 原始图片保留在题库目录；浏览器 IndexedDB 只在传统图片导入模式下缓存图片 Blob。
 - “完整备份”适合迁移结构化数据；原始图片目录仍建议单独备份。
 
@@ -403,7 +411,10 @@ flowchart TD
     └── 机械设计-基础过关600题/
 
 用户数据/
-└── 用户数据.json
+├── 用户数据.json
+└── 用户笔记/
+    └── 题库编码/
+        └── 章节编码.json
 ```
 
 - 数学下固定保留“高数、线代、真题”三个板块目录；英语和专业课目录下直接放具体题库。应用会根据实际文件夹自动识别题库，具体目录映射同步写入 `题库数据.json`。
@@ -413,6 +424,7 @@ flowchart TD
 - 学习标记和每日做题记录按轮次保存在 `用户数据.json` 的 `rounds` 字段；原有记录会自动归入第 1 轮，默认预设 5 轮，可在设置中继续新增。
 - 将新图片复制进工作区后，点击顶部“已连接”重新扫描即可导入；网页内的重命名和题库修改写回题库清单，学习标记写回独立用户数据文件。
 - 项目外的自选工作区会在同一根目录生成两个相互独立的文件：`题库数据.json` 与 `用户数据.json`。
+- 题目笔记会额外写入 `用户笔记/题库编码/章节编码.json`；旧版 `用户数据.json` 顶层 `notes` 会在首次连接时自动按章节迁移，迁移成功后从总文件移除。
 - 旧版 `题库数据.json` 中的 `statuses` 字段仍可读取，连接后会迁移到新版用户数据并在后续写入中移除旧字段。
 - 浏览器首次必须由用户选择并授权文件夹，这是浏览器的安全要求；授权记录会保存在当前浏览器中。
 - Safari/Firefox 暂不支持目录写回时，仍可使用原有“图片”导入与 JSON 备份。

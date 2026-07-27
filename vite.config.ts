@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react'
 
 const MANIFEST = '题库数据.json'
 const USER_DATA = '用户数据.json'
+const NOTES_FOLDER = '用户笔记'
 const IMAGE_PATTERN = /\.(png|jpe?g|webp|gif|bmp|avif)$/i
 const STRUCTURED_IMAGE_PATTERN = /^(?:Q|A)-\d+-\d+-\d+(?:\.\d+)?\.(?:png|jpe?g|webp|gif|bmp|avif)$/i
 const IMAGE_CONTENT_TYPES: Record<string, string> = {
@@ -47,10 +48,30 @@ function defaultWorkspacePlugin(): Plugin {
       ? { bankFolder: '', relativePath }
       : { bankFolder: relativePath.slice(0, separator), relativePath: relativePath.slice(separator + 1) }
   }
+  function noteSegment(value: string) {
+    return encodeURIComponent(value).replace(/[!'()*]/g, character => `%${character.charCodeAt(0).toString(16).toUpperCase()}`)
+  }
+  async function readNotesFromDisk(): Promise<Record<string, unknown>> {
+    const notes: Record<string, unknown> = {}
+    try {
+      const notesRoot = path.join(userDataRoot, NOTES_FOLDER)
+      for (const bankEntry of await readdir(notesRoot, { withFileTypes: true })) {
+        if (!bankEntry.isDirectory() || bankEntry.name.startsWith('.')) continue
+        for (const chapterEntry of await readdir(path.join(notesRoot, bankEntry.name), { withFileTypes: true })) {
+          if (!chapterEntry.isFile() || !chapterEntry.name.endsWith('.json')) continue
+          try {
+            const parsed = JSON.parse(await readFile(path.join(notesRoot, bankEntry.name, chapterEntry.name), 'utf8')) as { notes?: Record<string, unknown> }
+            if (parsed.notes && typeof parsed.notes === 'object' && !Array.isArray(parsed.notes)) Object.assign(notes, parsed.notes)
+          } catch {}
+        }
+      }
+    } catch {}
+    return notes
+  }
   async function scan(bankFolders: string[], directory = root, prefix = ''): Promise<Array<{ name: string; relativePath: string; bankFolder: string; url: string }>> {
     const output: Array<{ name: string; relativePath: string; bankFolder: string; url: string }> = []
     for (const entry of await readdir(directory, { withFileTypes: true })) {
-      if (entry.name.startsWith('.') || entry.name === MANIFEST) continue
+      if (entry.name.startsWith('.') || entry.name === MANIFEST || entry.name === NOTES_FOLDER) continue
       const absolute = path.join(directory, entry.name)
       const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name
       if (entry.isDirectory()) output.push(...await scan(bankFolders, absolute, relativePath))
@@ -65,7 +86,7 @@ function defaultWorkspacePlugin(): Plugin {
   async function collectDirectories(directory = root, prefix = ''): Promise<string[]> {
     const output: string[] = []
     for (const entry of await readdir(directory, { withFileTypes: true })) {
-      if (entry.name.startsWith('.') || entry.name === MANIFEST || !entry.isDirectory()) continue
+      if (entry.name.startsWith('.') || entry.name === MANIFEST || entry.name === NOTES_FOLDER || !entry.isDirectory()) continue
       const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name
       output.push(relativePath, ...await collectDirectories(path.join(directory, entry.name), relativePath))
     }
@@ -83,7 +104,7 @@ function defaultWorkspacePlugin(): Plugin {
           const manifestBankFolders = Object.values((manifest as { folders?: Record<string, string> } | null)?.folders || {})
           response.setHeader('Content-Type', 'application/json; charset=utf-8')
           const bankFolders = [...new Set([...manifestBankFolders, ...discoveredBankFolders])]
-          response.end(JSON.stringify({ name: '默认题库', manifest, userData, bankFolders: discoveredBankFolders, images: await scan(bankFolders) }))
+          response.end(JSON.stringify({ name: '默认题库', manifest, userData, notes: await readNotesFromDisk(), bankFolders: discoveredBankFolders, images: await scan(bankFolders) }))
         } catch (error) { response.statusCode = 500; response.end(error instanceof Error ? error.message : '默认题库扫描失败') }
       })
       server.middlewares.use('/api/default-workspace/file', async (request, response) => {
@@ -121,6 +142,22 @@ function defaultWorkspacePlugin(): Plugin {
             JSON.parse(content)
             await mkdir(userDataRoot, { recursive: true })
             await writeFile(path.join(userDataRoot, USER_DATA), content)
+            response.setHeader('Content-Type', 'application/json'); response.end('{"ok":true}')
+          } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '写入失败') }
+        })
+      })
+      server.middlewares.use('/api/default-workspace/note-bucket', (request, response) => {
+        if (request.method !== 'PUT') { response.statusCode = 405; response.end(); return }
+        const chunks: Buffer[] = []
+        request.on('data', chunk => chunks.push(chunk))
+        request.on('end', async () => {
+          try {
+            const content = Buffer.concat(chunks).toString('utf8')
+            const payload = JSON.parse(content) as { bankId?: string; chapterId?: string }
+            if (!payload.bankId || !payload.chapterId) { response.statusCode = 400; response.end('章节信息缺失'); return }
+            const bankDirectory = path.join(userDataRoot, NOTES_FOLDER, noteSegment(payload.bankId))
+            await mkdir(bankDirectory, { recursive: true })
+            await writeFile(path.join(bankDirectory, `${noteSegment(payload.chapterId)}.json`), content)
             response.setHeader('Content-Type', 'application/json'); response.end('{"ok":true}')
           } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '写入失败') }
         })

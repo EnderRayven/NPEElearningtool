@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import QuestionNotePanel, { canvasHeightForDrawing, canvasHeightForStrokes, clampSpaceAdjustment, historyActionForShortcut, insertSpaceIntoStrokes, pathsForStroke } from './QuestionNotePanel'
+import QuestionNotePanel, { canvasHeightForDrawing, canvasHeightForStrokes, clampSpaceAdjustment, historyActionForShortcut, insertSpaceIntoStrokes, pathsForStroke, updateSelectedStrokeSize } from './QuestionNotePanel'
 
 describe('QuestionNotePanel', () => {
   it('uses an answer-style disclosure and marks saved content', () => {
@@ -105,5 +105,15 @@ describe('QuestionNotePanel', () => {
     expect(historyActionForShortcut('z', true, true, false)).toBe('redo')
     expect(historyActionForShortcut('y', true, false, false)).toBe('redo')
     expect(historyActionForShortcut('z', true, false, true)).toBe(null)
+  })
+
+  it('updates only lasso-selected stroke sizes', () => {
+    const strokes = [
+      { id: 'selected', color: '#000000', size: 2, input: 'pen' as const, points: [{ x: .2, y: .2 }] },
+      { id: 'other', color: '#8f3028', size: 5, input: 'mouse' as const, points: [{ x: .6, y: .6 }] },
+    ]
+    const result = updateSelectedStrokeSize(strokes, ['selected'], 9)
+    expect(result.map(stroke => stroke.size)).toEqual([9, 5])
+    expect(strokes.map(stroke => stroke.size)).toEqual([2, 5])
   })
 })

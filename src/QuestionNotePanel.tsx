@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { memo, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { ArrowDownToLine, ChevronDown, Eraser, Lasso, Maximize2, NotebookPen, Pencil, Redo2, Trash2, Undo2, X } from 'lucide-react'
 import { DRAWING_BASE_HEIGHT, DRAWING_WIDTH, MAX_DRAWING_HEIGHT, emptyHandwritingDrawing, emptyQuestionNote, eraseHandwritingStrokes, hasQuestionNote, type HandwritingDrawing, type HandwritingPoint, type HandwritingStroke, type QuestionNote } from './questionNotes'
 import ConfirmDialog from './ConfirmDialog'
@@ -50,6 +50,7 @@ const clamp = (value: number, minimum: number, maximum: number) => Math.min(maxi
 const AUTO_EXTEND_TRIGGER = 72
 const AUTO_EXTEND_STEP = 300
 const MIN_SPACE_ADJUSTMENT = .04
+const MIN_STROKE_POINT_DISTANCE = .001
 
 export const canvasHeightForStrokes = (strokes: HandwritingStroke[]) => {
   const highestPoint = strokes.reduce((highest, stroke) => Math.max(highest, ...stroke.points.map(point => point.y * DRAWING_BASE_HEIGHT)), 0)
@@ -163,6 +164,11 @@ const translateStrokes = (strokes: HandwritingStroke[], selectedIds: Set<string>
     ? { ...stroke, points: stroke.points.map(point => ({ ...point, x: point.x + dx, y: point.y + dy })) }
     : stroke)
 
+export const updateSelectedStrokeSize = (strokes: HandwritingStroke[], selectedIds: string[], size: number) => {
+  const selected = new Set(selectedIds)
+  return strokes.map(stroke => selected.has(stroke.id) ? { ...stroke, size } : stroke)
+}
+
 const fitSelectedStrokesToCanvas = (strokes: HandwritingStroke[], selectedIds: Set<string>, maxY: number) => {
   const selectedBounds = selectionBoundsForStrokes(strokes.filter(stroke => selectedIds.has(stroke.id)))
   if (!selectedBounds) return strokes
@@ -205,6 +211,110 @@ export function pathsForStroke(stroke: HandwritingStroke) {
   return paths.map((d, index) => ({ d, width: stroke.size * INK_WIDTH_LEVELS[index] })).filter(path => path.d)
 }
 
+interface StrokeLayerProps {
+  strokes: HandwritingStroke[]
+  selectedStrokeIds: string[]
+}
+
+/**
+ * Historical strokes are unchanged while a new stroke is being drawn. Keep
+ * them in a memoized layer so pointermove only updates the active stroke.
+ */
+const StrokeLayer = memo(function StrokeLayer({ strokes, selectedStrokeIds }: StrokeLayerProps) {
+  return <>{strokes.flatMap(stroke => pathsForStroke(stroke).flatMap((path, index) => [
+    selectedStrokeIds.includes(stroke.id) && <path key={`${stroke.id}-selected-${index}`} d={path.d} fill="none" stroke="#bf8179" strokeWidth={path.width + 5} strokeLinecap="round" strokeLinejoin="round" opacity=".32" vectorEffect="non-scaling-stroke"/>,
+    <path key={`${stroke.id}-${index}`} d={path.d} fill="none" stroke={stroke.color} strokeWidth={path.width} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>,
+  ]))}</>
+})
+
+interface LiveCanvasMetrics {
+  context: CanvasRenderingContext2D
+  width: number
+  height: number
+  resized: boolean
+}
+
+function liveCanvasMetrics(canvas: HTMLCanvasElement, svg: SVGSVGElement, viewHeight: number): LiveCanvasMetrics | null {
+  const bounds = svg.getBoundingClientRect()
+  const width = Math.max(1, bounds.width)
+  const height = Math.max(1, bounds.height)
+  const dpr = Math.min(window.devicePixelRatio || 1, 2)
+  const pixelWidth = Math.max(1, Math.round(width * dpr))
+  const pixelHeight = Math.max(1, Math.round(height * dpr))
+  const resized = canvas.width !== pixelWidth || canvas.height !== pixelHeight
+  if (resized) {
+    canvas.width = pixelWidth
+    canvas.height = pixelHeight
+  }
+  const context = canvas.getContext('2d')
+  if (!context) return null
+  context.setTransform(dpr, 0, 0, dpr, 0, 0)
+  if (resized) context.clearRect(0, 0, width, height)
+  return { context, width, height, resized }
+}
+
+function liveCanvasPoint(point: HandwritingPoint, metrics: LiveCanvasMetrics, viewHeight: number) {
+  return {
+    x: point.x * metrics.width,
+    y: point.y * DRAWING_BASE_HEIGHT / viewHeight * metrics.height,
+  }
+}
+
+function clearLiveCanvas(canvas: HTMLCanvasElement | null) {
+  const context = canvas?.getContext('2d')
+  if (!canvas || !context) return
+  context.setTransform(1, 0, 0, 1, 0, 0)
+  context.clearRect(0, 0, canvas.width, canvas.height)
+}
+
+function drawLiveStroke(canvas: HTMLCanvasElement | null, svg: SVGSVGElement | null, viewHeight: number, stroke: HandwritingStroke) {
+  if (!canvas || !svg) return
+  const metrics = liveCanvasMetrics(canvas, svg, viewHeight)
+  if (!metrics) return
+  const { context, width, height } = metrics
+  context.clearRect(0, 0, width, height)
+  context.strokeStyle = stroke.color
+  context.lineWidth = Math.max(1, stroke.size)
+  context.lineCap = 'round'
+  context.lineJoin = 'round'
+  context.beginPath()
+  const first = liveCanvasPoint(stroke.points[0], metrics, viewHeight)
+  context.moveTo(first.x, first.y)
+  if (stroke.points.length === 1) context.lineTo(first.x + .01, first.y)
+  else stroke.points.slice(1).forEach(point => {
+    const next = liveCanvasPoint(point, metrics, viewHeight)
+    context.lineTo(next.x, next.y)
+  })
+  context.stroke()
+}
+
+function appendLiveStrokePoints(canvas: HTMLCanvasElement | null, svg: SVGSVGElement | null, viewHeight: number, stroke: HandwritingStroke, points: HandwritingPoint[], previousPoint: HandwritingPoint | null) {
+  if (!canvas || !svg || !points.length) return
+  const metrics = liveCanvasMetrics(canvas, svg, viewHeight)
+  if (!metrics) return
+  if (metrics.resized) {
+    drawLiveStroke(canvas, svg, viewHeight, stroke)
+    return
+  }
+  const { context } = metrics
+  context.strokeStyle = stroke.color
+  context.lineWidth = Math.max(1, stroke.size)
+  context.lineCap = 'round'
+  context.lineJoin = 'round'
+  let previous = previousPoint
+  points.forEach(point => {
+    const current = liveCanvasPoint(point, metrics, viewHeight)
+    if (previous) {
+      const start = liveCanvasPoint(previous, metrics, viewHeight)
+      context.beginPath()
+      context.moveTo(start.x, start.y)
+      context.lineTo(current.x, current.y)
+      context.stroke()
+    }
+    previous = point
+  })
+}
+
 export type HandwritingHistoryAction = 'undo' | 'redo'
 
 export const historyActionForShortcut = (key: string, hasPrimaryModifier: boolean, shiftKey: boolean, altKey: boolean): HandwritingHistoryAction | null => {
@@ -232,7 +342,7 @@ interface SpacePointerBounds {
 }
 
 function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrokeIds, onCommit, onSelectionChange, onDeleteSelection }: HandwritingCanvasProps) {
-  const [currentStroke, setCurrentStroke] = useState<HandwritingStroke | null>(null)
+  const [hasCurrentStroke, setHasCurrentStroke] = useState(false)
   const [erasingStrokes, setErasingStrokes] = useState<HandwritingStroke[] | null>(null)
   const [transformPreview, setTransformPreview] = useState<HandwritingStroke[] | null>(null)
   const [lassoPoints, setLassoPoints] = useState<HandwritingPoint[]>([])
@@ -256,11 +366,15 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
   const smoothedPressureRef = useRef<number | null>(null)
   const previewFrameRef = useRef<number | null>(null)
   const svgRef = useRef<SVGSVGElement | null>(null)
+  const liveCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const liveCanvasLastPointRef = useRef<HandwritingPoint | null>(null)
 
   useEffect(() => {
     if (previewFrameRef.current !== null) cancelAnimationFrame(previewFrameRef.current)
     previewFrameRef.current = null
     currentStrokeRef.current = null
+    liveCanvasLastPointRef.current = null
+    clearLiveCanvas(liveCanvasRef.current)
     erasingStrokesRef.current = null
     transformPreviewRef.current = null
     transformStateRef.current = null
@@ -276,7 +390,7 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
     activePointerRef.current = null
     activeInteractionRef.current = null
     smoothedPressureRef.current = null
-    setCurrentStroke(null)
+    setHasCurrentStroke(false)
     setErasingStrokes(null)
     setTransformPreview(null)
     setLassoPoints([])
@@ -329,7 +443,6 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
     if (previewFrameRef.current !== null) return
     previewFrameRef.current = requestAnimationFrame(() => {
       previewFrameRef.current = null
-      setCurrentStroke(currentStrokeRef.current)
       setErasingStrokes(erasingStrokesRef.current)
     })
   }
@@ -404,7 +517,9 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
     const stroke: HandwritingStroke = { id: newStrokeId(), color, size, input, points: [point] }
     ensureCanvasForPoint(point)
     currentStrokeRef.current = stroke
-    setCurrentStroke(stroke)
+    liveCanvasLastPointRef.current = point
+    drawLiveStroke(liveCanvasRef.current, svgRef.current, pointerCanvasHeightRef.current, stroke)
+    setHasCurrentStroke(true)
   }
 
   const move = (event: ReactPointerEvent<SVGSVGElement>) => {
@@ -483,12 +598,13 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
     ensureCanvasForPoint(points.at(-1) || stroke.points[stroke.points.length - 1])
     const appended = points.reduce<HandwritingPoint[]>((result, point) => {
       const previous = result[result.length - 1] || stroke.points[stroke.points.length - 1]
-      return pointDistance(previous, point) < .0007 ? result : [...result, point]
+      return pointDistance(previous, point) < MIN_STROKE_POINT_DISTANCE ? result : [...result, point]
     }, [])
     if (!appended.length) return
     const next = { ...stroke, points: [...stroke.points, ...appended] }
     currentStrokeRef.current = next
-    updatePreviewOnNextFrame()
+    appendLiveStrokePoints(liveCanvasRef.current, svgRef.current, pointerCanvasHeightRef.current, next, appended, liveCanvasLastPointRef.current)
+    liveCanvasLastPointRef.current = appended.at(-1) || liveCanvasLastPointRef.current
   }
 
   const finish = (event: ReactPointerEvent<SVGSVGElement>) => {
@@ -545,9 +661,13 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
       return
     }
     const stroke = currentStrokeRef.current
-    if (stroke) onCommit({ ...drawing, aspectRatio: aspectRatioForCanvasHeight(canvasHeightRef.current), strokes: [...drawing.strokes, stroke] })
+    if (stroke) {
+      drawLiveStroke(liveCanvasRef.current, svgRef.current, canvasHeightRef.current, stroke)
+      onCommit({ ...drawing, aspectRatio: aspectRatioForCanvasHeight(canvasHeightRef.current), strokes: [...drawing.strokes, stroke] })
+    }
     currentStrokeRef.current = null
-    setCurrentStroke(null)
+    liveCanvasLastPointRef.current = null
+    setHasCurrentStroke(false)
   }
 
   const handleKeyDown = (event: ReactKeyboardEvent<SVGSVGElement>) => {
@@ -602,11 +722,8 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
         onPointerLeave={() => { if (activePointerRef.current === null) setSpaceHoverY(null) }}
         onKeyDown={handleKeyDown}
       >
-        {visibleStrokes.flatMap(stroke => pathsForStroke(stroke).flatMap((path, index) => [
-          selectedStrokeIds.includes(stroke.id) && <path key={`${stroke.id}-selected-${index}`} d={path.d} fill="none" stroke="#bf8179" strokeWidth={path.width + 5} strokeLinecap="round" strokeLinejoin="round" opacity=".32" vectorEffect="non-scaling-stroke"/>,
-          <path key={`${stroke.id}-${index}`} d={path.d} fill="none" stroke={stroke.color} strokeWidth={path.width} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>,
-        ]))}
-        {currentStroke && pathsForStroke(currentStroke).map((path, index) => <path key={index} d={path.d} fill="none" stroke={currentStroke.color} strokeWidth={path.width} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>)}
+        <StrokeLayer strokes={visibleStrokes} selectedStrokeIds={selectedStrokeIds}/>
+        <canvas ref={liveCanvasRef} className="handwriting-live-canvas" aria-hidden="true"/>
         {tool === 'space' && spaceHoverY !== null && !spacePreview && (
           <line className="handwriting-space-guide" x1="0" x2={DRAWING_WIDTH} y1={spaceHoverY * DRAWING_BASE_HEIGHT} y2={spaceHoverY * DRAWING_BASE_HEIGHT}/>
         )}
@@ -637,7 +754,7 @@ function HandwritingCanvas({ drawing, tool, color, size, expanded, selectedStrok
       >
         <span>{spacePreview.amount === 0 ? '上下拖动调整范围' : `${spacePreview.amount > 0 ? '插入' : '收缩'} ${Math.max(1, Math.round(spaceRangeHeight))} px`}</span>
       </div>}
-      {!visibleStrokes.length && !currentStroke && <span>在这里书写，支持触控笔、触摸和鼠标</span>}
+      {!visibleStrokes.length && !hasCurrentStroke && <span>在这里书写，支持触控笔、触摸和鼠标</span>}
     </div>
   </div>
 }
@@ -707,6 +824,13 @@ function HandwritingEditor(props: HandwritingEditorProps) {
     const selected = new Set(selectedStrokeIds)
     const nextStrokes = props.drawing.strokes.map(stroke => selected.has(stroke.id) ? { ...stroke, color: nextColor } : stroke)
     if (nextStrokes.some((stroke, index) => stroke.color !== props.drawing.strokes[index]?.color)) props.onCommit({ ...props.drawing, strokes: nextStrokes })
+  }
+
+  const applySize = (nextSize: number) => {
+    props.onSizeChange(nextSize)
+    if (!selectedStrokeIds.length) return
+    const nextStrokes = updateSelectedStrokeSize(props.drawing.strokes, selectedStrokeIds, nextSize)
+    if (nextStrokes.some((stroke, index) => stroke.size !== props.drawing.strokes[index]?.size)) props.onCommit({ ...props.drawing, strokes: nextStrokes })
   }
 
   const copySelection = () => {
@@ -822,7 +946,7 @@ function HandwritingEditor(props: HandwritingEditorProps) {
         {sizePickerOpen && <div id="handwriting-size-popover" className="handwriting-size-popover" role="dialog" aria-label="调整笔迹粗细">
           <div className="handwriting-size-popover-head"><span>笔迹粗细</span><output>{props.size}</output></div>
           <div className="handwriting-size-preview" aria-label={`当前笔迹大小 ${props.size}`}><i style={{ width: `${Math.max(6, props.size * 2)}px`, height: `${Math.max(6, props.size * 2)}px`, backgroundColor: props.color }}/></div>
-          <input aria-label="调整笔迹粗细" type="range" min="1" max="12" value={props.size} onChange={event => props.onSizeChange(Number(event.target.value))}/>
+          <input aria-label="调整笔迹粗细" type="range" min="1" max="12" value={props.size} onChange={event => applySize(Number(event.target.value))}/>
           <div className="handwriting-size-scale" aria-hidden="true"><span>细</span><span>粗</span></div>
         </div>}
       </div>
