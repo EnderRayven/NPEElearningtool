@@ -7,6 +7,7 @@ const PEN_SCROLL_IGNORE_SELECTOR = [
   '.handwriting-canvas',
   '.handwriting-toolbar',
   '.handwriting-size-popover',
+  '.dashboard-question-backdrop',
   'input',
   'textarea',
   'select',

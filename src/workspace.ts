@@ -123,6 +123,60 @@ export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], folde
   if (!response.ok) throw new Error('默认题库数据写入失败')
 }
 
+export function defaultWorkspaceFileUrl(relativePath: string, version?: string | number) {
+  const suffix = version === undefined ? '' : `&v=${encodeURIComponent(String(version))}`
+  return `/api/default-workspace/file?path=${encodeURIComponent(relativePath)}${suffix}`
+}
+
+export async function writeDefaultWorkspaceImage(file: File, relativePath: string) {
+  const response = await fetch(`/api/default-workspace/image?path=${encodeURIComponent(relativePath)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    body: file,
+  })
+  if (!response.ok) throw new Error('默认题库图片写入失败')
+}
+
+export async function deleteDefaultWorkspaceImage(relativePath: string) {
+  const response = await fetch(`/api/default-workspace/delete-image?path=${encodeURIComponent(relativePath)}`, { method: 'DELETE' })
+  if (!response.ok && response.status !== 404) throw new Error('默认题库图片删除失败')
+}
+
+export async function deleteDefaultWorkspaceImageByName(bankFolder: string, fileName: string) {
+  const query = new URLSearchParams({ bankFolder, fileName })
+  const response = await fetch(`/api/default-workspace/delete-image?${query.toString()}`, { method: 'DELETE' })
+  if (!response.ok && response.status !== 404) {
+    if (response.status === 409) throw new Error('本地题库中存在同名图片，无法确定删除目标')
+    throw new Error('默认题库图片删除失败')
+  }
+}
+
+export async function replaceDefaultWorkspaceImage(file: File, bankFolder: string, fileName: string) {
+  const query = new URLSearchParams({ bankFolder, fileName })
+  const response = await fetch(`/api/default-workspace/replace-image?${query.toString()}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    body: file,
+  })
+  if (!response.ok) {
+    if (response.status === 409) throw new Error('本地题库中存在同名图片，无法确定替换目标')
+    if (response.status === 404) throw new Error('找不到原图片文件，请先检查题库图片目录')
+    throw new Error('默认题库原图片替换失败')
+  }
+  return await response.json() as { relativePath: string; modified: number }
+}
+
+export async function addDefaultWorkspaceImage(file: File, bankFolder: string, anchorFileName: string, fileName: string) {
+  const query = new URLSearchParams({ bankFolder, anchorFileName, fileName })
+  const response = await fetch(`/api/default-workspace/add-image?${query.toString()}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    body: file,
+  })
+  if (!response.ok) throw new Error(response.status === 409 ? '本地题库中存在同名图片，无法添加' : '默认题库新增图片失败')
+  return await response.json() as { relativePath: string; modified: number }
+}
+
 export async function writeDefaultWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}) {
   const userData = createWorkspaceMetadata(rounds, settings, errorRecords)
   const response = await fetch('/api/default-workspace/user-data', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(userData, null, 2) })

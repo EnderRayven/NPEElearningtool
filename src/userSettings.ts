@@ -7,9 +7,10 @@ export interface UserSettings {
   examDate?: string
   activeRound: number
   roundCount: number
+  keepScreenAwake?: boolean
 }
 
-export const DEFAULT_USER_SETTINGS: UserSettings = { activeRound: 1, roundCount: 5 }
+export const DEFAULT_USER_SETTINGS: UserSettings = { activeRound: 1, roundCount: 5, keepScreenAwake: false }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -21,7 +22,7 @@ export function validateUserSettings(value: unknown): UserSettings {
   const requestedRound = Number.isInteger(value.activeRound) && Number(value.activeRound) > 0 ? Math.min(99, Number(value.activeRound)) : 1
   const requestedCount = Number.isInteger(value.roundCount) && Number(value.roundCount) > 0 ? Math.min(99, Number(value.roundCount)) : 5
   const roundCount = Math.max(5, requestedRound, requestedCount)
-  return { ...(examDate ? { examDate } : {}), activeRound: requestedRound, roundCount }
+  return { ...(examDate ? { examDate } : {}), activeRound: requestedRound, roundCount, ...(value.keepScreenAwake === true ? { keepScreenAwake: true } : {}) }
 }
 
 export function saveUserSettings(settings: UserSettings) {

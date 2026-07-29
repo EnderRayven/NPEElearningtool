@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BookOpen, Database, Download, Eraser, HardDrive, Plus, RefreshCcw, RotateCcw, Trash2, X } from 'lucide-react'
+import { BookOpen, Database, Download, Eraser, HardDrive, Pencil, Plus, RefreshCcw, RotateCcw, Trash2, X } from 'lucide-react'
 import type { QuestionBank, QuestionStatus } from './types'
 
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
   protectedBankIds: Set<string>
   onClose: () => void
   onOpenNewBank: () => void
+  onOpenEditor: () => void
   onClearMarks: (bankId: string | 'all', status: QuestionStatus | 'all') => void
   onExportBank: (bank: QuestionBank) => void
   onResetBank: (bank: QuestionBank) => Promise<void>
@@ -37,7 +38,7 @@ export default function SettingsDialog(props: Props) {
 
       <section className="settings-section settings-create-bank">
         <div className="settings-section-title"><BookOpen/><div><h3>题库管理</h3><p>从这里新建、导出、重置或删除题库</p></div></div>
-        <button className="settings-create-bank-action" onClick={props.onOpenNewBank}><span><Plus/></span><div><strong>新建题库</strong></div><span className="settings-create-bank-arrow">›</span></button>
+        <div className="settings-create-bank-actions"><button className="settings-create-bank-action" onClick={props.onOpenNewBank}><span><Plus/></span><div><strong>新建题库</strong><small>批量导入图片建立新题库</small></div><span className="settings-create-bank-arrow">›</span></button><button className="settings-create-bank-action editor-launch-action" onClick={props.onOpenEditor}><span><Pencil/></span><div><strong>编辑题目与图片</strong><small>从 PDF 截图、裁剪并新增或替换题图</small></div><span className="settings-create-bank-arrow">›</span></button></div>
       </section>
 
       <section className="settings-section">

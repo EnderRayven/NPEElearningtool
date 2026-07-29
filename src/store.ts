@@ -41,6 +41,18 @@ function optionalStringArray(value: unknown, path: string) {
   return value.map(item => item.trim())
 }
 
+function optionalNullableStringArray(value: unknown, path: string) {
+  if (value === undefined || value === null) return undefined
+  if (!Array.isArray(value) || value.some(item => item !== null && (typeof item !== 'string' || !item.trim()))) throw new Error(`${path} 必须是文本数组`)
+  return value.map(item => item === null ? null : item.trim())
+}
+
+function optionalImageKeyArray(value: unknown, path: string) {
+  if (value === undefined || value === null) return undefined
+  if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) throw new Error(`${path} 必须是文本数组`)
+  return value.map(item => item.trim())
+}
+
 function trySetItem(key: string, value: string) {
   try { localStorage.setItem(key, value); return true } catch { return false }
 }
@@ -231,9 +243,11 @@ export function validateBanks(value: unknown): QuestionBank[] {
                 const score = rawQuestion.score === undefined ? undefined : Number.isFinite(rawQuestion.score) ? rawQuestion.score as number : (() => { throw new Error(`${questionPath}.score 必须是数字`) })()
                 const keyPoint = optionalString(rawQuestion.keyPoint, `${questionPath}.keyPoint`)
                 const imageUrl = optionalString(rawQuestion.imageUrl, `${questionPath}.imageUrl`)
-                const imageKeys = optionalStringArray(rawQuestion.imageKeys, `${questionPath}.imageKeys`)
+                const imageUrls = optionalNullableStringArray(rawQuestion.imageUrls, `${questionPath}.imageUrls`)
+                const imageKeys = optionalImageKeyArray(rawQuestion.imageKeys, `${questionPath}.imageKeys`)
                 const answerImageUrl = optionalString(rawQuestion.answerImageUrl, `${questionPath}.answerImageUrl`)
-                const answerImageKeys = optionalStringArray(rawQuestion.answerImageKeys, `${questionPath}.answerImageKeys`)
+                const answerImageUrls = optionalNullableStringArray(rawQuestion.answerImageUrls, `${questionPath}.answerImageUrls`)
+                const answerImageKeys = optionalImageKeyArray(rawQuestion.answerImageKeys, `${questionPath}.answerImageKeys`)
                 const text = typeof rawQuestion.text === 'string' && rawQuestion.text.trim() === '' && (type === '图片题' || imageUrl || imageKeys?.length || answerImageUrl || answerImageKeys?.length)
                   ? ''
                   : requiredString(rawQuestion.text, `${questionPath}.text`)
@@ -249,7 +263,9 @@ export function validateBanks(value: unknown): QuestionBank[] {
                 if (keyPoint !== undefined) question.keyPoint = keyPoint
                 if (rawQuestion.options !== undefined) question.options = rawQuestion.options as string[]
                 if (imageUrl !== undefined) question.imageUrl = imageUrl
+                if (imageUrls !== undefined) question.imageUrls = imageUrls
                 if (answerImageUrl !== undefined) question.answerImageUrl = answerImageUrl
+                if (answerImageUrls !== undefined) question.answerImageUrls = answerImageUrls
                 if (imageKeys !== undefined) question.imageKeys = imageKeys
                 if (answerImageKeys !== undefined) question.answerImageKeys = answerImageKeys
                 const videoUrl = optionalString(rawQuestion.videoUrl, `${questionPath}.videoUrl`)

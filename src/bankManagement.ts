@@ -11,7 +11,7 @@ export function orderedQuestionEntriesForBank(bank: QuestionBank) {
 }
 
 export function assetKeysForBank(bank: QuestionBank) {
-  return bank.chapters.flatMap(chapter => chapter.sections.flatMap(section => section.questions.flatMap(question => [...(question.imageKeys || []), ...(question.answerImageKeys || [])])))
+  return bank.chapters.flatMap(chapter => chapter.sections.flatMap(section => section.questions.flatMap(question => [...(question.imageKeys || []), ...(question.answerImageKeys || [])].filter((key): key is string => Boolean(key)))))
 }
 
 export function clearQuestionStatuses(

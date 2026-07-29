@@ -34,14 +34,38 @@ LINEAR_MANUAL = {
     "默认题库/数学/线代/880线代/04 线性方程组 02-综合/A-04-2-26.2.png": (282, .0900, .2717),
     "默认题库/数学/线代/880线代/05 相似矩阵 01-基础/A-05-1-27.2.png": (296, .0900, .5563),
     "默认题库/数学/线代/880线代/05 相似矩阵 02-综合/A-05-2-33.2.png": (315, .0900, .2589),
-    "默认题库/数学/线代/880线代/06 二次型 01-基础/A-06-1-12.1.png": (320, .2223, .4308),
     "默认题库/数学/线代/880线代/06 二次型 01-基础/A-06-1-21.2.png": (326, .0900, .6047),
     "默认题库/数学/线代/880线代/06 二次型 02-综合/A-06-2-35.2.png": (347, .0900, .2964),
 }
 
 
 HIGH_MANUAL = {
-    "默认题库/数学/高数/880高数/02 一元函数微分学及其应用 01-基础/A-02-1-78.1.png": (49, .5514, .6808),
+}
+
+# This answer sits between a section heading and the next answer on source
+# page 7.  Its marker-based interval includes both neighbouring regions, so
+# use a fixed source-PDF vertical box while retaining the asset's existing
+# width.  The y values are source-render pixel coordinates.
+HIGH_FIXED_CROPS = {
+    "默认题库/数学/高数/880高数/01 函数、极限、连续 01-基础/A-01-1-20.1.png": (7, 376, 661),
+    "默认题库/数学/高数/880高数/02 一元函数微分学及其应用 01-基础/A-02-1-78.1.png": (49, 552, 686),
+}
+
+# Linear-algebra answer blocks that cross a nearby marker/section boundary.
+# Coordinates are in the 200-dpi source render; all keep the existing 1140px
+# asset width.
+LINEAR_FIXED_CROPS = {
+    "默认题库/数学/线代/880线代/01 行列式 01-基础/A-01-1-20.1.png": (225, 1150, 1520),
+    "默认题库/数学/线代/880线代/03 向量 01-基础/A-03-1-17.1.png": (255, 175, 647),
+    "默认题库/数学/线代/880线代/04 线性方程组 01-基础/A-04-1-22.1.png": (270, 1017, 1335),
+    "默认题库/数学/线代/880线代/04 线性方程组 02-综合/A-04-2-05.1.png": (272, 1562, 1838),
+    "默认题库/数学/线代/880线代/04 线性方程组 02-综合/A-04-2-13.1.png": (275, 1450, 1729),
+    "默认题库/数学/线代/880线代/05 相似矩阵 02-综合/A-05-2-33.2.png": (315, 160, 517),
+    "默认题库/数学/线代/880线代/06 二次型 01-基础/A-06-1-01.1.png": (317, 500, 740),
+    "默认题库/数学/线代/880线代/06 二次型 02-综合/A-06-2-35.2.png": (347, 160, 592),
+    # Keep the complete note after question 9, but stop before the next
+    # section heading on source page 320.
+    "默认题库/数学/线代/880线代/06 二次型 01-基础/A-06-1-12.1.png": (320, 445, 850),
 }
 
 
@@ -91,10 +115,59 @@ def crop_reference(folder: Path, page: int, start: float, end: float, *, x0: flo
     left = int(width * x0)
     right = int(width * x1)
     top = max(0, int(height * start) - 4)
-    bottom = min(height, int(height * end) - 10)
+    # Include the boundary itself plus a small source-PDF margin.  Cutting ten
+    # pixels before the next marker can leave the final equation clipped.
+    bottom = min(height, int(height * end) + 12)
     if bottom <= top:
         raise RuntimeError(f"裁剪边界异常：第{page}页 {start}..{end}")
     return trim_ink(source.crop((left, top, right, bottom)), threshold, preserve_width=preserve_width)
+
+
+def crop_pdf_vertical_preserve_width(folder: Path, page: int, start: tuple[int, float], end: tuple[int, float],
+                                     width: int, threshold: int = 205) -> Image.Image:
+    """Re-crop from the source page while retaining the existing PDF crop width."""
+    source = Image.open(folder / f"page-{page:03d}.png").convert("RGB")
+    last_page = page == (end[0] - 1 if end[1] <= 0 else end[0])
+    top_ratio = start[1] - .008 if page == start[0] else .078
+    bottom_ratio = end[1] + .012 if last_page else .965
+    raw = source.crop((0, int(source.height * max(0, top_ratio)), source.width,
+                       int(source.height * min(1, bottom_ratio))))
+    array = np.asarray(raw)
+    dark = array.mean(axis=2) < threshold
+    rows = np.where(dark.sum(axis=1) >= 4)[0]
+    cols = np.where(dark.sum(axis=0) >= 4)[0]
+    if not len(rows) or not len(cols):
+        raise RuntimeError(f"源 PDF 裁剪区域没有有效内容：第{page}页 {start}..{end}")
+    if width > raw.width:
+        raise RuntimeError(f"源 PDF 宽度不足，无法保持原图宽度：{width}>{raw.width}")
+    center = (int(cols[0]) + int(cols[-1]) + 1) / 2
+    left = round(center - width / 2)
+    left = max(0, min(left, raw.width - width))
+    top = max(0, int(rows[0]) - 12)
+    bottom = min(raw.height, int(rows[-1]) + 13)
+    result = raw.crop((left, top, left + width, bottom))
+    if result.width != width:
+        raise RuntimeError(f"意外改变图片宽度：{result.width}!={width}")
+    return result
+
+
+def crop_fixed_source_vertical(folder: Path, page: int, y0: int, y1: int, width: int,
+                               *, left: int | None = None, trim_vertical: bool = False) -> Image.Image:
+    """Crop a known source-PDF vertical interval without changing its width."""
+    source = Image.open(folder / f"page-{page:03d}.png").convert("RGB")
+    if not 0 <= y0 < y1 <= source.height:
+        raise RuntimeError(f"源 PDF 固定裁剪边界异常：第{page}页 y={y0}..{y1}")
+    if width > source.width:
+        raise RuntimeError(f"源 PDF 宽度不足，无法保持原图宽度：{width}>{source.width}")
+    crop_left = (source.width - width) // 2 if left is None else left
+    if not 0 <= crop_left <= source.width - width:
+        raise RuntimeError(f"源 PDF 横向裁剪边界异常：第{page}页 x={crop_left} width={width}")
+    result = source.crop((crop_left, y0, crop_left + width, y1))
+    if trim_vertical:
+        result = trim_ink(result, preserve_width=True)
+    if result.width != width:
+        raise RuntimeError(f"意外改变图片宽度：{result.width}!={width}")
+    return result
 
 
 def save_image(relative: str, image: Image.Image, *, dry_run: bool) -> None:
@@ -117,7 +190,20 @@ def repair_manual(dry_run: bool) -> list[str]:
         save_image(relative, image, dry_run=dry_run)
         changed.append(relative)
     for relative, (page, start, end) in HIGH_MANUAL.items():
-        image = crop_reference(REF100, page, start, end, x0=.075, x1=.94, threshold=245)
+        current_width = Image.open(ROOT / relative).width
+        image = crop_pdf_vertical_preserve_width(REF100, page, (page, start), (page, end), current_width)
+        save_image(relative, image, dry_run=dry_run)
+        changed.append(relative)
+    for relative, (page, y0, y1) in LINEAR_FIXED_CROPS.items():
+        current_width = Image.open(ROOT / relative).width
+        image = crop_fixed_source_vertical(
+            REF200, page, y0, y1, current_width, left=92, trim_vertical=True,
+        )
+        save_image(relative, image, dry_run=dry_run)
+        changed.append(relative)
+    for relative, (page, y0, y1) in HIGH_FIXED_CROPS.items():
+        current_width = Image.open(ROOT / relative).width
+        image = crop_fixed_source_vertical(REF100, page, y0, y1, current_width)
         save_image(relative, image, dry_run=dry_run)
         changed.append(relative)
     return changed
@@ -226,7 +312,10 @@ def auto_linear(dry_run: bool) -> list[str]:
         path = ROOT / relative
         if not path.exists() or not str(path).startswith(str(LINEAR_ROOT)):
             continue
-        array = np.asarray(Image.open(path).convert("RGB"))
+        baseline_path = BACKUP_ROOT / relative if (BACKUP_ROOT / relative).exists() else path
+        with Image.open(baseline_path) as baseline:
+            array = np.asarray(baseline.convert("RGB"))
+            baseline_size = baseline.size
         if int((array.mean(axis=2) < 170)[-1].sum()) < 5:
             continue
         key = key_for_path(path)
@@ -248,7 +337,7 @@ def auto_linear(dry_run: bool) -> list[str]:
             continue
         height = Image.open(source).height
         if path.name.endswith(".1.png"):
-            marker = ocr_marker(path)
+            marker = ocr_marker(baseline_path)
             source_start = source_marker_y(page, marker)
             if source_start is None:
                 groups = green_groups(source)
@@ -274,10 +363,10 @@ def auto_linear(dry_run: bool) -> list[str]:
         if repaired.height < array.shape[0] * .95 or repaired.height > array.shape[0] * 1.35:
             print(
                 f"跳过自动修复（尺寸变化过大） {relative}: "
-                f"{Image.open(path).size} -> {repaired.size}"
+                f"{baseline_size} -> {repaired.size}"
             )
             continue
-        print(f"自动修复 page={page} score={confidence:.3f} {relative}: {Image.open(path).size} -> {repaired.size}")
+        print(f"自动修复 page={page} score={confidence:.3f} {relative}: {baseline_size} -> {repaired.size}")
         if not dry_run:
             backup = BACKUP_ROOT / relative
             backup.parent.mkdir(parents=True, exist_ok=True)
@@ -315,29 +404,6 @@ def update_manifest_and_remove_orphans(dry_run: bool) -> list[str]:
     return removed
 
 
-def pad_remaining_edges(dry_run: bool) -> int:
-    """Add a small white safety margin to any answer image still touching its edge."""
-    padded = 0
-    for root in (LINEAR_ROOT, HIGH_ROOT):
-        for path in sorted(root.rglob("A-*.png")):
-            array = np.asarray(Image.open(path).convert("RGB"))
-            if int((array.mean(axis=2) < 170)[-1].sum()) < 3:
-                continue
-            image = Image.open(path).convert("RGB")
-            padded_image = Image.new("RGB", (image.width, image.height + 14), "white")
-            padded_image.paste(image, (0, 0))
-            relative = path.relative_to(ROOT).as_posix()
-            print(f"增加底部留白 {relative}: {image.size} -> {padded_image.size}")
-            if not dry_run:
-                backup = BACKUP_ROOT / relative
-                backup.parent.mkdir(parents=True, exist_ok=True)
-                if not backup.exists():
-                    shutil.copy2(path, backup)
-                padded_image.save(path, optimize=True)
-            padded += 1
-    return padded
-
-
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
@@ -349,8 +415,7 @@ def main() -> None:
     if not args.manual_only:
         changed.extend(auto_linear(args.dry_run))
     removed = update_manifest_and_remove_orphans(args.dry_run)
-    padded = pad_remaining_edges(args.dry_run)
-    print(json.dumps({"changed": len(changed), "removed": len(removed), "padded": padded, "dryRun": args.dry_run}, ensure_ascii=False))
+    print(json.dumps({"changed": len(changed), "removed": len(removed), "dryRun": args.dry_run}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

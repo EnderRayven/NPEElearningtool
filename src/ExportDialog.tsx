@@ -3,6 +3,7 @@ import { FileImage, FileText, X } from 'lucide-react'
 import AssetGallery from './AssetGallery'
 import { getAssetFiles } from './assets'
 import { safeFolderName } from './workspace'
+import { questionImageSources } from './questionImages'
 import type { Question, QuestionBank, QuestionStatus } from './types'
 
 export interface ExportJob {
@@ -137,13 +138,14 @@ export async function waitForExportContent(container: HTMLElement, timeoutMs = 2
 export function ExportPage({ questions, statuses = {}, questionContext = {}, pageNumber, showType = true }: { questions: Question[]; statuses?: Record<string, QuestionStatus>; questionContext?: Record<string, ExportQuestionContext>; pageNumber: number; showType?: boolean }) {
   return <article className={`export-page${questions.length > 1 ? ' export-page-two-up' : ''}`}>
     {questions.map(question => {
-      const text = (question.type === '图片题' || question.imageUrl || question.imageKeys?.length) && question.text === `第 ${question.number} 题` ? '' : question.text
+      const imageSources = questionImageSources(question, 'question')
+      const text = (question.type === '图片题' || imageSources.length) && question.text === `第 ${question.number} 题` ? '' : question.text
       const questionStatus = statuses[question.id] || 'none'
       const context = questionContext[question.id]
       return <section className="export-question" key={question.id}>
         <div className="export-question-title"><strong>{String(question.number).padStart(2, '0')}</strong>{context && <span className="export-question-context">{context.chapterName} · {context.sectionName}</span>}<span className={`export-mastery ${questionStatus}`}>{exportStatusLabels[questionStatus]}</span>{showType && question.type && <span>{question.type}</span>}</div>
         {text && <p>{text}</p>}
-        <AssetGallery keys={question.imageKeys} urls={question.imageUrl ? [question.imageUrl] : []} alt="题目配图" trackExportLoading/>
+        <AssetGallery sources={imageSources} alt="题目配图" trackExportLoading/>
         {question.options?.map(option => <p className="export-option" key={option}>{option}</p>)}
       </section>
     })}

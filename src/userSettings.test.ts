@@ -33,4 +33,10 @@ describe('用户设置', () => {
     expect(loadUserSettings()).toEqual({ examDate: '2026-12-19', activeRound: 2, roundCount: 5 })
     expect(localStorage.getItem('npee:exam-date:v1')).toBeNull()
   })
+
+  it('可保存不熄屏设置', () => {
+    expect(validateUserSettings({ keepScreenAwake: true })).toMatchObject({ keepScreenAwake: true })
+    expect(saveUserSettings({ activeRound: 1, roundCount: 5, keepScreenAwake: true })).toBe(true)
+    expect(loadUserSettings().keepScreenAwake).toBe(true)
+  })
 })

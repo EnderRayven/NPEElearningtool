@@ -1,5 +1,5 @@
 import { createReadStream } from 'node:fs'
-import { mkdir, readdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, realpath, stat, unlink, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { defineConfig, type Connect, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -92,6 +92,16 @@ function defaultWorkspacePlugin(): Plugin {
     }
     return output
   }
+  async function findFilesByName(directory: string, fileName: string): Promise<string[]> {
+    const matches: string[] = []
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (entry.name.startsWith('.')) continue
+      const absolute = path.join(directory, entry.name)
+      if (entry.isDirectory()) matches.push(...await findFilesByName(absolute, fileName))
+      else if (entry.isFile() && entry.name === fileName) matches.push(absolute)
+    }
+    return matches
+  }
   const configureWorkspaceServer = (server: { middlewares: Connect.Server }) => {
       server.middlewares.use('/api/default-workspace/index', async (_request, response) => {
         try {
@@ -118,6 +128,98 @@ function defaultWorkspacePlugin(): Plugin {
           response.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
           createReadStream(resolvedFile).on('error', () => { response.statusCode = 404; response.end() }).pipe(response)
         } catch { response.statusCode = 404; response.end() }
+      })
+      server.middlewares.use('/api/default-workspace/image', (request, response) => {
+        if (request.method !== 'PUT') { response.statusCode = 405; response.end(); return }
+        const relative = new URL(request.url || '', 'http://localhost').searchParams.get('path') || ''
+        const absolute = path.resolve(root, relative)
+        if (absolute === root || !absolute.startsWith(`${root}${path.sep}`)) { response.statusCode = 403; response.end('路径不安全'); return }
+        const chunks: Buffer[] = []
+        request.on('data', chunk => chunks.push(chunk))
+        request.on('end', async () => {
+          try {
+            await mkdir(path.dirname(absolute), { recursive: true })
+            await writeFile(absolute, Buffer.concat(chunks))
+            response.setHeader('Content-Type', 'application/json'); response.end('{"ok":true}')
+          } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '图片写入失败') }
+        })
+      })
+      server.middlewares.use('/api/default-workspace/delete-image', (request, response) => {
+        if (request.method !== 'DELETE') { response.statusCode = 405; response.end(); return }
+        const params = new URL(request.url || '', 'http://localhost').searchParams
+        const relative = params.get('path') || ''
+        const bankFolder = params.get('bankFolder') || ''
+        const fileName = params.get('fileName') || ''
+        const reject = (statusCode: number, message: string) => {
+          const error = new Error(message) as Error & { statusCode: number }
+          error.statusCode = statusCode
+          throw error
+        }
+        const remove = async () => {
+          if (relative) {
+            const absolute = path.resolve(root, relative)
+            if (absolute === root || !absolute.startsWith(`${root}${path.sep}`)) reject(403, '路径不安全')
+            await unlink(absolute)
+            return
+          }
+          if (!bankFolder || !fileName || fileName.includes('/') || fileName.includes('\\') || !IMAGE_PATTERN.test(fileName)) reject(400, '删除目标无效')
+          const folder = path.resolve(root, bankFolder)
+          if (!folder.startsWith(`${root}${path.sep}`)) reject(403, '路径不安全')
+          const matches = await findFilesByName(folder, fileName)
+          if (!matches.length) reject(404, '图片不存在')
+          if (matches.length > 1) reject(409, '存在多个同名图片')
+          await unlink(matches[0])
+        }
+        void remove()
+          .then(() => { response.setHeader('Content-Type', 'application/json'); response.end('{"ok":true}') })
+          .catch(error => {
+            const statusCode = (error as { statusCode?: number }).statusCode || ((error as NodeJS.ErrnoException).code === 'ENOENT' ? 404 : 400)
+            response.statusCode = statusCode; response.end(error instanceof Error ? error.message : '图片删除失败')
+          })
+      })
+      server.middlewares.use('/api/default-workspace/replace-image', (request, response) => {
+        if (request.method !== 'PUT') { response.statusCode = 405; response.end(); return }
+        const params = new URL(request.url || '', 'http://localhost').searchParams
+        const bankFolder = params.get('bankFolder') || ''
+        const fileName = params.get('fileName') || ''
+        if (!bankFolder || !fileName || fileName.includes('/') || fileName.includes('\\') || !IMAGE_PATTERN.test(fileName)) { response.statusCode = 400; response.end('替换目标无效'); return }
+        const folder = path.resolve(root, bankFolder)
+        if (!folder.startsWith(`${root}${path.sep}`)) { response.statusCode = 403; response.end('路径不安全'); return }
+        const chunks: Buffer[] = []
+        request.on('data', chunk => chunks.push(chunk))
+        request.on('end', async () => {
+          try {
+            const matches = await findFilesByName(folder, fileName)
+            if (!matches.length) { response.statusCode = 404; response.end('原图片不存在'); return }
+            if (matches.length > 1) { response.statusCode = 409; response.end('存在多个同名图片') ; return }
+            await writeFile(matches[0], Buffer.concat(chunks))
+            response.setHeader('Content-Type', 'application/json')
+            response.end(JSON.stringify({ relativePath: path.relative(root, matches[0]).replaceAll(path.sep, '/'), modified: Date.now() }))
+          } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '图片替换失败') }
+        })
+      })
+      server.middlewares.use('/api/default-workspace/add-image', (request, response) => {
+        if (request.method !== 'PUT') { response.statusCode = 405; response.end(); return }
+        const params = new URL(request.url || '', 'http://localhost').searchParams
+        const bankFolder = params.get('bankFolder') || ''
+        const anchorFileName = params.get('anchorFileName') || ''
+        const fileName = params.get('fileName') || ''
+        if (!bankFolder || !anchorFileName || !fileName || [anchorFileName, fileName].some(value => value.includes('/') || value.includes('\\') || !IMAGE_PATTERN.test(value))) { response.statusCode = 400; response.end('新增目标无效'); return }
+        const folder = path.resolve(root, bankFolder)
+        if (!folder.startsWith(`${root}${path.sep}`)) { response.statusCode = 403; response.end('路径不安全'); return }
+        const chunks: Buffer[] = []
+        request.on('data', chunk => chunks.push(chunk))
+        request.on('end', async () => {
+          try {
+            const matches = await findFilesByName(folder, anchorFileName)
+            if (!matches.length) { response.statusCode = 404; response.end('找不到图片目录'); return }
+            if (matches.length > 1) { response.statusCode = 409; response.end('存在多个同名图片'); return }
+            const target = path.join(path.dirname(matches[0]), fileName)
+            await writeFile(target, Buffer.concat(chunks))
+            response.setHeader('Content-Type', 'application/json')
+            response.end(JSON.stringify({ relativePath: path.relative(root, target).replaceAll(path.sep, '/'), modified: Date.now() }))
+          } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '图片新增失败') }
+        })
       })
       server.middlewares.use('/api/default-workspace/manifest', (request, response) => {
         if (request.method !== 'PUT') { response.statusCode = 405; response.end(); return }

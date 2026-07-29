@@ -52,8 +52,8 @@
 .notes-dialog-context > span { flex: 0 0 auto; color: #a15c53; font-size: 7px; font-weight: 700; letter-spacing: 1.4px; white-space: nowrap; }
 .notes-dialog-context strong { min-width: 0; overflow: hidden; color: #403a35; font-size: 16px; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
 .notes-dialog-context small { flex: 0 0 auto; color: #a09890; font-size: 8px; white-space: nowrap; }
-.notes-dialog-body { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 0; flex: 1; overflow: hidden; }
-.notes-sidebar { display: flex; min-width: 0; min-height: 0; flex-direction: column; overflow: hidden; overscroll-behavior: contain; padding: 12px 12px 0; border-right: 1px solid #eee7e0; background: rgba(252, 249, 246, .78); }
+.notes-dialog-body { display: grid; grid-template-columns: 240px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); min-height: 0; flex: 1; overflow: hidden; }
+.notes-sidebar { position: static; top: auto; display: flex; width: auto; height: auto; min-width: 0; min-height: 0; flex-direction: column; overflow: hidden; overscroll-behavior: contain; padding: 12px 12px 0; border-right: 1px solid #eee7e0; background: rgba(252, 249, 246, .78); }
 
 .notes-sidebar-summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: baseline; padding: 11px 11px 10px; border: 1px solid #eee3da; border-radius: 10px; background: #fffdfb; }
 .notes-sidebar-summary > div:first-child { display: flex; align-items: baseline; gap: 5px; }
@@ -74,11 +74,11 @@
 .notes-nav-label { display: grid; gap: 3px; margin: 0 2px 8px; }
 .notes-nav-label span { color: #a15c53; font-size: 7px; font-weight: 700; letter-spacing: 1.4px; }
 .notes-nav-label strong { color: #514840; font-size: 12px; }
-.notes-nav-groups { display: grid; flex: 1 1 auto; min-height: 0; gap: 7px; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 18px; scrollbar-color: #d2c7bf transparent; scrollbar-width: thin; }
+.notes-nav-groups { display: grid; flex: 1 1 auto; min-height: 0; grid-auto-rows: max-content; align-content: start; gap: 7px; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 18px; scrollbar-color: #d2c7bf transparent; scrollbar-width: thin; }
 .notes-nav-groups::-webkit-scrollbar { width: 7px; }
 .notes-nav-groups::-webkit-scrollbar-track { background: transparent; }
 .notes-nav-groups::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 7px; background: #d2c7bf; background-clip: padding-box; }
-.notes-nav-bank { overflow: hidden; border: 1px solid #ebe2da; border-radius: 9px; background: rgba(255, 255, 255, .75); }
+.notes-nav-bank { align-self: start; overflow: hidden; border: 1px solid #ebe2da; border-radius: 9px; background: rgba(255, 255, 255, .75); }
 .notes-nav-bank.active { border-color: #ddc4be; box-shadow: 0 3px 10px rgba(95, 56, 42, .05); }
 .notes-nav-bank-heading { display: flex; justify-content: space-between; gap: 7px; align-items: center; width: 100%; padding: 8px 9px; border: 0; border-bottom: 1px solid #f0e9e2; background: #fcfaf7; color: #514840; text-align: left; }
 .notes-nav-bank-heading:hover { background: #faf1ee; }
@@ -132,7 +132,7 @@
 .notes-stream-open:hover { border-color: #bd837b; background: #f9ebe8; }
 .notes-stream-question { max-height: 76px; margin: 8px 0 0; overflow-y: auto; color: #80766e; font-size: 9px; line-height: 1.6; white-space: pre-wrap; }
 .notes-stream-text { margin-top: 9px; padding: 9px 11px; border-left: 2px solid #dfc3bd; background: #fcfaf8; color: #514840; font-size: 10px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
-.notes-stream-drawing { display: flex; justify-content: center; min-width: 0; margin-top: 9px; padding: 11px 13px; overflow: auto; border: 1px solid #eee5de; border-radius: 8px; background: linear-gradient(180deg, #fff 0, #fcfaf7 100%); }
+.notes-stream-drawing { display: flex; justify-content: center; min-width: 0; margin-top: 9px; padding: 11px 13px; overflow: auto; border: 1px solid #eee5de; border-radius: 8px; background-color: #fffdf9; background-image: linear-gradient(rgba(185, 172, 159, .14) 1px, transparent 1px), linear-gradient(90deg, rgba(185, 172, 159, .14) 1px, transparent 1px); background-size: 24px 24px; }
 .notes-stream-drawing svg { display: block; width: 100%; height: auto; min-width: 0; flex: 0 0 auto; }
 .notes-detail-placeholder { display: grid; justify-items: center; gap: 9px; min-height: 380px; padding-top: 150px; color: #b0a69e; text-align: center; }
 .notes-detail-placeholder svg { color: #c39088; }

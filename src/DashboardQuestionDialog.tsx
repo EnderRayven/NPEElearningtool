@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { CalendarClock, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Plus, RotateCcw, Trash2, X } from 'lucide-react'
 import AssetGallery from './AssetGallery'
+import { questionImageSources } from './questionImages'
 import { isImageAnswerPlaceholder } from './questionPresentation'
 import { buildQuestionReviewTimeline } from './questionReview'
 import { localDateKey, type StudyActivity } from './studyActivity'
@@ -88,12 +89,15 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
     const root = document.documentElement
+    const previousRootOverflow = root.style.overflow
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
     document.body.style.overflow = 'hidden'
+    root.style.overflow = 'hidden'
     root.classList.add('dashboard-question-modal-open')
     window.addEventListener('keydown', closeOnEscape)
     return () => {
       document.body.style.overflow = previousOverflow
+      root.style.overflow = previousRootOverflow
       root.classList.remove('dashboard-question-modal-open')
       window.removeEventListener('keydown', closeOnEscape)
     }
@@ -148,7 +152,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
         </div>
         <div className="dashboard-question-content" id="dashboard-question-title">
           {!hidesPlaceholderText && question.text && <p>{question.text}</p>}
-          <AssetGallery keys={question.imageKeys} urls={question.imageUrl ? [question.imageUrl] : []} alt="题目配图"/>
+          <AssetGallery sources={questionImageSources(question, 'question')} alt="题目配图"/>
           {question.options && <div className="options">{question.options.map((option, index) => <div key={index}>{option}</div>)}</div>}
         </div>
         <button className="passage-answer-toggle dashboard-answer-toggle" aria-expanded={answerOpen} onClick={() => setAnswerOpen(previous => !previous)}>
@@ -159,7 +163,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
           <div className={usesImageAnswer ? 'answer-analysis combined-image-answer' : 'answer-analysis'}>
             <span>{usesImageAnswer ? '参考答案和解析' : '解析'}</span>
             {hasAnswerImages
-              ? <AssetGallery keys={question.answerImageKeys} urls={question.answerImageUrl ? [question.answerImageUrl] : []} alt={usesImageAnswer ? '参考答案和解析' : '解析截图'} eager/>
+              ? <AssetGallery sources={questionImageSources(question, 'answer')} alt={usesImageAnswer ? '参考答案和解析' : '解析截图'} eager/>
               : question.analysis ? <p>{question.analysis}</p> : <p className="analysis-missing">暂未收录解析</p>}
           </div>
           {question.videoUrl && <a href={question.videoUrl} target="_blank" rel="noreferrer">观看视频解析 →</a>}

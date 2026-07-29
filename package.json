@@ -2,7 +2,7 @@
   "name": "npee-study-space",
   "productName": "考研学习空间",
   "private": true,
-  "version": "0.3.9",
+  "version": "0.4.0",
   "description": "本地优先的考研题库、错题复盘与学习进度工具",
   "homepage": "https://github.com/EnderRayven/NPEElearningtool#readme",
   "repository": {
@@ -23,6 +23,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "latest",
     "lucide-react": "latest",
+    "pdfjs-dist": "^6.1.200",
     "react": "latest",
     "react-dom": "latest",
     "typescript": "latest",

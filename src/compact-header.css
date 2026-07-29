@@ -150,7 +150,10 @@
   .passage-question-nav {
     position: sticky;
     top: 90px;
-    max-height: calc(100vh - 112px);
+    /* The rail starts below the page heading on the first screen. Reserve
+       that space too, so the card itself stays inside the viewport before
+       sticky positioning takes effect. Its contents can scroll internally. */
+    max-height: calc(100vh - 168px);
     overflow-y: auto;
     overscroll-behavior: contain;
   }
@@ -470,6 +473,35 @@
 .round-settings-section > div > button:disabled { color: #aaa29a; cursor: default; }
 .countdown-settings-section > small,
 .round-settings-section > small { display: block; margin: 7px 3px 0; color: #a09890; font-size: 8px; line-height: 1.5; }
+.screen-awake-settings-section > div { display: block; }
+.screen-awake-control {
+  grid-template-columns: 29px minmax(0, 1fr) auto !important;
+  width: 100%;
+  min-height: 62px !important;
+}
+.screen-awake-control > i {
+  padding: 4px 7px;
+  border: 1px solid #ded6ce;
+  border-radius: 999px;
+  color: #938980;
+  font-size: 8px;
+  font-style: normal;
+  white-space: nowrap;
+}
+.screen-awake-control.active {
+  border-color: #cba39e !important;
+  background: #fff6f3 !important;
+  color: #8f3028 !important;
+}
+.screen-awake-control.active > i {
+  border-color: #d6aaa4;
+  background: #f8e8e4;
+  color: #8f3028;
+}
+.screen-awake-control:disabled {
+  cursor: not-allowed;
+  opacity: .62;
+}
 .settings-tools-popover .stats-settings-section > div { display: grid; grid-template-columns: 1fr; gap: 3px; padding: 10px 12px; border: 1px solid #e8e0d8; border-radius: 9px; background: #faf8f5; }
 .stats-settings-section strong { color: #5a534d; font-size: 10px; }
 .stats-settings-section small { color: #958d85; font-size: 8px; line-height: 1.6; }

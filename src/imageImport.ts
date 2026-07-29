@@ -63,8 +63,20 @@ export async function mergeImageEntries(initialBanks: QuestionBank[], entries: I
       if (!update) continue
       const questionKeys = update.question.sort((a, b) => a.order - b.order).map(entry => entry.key)
       const answerKeys = update.answer.sort((a, b) => a.order - b.order).map(entry => entry.key)
-      question.imageKeys = options.replaceExistingAssets ? questionKeys : [...new Set([...(question.imageKeys || []), ...questionKeys])]
-      question.answerImageKeys = options.replaceExistingAssets ? answerKeys : [...new Set([...(question.answerImageKeys || []), ...answerKeys])]
+      if (update.question.length) {
+        question.imageKeys = options.replaceExistingAssets ? questionKeys : [...new Set([...(question.imageKeys || []), ...questionKeys])]
+        if (options.replaceExistingAssets) {
+          question.imageUrl = undefined
+          question.imageUrls = undefined
+        }
+      }
+      if (update.answer.length) {
+        question.answerImageKeys = options.replaceExistingAssets ? answerKeys : [...new Set([...(question.answerImageKeys || []), ...answerKeys])]
+        if (options.replaceExistingAssets) {
+          question.answerImageUrl = undefined
+          question.answerImageUrls = undefined
+        }
+      }
     }
     return clone
   })

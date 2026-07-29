@@ -1,7 +1,7 @@
 {
   "version": 2,
   "builtinEnglishVersion": 6,
-  "updatedAt": "2026-07-27T12:54:34.857Z",
+  "updatedAt": "2026-07-29T08:12:54.346Z",
   "banks": [
     {
       "id": "workspace-1783924545931-2",
@@ -47691,7 +47691,8 @@
                   "analysis": "原讲义参考答案",
                   "type": "图片题",
                   "imageKeys": [
-                    "default-mechanical-theory-lecture-exercises-04-1-05/question/1-Q-04-1-05.1.png"
+                    "default-mechanical-theory-lecture-exercises-04-1-05/question/1-Q-04-1-05.1.png",
+                    "default-mechanical-theory-lecture-exercises-04-1-05/question/2-Q-04-1-05.2.png"
                   ],
                   "answerImageKeys": [
                     "default-mechanical-theory-lecture-exercises-04-1-05/answer/1-A-04-1-05.1.png",
@@ -47710,7 +47711,8 @@
                     "default-mechanical-theory-lecture-exercises-04-1-06/question/2-Q-04-1-06.2.png"
                   ],
                   "answerImageKeys": [
-                    "default-mechanical-theory-lecture-exercises-04-1-06/answer/1-A-04-1-06.1.png"
+                    "default-mechanical-theory-lecture-exercises-04-1-06/answer/1-A-04-1-06.1.png",
+                    "default-mechanical-theory-lecture-exercises-04-1-06/answer/2-A-04-1-06.2.png"
                   ]
                 },
                 {
@@ -56017,8 +56019,7 @@
                   "analysis": "原书答案与解析",
                   "type": "图片题",
                   "imageKeys": [
-                    "default-mechanical-theory-basic-450-08-5-01/question/1-Q-08-5-01.1.png",
-                    "default-mechanical-theory-basic-450-08-5-01/question/2-Q-08-5-01.2.png"
+                    "default-mechanical-theory-basic-450-08-5-01/question/1-Q-08-5-01.1.png"
                   ],
                   "answerImageKeys": [
                     "default-mechanical-theory-basic-450-08-5-01/answer/1-A-08-5-01.1.png"
@@ -56032,8 +56033,7 @@
                   "analysis": "原书答案与解析",
                   "type": "图片题",
                   "imageKeys": [
-                    "default-mechanical-theory-basic-450-08-5-02/question/1-Q-08-5-02.1.png",
-                    "default-mechanical-theory-basic-450-08-5-02/question/2-Q-08-5-02.2.png"
+                    "default-mechanical-theory-basic-450-08-5-02/question/1-Q-08-5-02.1.png"
                   ],
                   "answerImageKeys": [
                     "default-mechanical-theory-basic-450-08-5-02/answer/1-A-08-5-02.1.png"
@@ -56089,8 +56089,7 @@
                   "analysis": "原书答案与解析",
                   "type": "图片题",
                   "imageKeys": [
-                    "default-mechanical-theory-basic-450-08-5-06/question/1-Q-08-5-06.1.png",
-                    "default-mechanical-theory-basic-450-08-5-06/question/2-Q-08-5-06.2.png"
+                    "default-mechanical-theory-basic-450-08-5-06/question/1-Q-08-5-06.1.png"
                   ],
                   "answerImageKeys": [
                     "default-mechanical-theory-basic-450-08-5-06/answer/1-A-08-5-06.1.png"
@@ -102465,343 +102464,310 @@
       "workspaceFolder": "数学/真题/数学二真题"
     },
     {
-      "id": "default-1784874021707-21",
-      "name": "机械设计·讲义课后习题",
+      "id": "default-kira-linear-strengthened",
+      "name": "Kira线代强化",
       "source": "local",
       "chapters": [
         {
-          "id": "default-1784874021707-21-chapter-01",
-          "name": "机械设计总论",
+          "id": "default-kira-linear-strengthened-chapter-01",
+          "name": "01 行列式",
           "sections": [
             {
-              "id": "default-1784874021707-21-chapter-01-section-1",
-              "name": "课后习题",
+              "id": "default-kira-linear-strengthened-chapter-01-section-1",
+              "name": "选择题",
               "questions": [
                 {
-                  "id": "default-1784874021707-21-01-1-01",
+                  "id": "default-kira-linear-strengthened-01-1-01",
                   "number": 1,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-01-1-01/question/1-Q-01-1-01.1.png"
+                    "default-kira-linear-strengthened-01-1-01/question/1-Q-01-1-01.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-01-1-01/answer/1-A-01-1-01.1.png"
+                    "default-kira-linear-strengthened-01-1-01/answer/1-A-01-1-01.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-01-1-02",
+                  "id": "default-kira-linear-strengthened-01-1-02",
                   "number": 2,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-01-1-02/question/1-Q-01-1-02.1.png"
+                    "default-kira-linear-strengthened-01-1-02/question/1-Q-01-1-02.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-01-1-02/answer/1-A-01-1-02.1.png"
+                    "default-kira-linear-strengthened-01-1-02/answer/1-A-01-1-02.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-01-1-03",
+                  "id": "default-kira-linear-strengthened-01-1-03",
                   "number": 3,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-01-1-03/question/1-Q-01-1-03.1.png"
+                    "default-kira-linear-strengthened-01-1-03/question/1-Q-01-1-03.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-01-1-03/answer/1-A-01-1-03.1.png",
-                    "default-1784874021707-21-01-1-03/answer/2-A-01-1-03.2.png"
+                    "default-kira-linear-strengthened-01-1-03/answer/1-A-01-1-03.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-01-1-04",
+                  "id": "default-kira-linear-strengthened-01-1-04",
                   "number": 4,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-01-1-04/question/1-Q-01-1-04.1.png"
+                    "default-kira-linear-strengthened-01-1-04/question/1-Q-01-1-04.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-01-1-04/answer/1-A-01-1-04.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-01-1-05",
-                  "number": 5,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-01-1-05/question/1-Q-01-1-05.1.png",
-                    "default-1784874021707-21-01-1-05/question/2-Q-01-1-05.2.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-01-1-05/answer/1-A-01-1-05.1.png"
+                    "default-kira-linear-strengthened-01-1-04/answer/1-A-01-1-04.1.png"
                   ]
                 }
               ]
-            }
-          ]
-        },
-        {
-          "id": "default-1784874021707-21-chapter-02",
-          "name": "机械零件的强度",
-          "sections": [
+            },
             {
-              "id": "default-1784874021707-21-chapter-02-section-1",
-              "name": "课后习题",
+              "id": "default-kira-linear-strengthened-chapter-01-section-2",
+              "name": "填空题",
               "questions": [
                 {
-                  "id": "default-1784874021707-21-02-1-01",
+                  "id": "default-kira-linear-strengthened-01-2-01",
                   "number": 1,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-02-1-01/question/1-Q-02-1-01.1.png"
+                    "default-kira-linear-strengthened-01-2-01/question/1-Q-01-2-01.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-02-1-01/answer/1-A-02-1-01.1.png"
+                    "default-kira-linear-strengthened-01-2-01/answer/1-A-01-2-01.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-02-1-02",
+                  "id": "default-kira-linear-strengthened-01-2-02",
                   "number": 2,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-02-1-02/question/1-Q-02-1-02.1.png"
+                    "default-kira-linear-strengthened-01-2-02/question/1-Q-01-2-02.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-02-1-02/answer/1-A-02-1-02.1.png"
+                    "default-kira-linear-strengthened-01-2-02/answer/1-A-01-2-02.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-02-1-03",
+                  "id": "default-kira-linear-strengthened-01-2-03",
                   "number": 3,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-02-1-03/question/1-Q-02-1-03.1.png"
+                    "default-kira-linear-strengthened-01-2-03/question/1-Q-01-2-03.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-02-1-03/answer/1-A-02-1-03.1.png"
+                    "default-kira-linear-strengthened-01-2-03/answer/1-A-01-2-03.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-02-1-04",
+                  "id": "default-kira-linear-strengthened-01-2-04",
                   "number": 4,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-02-1-04/question/1-Q-02-1-04.1.png"
+                    "default-kira-linear-strengthened-01-2-04/question/1-Q-01-2-04.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-02-1-04/answer/1-A-02-1-04.1.png",
-                    "default-1784874021707-21-02-1-04/answer/2-A-02-1-04.2.png"
+                    "default-kira-linear-strengthened-01-2-04/answer/1-A-01-2-04.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-02-1-05",
+                  "id": "default-kira-linear-strengthened-01-2-05",
                   "number": 5,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-02-1-05/question/1-Q-02-1-05.1.png"
+                    "default-kira-linear-strengthened-01-2-05/question/1-Q-01-2-05.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-02-1-05/answer/1-A-02-1-05.1.png"
+                    "default-kira-linear-strengthened-01-2-05/answer/1-A-01-2-05.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-02-1-06",
+                  "id": "default-kira-linear-strengthened-01-2-06",
                   "number": 6,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-02-1-06/question/1-Q-02-1-06.1.png"
+                    "default-kira-linear-strengthened-01-2-06/question/1-Q-01-2-06.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-02-1-06/answer/1-A-02-1-06.1.png"
+                    "default-kira-linear-strengthened-01-2-06/answer/1-A-01-2-06.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-02-1-07",
+                  "id": "default-kira-linear-strengthened-01-2-07",
                   "number": 7,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-02-1-07/question/1-Q-02-1-07.1.png"
+                    "default-kira-linear-strengthened-01-2-07/question/1-Q-01-2-07.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-02-1-07/answer/1-A-02-1-07.1.png",
-                    "default-1784874021707-21-02-1-07/answer/2-A-02-1-07.2.png"
+                    "default-kira-linear-strengthened-01-2-07/answer/1-A-01-2-07.1.png",
+                    "default-kira-linear-strengthened-01-2-07/answer/2-A-01-2-07.2.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-02-1-08",
+                  "id": "default-kira-linear-strengthened-01-2-08",
                   "number": 8,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-02-1-08/question/1-Q-02-1-08.1.png"
+                    "default-kira-linear-strengthened-01-2-08/question/1-Q-01-2-08.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-02-1-08/answer/1-A-02-1-08.1.png"
+                    "default-kira-linear-strengthened-01-2-08/answer/1-A-01-2-08.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-02-1-09",
+                  "id": "default-kira-linear-strengthened-01-2-09",
                   "number": 9,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-02-1-09/question/1-Q-02-1-09.1.png"
+                    "default-kira-linear-strengthened-01-2-09/question/1-Q-01-2-09.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-02-1-09/answer/1-A-02-1-09.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-02-1-10",
-                  "number": 10,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-02-1-10/question/1-Q-02-1-10.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-02-1-10/answer/1-A-02-1-10.1.png"
+                    "default-kira-linear-strengthened-01-2-09/answer/1-A-01-2-09.1.png"
                   ]
                 }
               ]
-            }
-          ]
-        },
-        {
-          "id": "default-1784874021707-21-chapter-03",
-          "name": "摩擦、磨损及润滑概述",
-          "sections": [
+            },
             {
-              "id": "default-1784874021707-21-chapter-03-section-1",
-              "name": "课后习题",
+              "id": "default-kira-linear-strengthened-chapter-01-section-3",
+              "name": "解答题",
               "questions": [
                 {
-                  "id": "default-1784874021707-21-03-1-01",
+                  "id": "default-kira-linear-strengthened-01-3-01",
                   "number": 1,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-03-1-01/question/1-Q-03-1-01.1.png"
+                    "default-kira-linear-strengthened-01-3-01/question/1-Q-01-3-01.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-03-1-01/answer/1-A-03-1-01.1.png"
+                    "default-kira-linear-strengthened-01-3-01/answer/1-A-01-3-01.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-03-1-02",
+                  "id": "default-kira-linear-strengthened-01-3-02",
                   "number": 2,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-03-1-02/question/1-Q-03-1-02.1.png"
+                    "default-kira-linear-strengthened-01-3-02/question/1-Q-01-3-02.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-03-1-02/answer/1-A-03-1-02.1.png"
+                    "default-kira-linear-strengthened-01-3-02/answer/1-A-01-3-02.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-03-1-03",
+                  "id": "default-kira-linear-strengthened-01-3-03",
                   "number": 3,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-03-1-03/question/1-Q-03-1-03.1.png"
+                    "default-kira-linear-strengthened-01-3-03/question/1-Q-01-3-03.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-03-1-03/answer/1-A-03-1-03.1.png"
+                    "default-kira-linear-strengthened-01-3-03/answer/1-A-01-3-03.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-03-1-04",
+                  "id": "default-kira-linear-strengthened-01-3-04",
                   "number": 4,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-03-1-04/question/1-Q-03-1-04.1.png"
+                    "default-kira-linear-strengthened-01-3-04/question/1-Q-01-3-04.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-03-1-04/answer/1-A-03-1-04.1.png"
+                    "default-kira-linear-strengthened-01-3-04/answer/1-A-01-3-04.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-03-1-05",
+                  "id": "default-kira-linear-strengthened-01-3-05",
                   "number": 5,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-03-1-05/question/1-Q-03-1-05.1.png"
+                    "default-kira-linear-strengthened-01-3-05/question/1-Q-01-3-05.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-03-1-05/answer/1-A-03-1-05.1.png"
+                    "default-kira-linear-strengthened-01-3-05/answer/1-A-01-3-05.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-03-1-06",
+                  "id": "default-kira-linear-strengthened-01-3-06",
                   "number": 6,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-03-1-06/question/1-Q-03-1-06.1.png"
+                    "default-kira-linear-strengthened-01-3-06/question/1-Q-01-3-06.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-03-1-06/answer/1-A-03-1-06.1.png"
+                    "default-kira-linear-strengthened-01-3-06/answer/1-A-01-3-06.1.png",
+                    "default-kira-linear-strengthened-01-3-06/answer/2-A-01-3-06.2.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-03-1-07",
+                  "id": "default-kira-linear-strengthened-01-3-07",
                   "number": 7,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-03-1-07/question/1-Q-03-1-07.1.png"
+                    "default-kira-linear-strengthened-01-3-07/question/1-Q-01-3-07.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-03-1-07/answer/1-A-03-1-07.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-03-1-08",
-                  "number": 8,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-03-1-08/question/1-Q-03-1-08.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-03-1-08/answer/1-A-03-1-08.1.png"
+                    "default-kira-linear-strengthened-01-3-07/answer/1-A-01-3-07.1.png"
                   ]
                 }
               ]
@@ -102809,642 +102775,508 @@
           ]
         },
         {
-          "id": "default-1784874021707-21-chapter-04",
-          "name": "螺纹连接和螺旋传动",
+          "id": "default-kira-linear-strengthened-chapter-02",
+          "name": "02 矩阵",
           "sections": [
             {
-              "id": "default-1784874021707-21-chapter-04-section-1",
-              "name": "课后习题",
+              "id": "default-kira-linear-strengthened-chapter-02-section-1",
+              "name": "选择题",
               "questions": [
                 {
-                  "id": "default-1784874021707-21-04-1-01",
+                  "id": "default-kira-linear-strengthened-02-1-01",
                   "number": 1,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-04-1-01/question/1-Q-04-1-01.1.png"
+                    "default-kira-linear-strengthened-02-1-01/question/1-Q-02-1-01.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-04-1-01/answer/1-A-04-1-01.1.png"
+                    "default-kira-linear-strengthened-02-1-01/answer/1-A-02-1-01.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-04-1-02",
+                  "id": "default-kira-linear-strengthened-02-1-02",
                   "number": 2,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-04-1-02/question/1-Q-04-1-02.1.png"
+                    "default-kira-linear-strengthened-02-1-02/question/1-Q-02-1-02.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-04-1-02/answer/1-A-04-1-02.1.png"
+                    "default-kira-linear-strengthened-02-1-02/answer/1-A-02-1-02.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-04-1-03",
+                  "id": "default-kira-linear-strengthened-02-1-03",
                   "number": 3,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-04-1-03/question/1-Q-04-1-03.1.png"
+                    "default-kira-linear-strengthened-02-1-03/question/1-Q-02-1-03.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-04-1-03/answer/1-A-04-1-03.1.png"
+                    "default-kira-linear-strengthened-02-1-03/answer/1-A-02-1-03.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-04-1-04",
+                  "id": "default-kira-linear-strengthened-02-1-04",
                   "number": 4,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-04-1-04/question/1-Q-04-1-04.1.png"
+                    "default-kira-linear-strengthened-02-1-04/question/1-Q-02-1-04.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-04-1-04/answer/1-A-04-1-04.1.png"
+                    "default-kira-linear-strengthened-02-1-04/answer/1-A-02-1-04.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-04-1-05",
+                  "id": "default-kira-linear-strengthened-02-1-05",
                   "number": 5,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-04-1-05/question/1-Q-04-1-05.1.png"
+                    "default-kira-linear-strengthened-02-1-05/question/1-Q-02-1-05.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-04-1-05/answer/1-A-04-1-05.1.png"
+                    "default-kira-linear-strengthened-02-1-05/answer/1-A-02-1-05.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-04-1-06",
+                  "id": "default-kira-linear-strengthened-02-1-06",
                   "number": 6,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-04-1-06/question/1-Q-04-1-06.1.png"
+                    "default-kira-linear-strengthened-02-1-06/question/1-Q-02-1-06.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-04-1-06/answer/1-A-04-1-06.1.png",
-                    "default-1784874021707-21-04-1-06/answer/2-A-04-1-06.2.png"
+                    "default-kira-linear-strengthened-02-1-06/answer/1-A-02-1-06.1.png",
+                    "default-kira-linear-strengthened-02-1-06/answer/2-A-02-1-06.2.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-04-1-07",
+                  "id": "default-kira-linear-strengthened-02-1-07",
                   "number": 7,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-04-1-07/question/1-Q-04-1-07.1.png"
+                    "default-kira-linear-strengthened-02-1-07/question/1-Q-02-1-07.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-04-1-07/answer/1-A-04-1-07.1.png",
-                    "default-1784874021707-21-04-1-07/answer/2-A-04-1-07.2.png"
+                    "default-kira-linear-strengthened-02-1-07/answer/1-A-02-1-07.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-04-1-08",
+                  "id": "default-kira-linear-strengthened-02-1-08",
                   "number": 8,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-04-1-08/question/1-Q-04-1-08.1.png",
-                    "default-1784874021707-21-04-1-08/question/2-Q-04-1-08.2.png"
+                    "default-kira-linear-strengthened-02-1-08/question/1-Q-02-1-08.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-04-1-08/answer/1-A-04-1-08.1.png"
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "default-1784874021707-21-chapter-05",
-          "name": "轴毂连接",
-          "sections": [
-            {
-              "id": "default-1784874021707-21-chapter-05-section-1",
-              "name": "课后习题",
-              "questions": [
-                {
-                  "id": "default-1784874021707-21-05-1-01",
-                  "number": 1,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-05-1-01/question/1-Q-05-1-01.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-05-1-01/answer/1-A-05-1-01.1.png"
+                    "default-kira-linear-strengthened-02-1-08/answer/1-A-02-1-08.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-05-1-02",
-                  "number": 2,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-05-1-02/question/1-Q-05-1-02.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-05-1-02/answer/1-A-05-1-02.1.png",
-                    "default-1784874021707-21-05-1-02/answer/2-A-05-1-02.2.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-05-1-03",
-                  "number": 3,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-05-1-03/question/1-Q-05-1-03.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-05-1-03/answer/1-A-05-1-03.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-05-1-04",
-                  "number": 4,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-05-1-04/question/1-Q-05-1-04.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-05-1-04/answer/1-A-05-1-04.1.png"
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "default-1784874021707-21-chapter-06",
-          "name": "带传动",
-          "sections": [
-            {
-              "id": "default-1784874021707-21-chapter-06-section-1",
-              "name": "课后习题",
-              "questions": [
-                {
-                  "id": "default-1784874021707-21-06-1-01",
-                  "number": 1,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-06-1-01/question/1-Q-06-1-01.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-06-1-01/answer/1-A-06-1-01.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-06-1-02",
-                  "number": 2,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-06-1-02/question/1-Q-06-1-02.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-06-1-02/answer/1-A-06-1-02.1.png",
-                    "default-1784874021707-21-06-1-02/answer/2-A-06-1-02.2.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-06-1-03",
-                  "number": 3,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-06-1-03/question/1-Q-06-1-03.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-06-1-03/answer/1-A-06-1-03.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-06-1-04",
-                  "number": 4,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-06-1-04/question/1-Q-06-1-04.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-06-1-04/answer/1-A-06-1-04.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-06-1-05",
-                  "number": 5,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-06-1-05/question/1-Q-06-1-05.1.png",
-                    "default-1784874021707-21-06-1-05/question/2-Q-06-1-05.2.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-06-1-05/answer/1-A-06-1-05.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-06-1-06",
-                  "number": 6,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-06-1-06/question/1-Q-06-1-06.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-06-1-06/answer/1-A-06-1-06.1.png"
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "default-1784874021707-21-chapter-07",
-          "name": "链传动",
-          "sections": [
-            {
-              "id": "default-1784874021707-21-chapter-07-section-1",
-              "name": "课后习题",
-              "questions": [
-                {
-                  "id": "default-1784874021707-21-07-1-01",
-                  "number": 1,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-07-1-01/question/1-Q-07-1-01.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-07-1-01/answer/1-A-07-1-01.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-07-1-02",
-                  "number": 2,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-07-1-02/question/1-Q-07-1-02.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-07-1-02/answer/1-A-07-1-02.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-07-1-03",
-                  "number": 3,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-07-1-03/question/1-Q-07-1-03.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-07-1-03/answer/1-A-07-1-03.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-07-1-04",
-                  "number": 4,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-07-1-04/question/1-Q-07-1-04.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-07-1-04/answer/1-A-07-1-04.1.png"
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "default-1784874021707-21-chapter-08",
-          "name": "齿轮传动",
-          "sections": [
-            {
-              "id": "default-1784874021707-21-chapter-08-section-1",
-              "name": "课后习题",
-              "questions": [
-                {
-                  "id": "default-1784874021707-21-08-1-01",
-                  "number": 1,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-08-1-01/question/1-Q-08-1-01.1.png",
-                    "default-1784874021707-21-08-1-01/question/2-Q-08-1-01.2.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-08-1-01/answer/1-A-08-1-01.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-08-1-02",
-                  "number": 2,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-08-1-02/question/1-Q-08-1-02.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-08-1-02/answer/1-A-08-1-02.1.png",
-                    "default-1784874021707-21-08-1-02/answer/2-A-08-1-02.2.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-08-1-03",
-                  "number": 3,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-08-1-03/question/1-Q-08-1-03.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-08-1-03/answer/1-A-08-1-03.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-08-1-04",
-                  "number": 4,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-08-1-04/question/1-Q-08-1-04.1.png",
-                    "default-1784874021707-21-08-1-04/question/2-Q-08-1-04.2.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-08-1-04/answer/1-A-08-1-04.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-08-1-05",
-                  "number": 5,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-08-1-05/question/1-Q-08-1-05.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-08-1-05/answer/1-A-08-1-05.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-08-1-06",
-                  "number": 6,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-08-1-06/question/1-Q-08-1-06.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-08-1-06/answer/1-A-08-1-06.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-08-1-07",
-                  "number": 7,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-08-1-07/question/1-Q-08-1-07.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-08-1-07/answer/1-A-08-1-07.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-08-1-08",
-                  "number": 8,
-                  "text": "",
-                  "answer": "见答案图片",
-                  "analysis": "暂无文字解析",
-                  "imageKeys": [
-                    "default-1784874021707-21-08-1-08/question/1-Q-08-1-08.1.png"
-                  ],
-                  "answerImageKeys": [
-                    "default-1784874021707-21-08-1-08/answer/1-A-08-1-08.1.png"
-                  ]
-                },
-                {
-                  "id": "default-1784874021707-21-08-1-09",
+                  "id": "default-kira-linear-strengthened-02-1-09",
                   "number": 9,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-08-1-09/question/1-Q-08-1-09.1.png"
+                    "default-kira-linear-strengthened-02-1-09/question/1-Q-02-1-09.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-08-1-09/answer/1-A-08-1-09.1.png"
+                    "default-kira-linear-strengthened-02-1-09/answer/1-A-02-1-09.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-08-1-10",
+                  "id": "default-kira-linear-strengthened-02-1-10",
                   "number": 10,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-08-1-10/question/1-Q-08-1-10.1.png"
+                    "default-kira-linear-strengthened-02-1-10/question/1-Q-02-1-10.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-08-1-10/answer/1-A-08-1-10.1.png"
+                    "default-kira-linear-strengthened-02-1-10/answer/1-A-02-1-10.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-08-1-11",
+                  "id": "default-kira-linear-strengthened-02-1-11",
                   "number": 11,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-08-1-11/question/1-Q-08-1-11.1.png"
+                    "default-kira-linear-strengthened-02-1-11/question/1-Q-02-1-11.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-08-1-11/answer/1-A-08-1-11.1.png"
+                    "default-kira-linear-strengthened-02-1-11/answer/1-A-02-1-11.1.png",
+                    "default-kira-linear-strengthened-02-1-11/answer/2-A-02-1-11.2.png"
                   ]
                 }
               ]
-            }
-          ]
-        },
-        {
-          "id": "default-1784874021707-21-chapter-09",
-          "name": "蜗杆传动",
-          "sections": [
+            },
             {
-              "id": "default-1784874021707-21-chapter-09-section-1",
-              "name": "课后习题",
+              "id": "default-kira-linear-strengthened-chapter-02-section-2",
+              "name": "填空题",
               "questions": [
                 {
-                  "id": "default-1784874021707-21-09-1-01",
+                  "id": "default-kira-linear-strengthened-02-2-01",
                   "number": 1,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-09-1-01/question/1-Q-09-1-01.1.png"
+                    "default-kira-linear-strengthened-02-2-01/question/1-Q-02-2-01.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-09-1-01/answer/1-A-09-1-01.1.png"
+                    "default-kira-linear-strengthened-02-2-01/answer/1-A-02-2-01.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-09-1-02",
+                  "id": "default-kira-linear-strengthened-02-2-02",
                   "number": 2,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-09-1-02/question/1-Q-09-1-02.1.png",
-                    "default-1784874021707-21-09-1-02/question/2-Q-09-1-02.2.png"
+                    "default-kira-linear-strengthened-02-2-02/question/1-Q-02-2-02.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-09-1-02/answer/1-A-09-1-02.1.png"
+                    "default-kira-linear-strengthened-02-2-02/answer/1-A-02-2-02.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-09-1-03",
+                  "id": "default-kira-linear-strengthened-02-2-03",
                   "number": 3,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-09-1-03/question/1-Q-09-1-03.1.png"
+                    "default-kira-linear-strengthened-02-2-03/question/1-Q-02-2-03.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-09-1-03/answer/1-A-09-1-03.1.png",
-                    "default-1784874021707-21-09-1-03/answer/2-A-09-1-03.2.png"
+                    "default-kira-linear-strengthened-02-2-03/answer/1-A-02-2-03.1.png",
+                    "default-kira-linear-strengthened-02-2-03/answer/2-A-02-2-03.2.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-09-1-04",
+                  "id": "default-kira-linear-strengthened-02-2-04",
                   "number": 4,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-09-1-04/question/1-Q-09-1-04.1.png",
-                    "default-1784874021707-21-09-1-04/question/2-Q-09-1-04.2.png"
+                    "default-kira-linear-strengthened-02-2-04/question/1-Q-02-2-04.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-09-1-04/answer/1-A-09-1-04.1.png",
-                    "default-1784874021707-21-09-1-04/answer/2-A-09-1-04.2.png"
+                    "default-kira-linear-strengthened-02-2-04/answer/1-A-02-2-04.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-09-1-05",
+                  "id": "default-kira-linear-strengthened-02-2-05",
                   "number": 5,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-09-1-05/question/1-Q-09-1-05.1.png"
+                    "default-kira-linear-strengthened-02-2-05/question/1-Q-02-2-05.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-09-1-05/answer/1-A-09-1-05.1.png"
+                    "default-kira-linear-strengthened-02-2-05/answer/1-A-02-2-05.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-2-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-2-06/question/1-Q-02-2-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-2-06/answer/1-A-02-2-06.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-2-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-2-07/question/1-Q-02-2-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-2-07/answer/1-A-02-2-07.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-2-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-2-08/question/1-Q-02-2-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-2-08/answer/1-A-02-2-08.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-2-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-2-09/question/1-Q-02-2-09.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-2-09/answer/1-A-02-2-09.1.png",
+                    "default-kira-linear-strengthened-02-2-09/answer/2-A-02-2-09.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-2-10",
+                  "number": 10,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-2-10/question/1-Q-02-2-10.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-2-10/answer/1-A-02-2-10.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-2-11",
+                  "number": 11,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-2-11/question/1-Q-02-2-11.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-2-11/answer/1-A-02-2-11.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-2-12",
+                  "number": 12,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-2-12/question/1-Q-02-2-12.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-2-12/answer/1-A-02-2-12.1.png",
+                    "default-kira-linear-strengthened-02-2-12/answer/2-A-02-2-12.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-2-13",
+                  "number": 13,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-2-13/question/1-Q-02-2-13.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-2-13/answer/1-A-02-2-13.1.png"
                   ]
                 }
               ]
-            }
-          ]
-        },
-        {
-          "id": "default-1784874021707-21-chapter-10",
-          "name": "滑动轴承",
-          "sections": [
+            },
             {
-              "id": "default-1784874021707-21-chapter-10-section-1",
-              "name": "课后习题",
+              "id": "default-kira-linear-strengthened-chapter-02-section-3",
+              "name": "解答题",
               "questions": [
                 {
-                  "id": "default-1784874021707-21-10-1-01",
+                  "id": "default-kira-linear-strengthened-02-3-01",
                   "number": 1,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-10-1-01/question/1-Q-10-1-01.1.png"
+                    "default-kira-linear-strengthened-02-3-01/question/1-Q-02-3-01.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-10-1-01/answer/1-A-10-1-01.1.png"
+                    "default-kira-linear-strengthened-02-3-01/answer/1-A-02-3-01.1.png",
+                    "default-kira-linear-strengthened-02-3-01/answer/2-A-02-3-01.2.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-10-1-02",
+                  "id": "default-kira-linear-strengthened-02-3-02",
                   "number": 2,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-10-1-02/question/1-Q-10-1-02.1.png"
+                    "default-kira-linear-strengthened-02-3-02/question/1-Q-02-3-02.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-10-1-02/answer/1-A-10-1-02.1.png"
+                    "default-kira-linear-strengthened-02-3-02/answer/1-A-02-3-02.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-10-1-03",
+                  "id": "default-kira-linear-strengthened-02-3-03",
                   "number": 3,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-10-1-03/question/1-Q-10-1-03.1.png"
+                    "default-kira-linear-strengthened-02-3-03/question/1-Q-02-3-03.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-10-1-03/answer/1-A-10-1-03.1.png"
+                    "default-kira-linear-strengthened-02-3-03/answer/1-A-02-3-03.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-10-1-04",
+                  "id": "default-kira-linear-strengthened-02-3-04",
                   "number": 4,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-10-1-04/question/1-Q-10-1-04.1.png"
+                    "default-kira-linear-strengthened-02-3-04/question/1-Q-02-3-04.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-10-1-04/answer/1-A-10-1-04.1.png"
+                    "default-kira-linear-strengthened-02-3-04/answer/1-A-02-3-04.1.png",
+                    "default-kira-linear-strengthened-02-3-04/answer/2-A-02-3-04.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-3-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-3-05/question/1-Q-02-3-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-3-05/answer/1-A-02-3-05.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-3-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-3-06/question/1-Q-02-3-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-3-06/answer/1-A-02-3-06.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-3-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-3-07/question/1-Q-02-3-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-3-07/answer/1-A-02-3-07.1.png",
+                    "default-kira-linear-strengthened-02-3-07/answer/2-A-02-3-07.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-3-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-3-08/question/1-Q-02-3-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-3-08/answer/1-A-02-3-08.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-3-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-3-09/question/1-Q-02-3-09.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-3-09/answer/1-A-02-3-09.1.png",
+                    "default-kira-linear-strengthened-02-3-09/answer/2-A-02-3-09.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-02-3-10",
+                  "number": 10,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-02-3-10/question/1-Q-02-3-10.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-02-3-10/answer/1-A-02-3-10.1.png"
                   ]
                 }
               ]
@@ -103452,38 +103284,350 @@
           ]
         },
         {
-          "id": "default-1784874021707-21-chapter-11",
-          "name": "滚动轴承",
+          "id": "default-kira-linear-strengthened-chapter-03",
+          "name": "03 向量",
           "sections": [
             {
-              "id": "default-1784874021707-21-chapter-11-section-1",
-              "name": "课后习题",
+              "id": "default-kira-linear-strengthened-chapter-03-section-1",
+              "name": "选择题",
               "questions": [
                 {
-                  "id": "default-1784874021707-21-11-1-01",
+                  "id": "default-kira-linear-strengthened-03-1-01",
                   "number": 1,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-11-1-01/question/1-Q-11-1-01.1.png"
+                    "default-kira-linear-strengthened-03-1-01/question/1-Q-03-1-01.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-11-1-01/answer/1-A-11-1-01.1.png"
+                    "default-kira-linear-strengthened-03-1-01/answer/1-A-03-1-01.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-11-1-02",
+                  "id": "default-kira-linear-strengthened-03-1-02",
                   "number": 2,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-11-1-02/question/1-Q-11-1-02.1.png"
+                    "default-kira-linear-strengthened-03-1-02/question/1-Q-03-1-02.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-11-1-02/answer/1-A-11-1-02.1.png",
-                    "default-1784874021707-21-11-1-02/answer/2-A-11-1-02.2.png"
+                    "default-kira-linear-strengthened-03-1-02/answer/1-A-03-1-02.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-1-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-1-03/question/1-Q-03-1-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-1-03/answer/1-A-03-1-03.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-1-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-1-04/question/1-Q-03-1-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-1-04/answer/1-A-03-1-04.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-1-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-1-05/question/1-Q-03-1-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-1-05/answer/1-A-03-1-05.1.png",
+                    "default-kira-linear-strengthened-03-1-05/answer/2-A-03-1-05.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-1-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-1-06/question/1-Q-03-1-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-1-06/answer/1-A-03-1-06.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-1-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-1-07/question/1-Q-03-1-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-1-07/answer/1-A-03-1-07.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-1-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-1-08/question/1-Q-03-1-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-1-08/answer/1-A-03-1-08.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-1-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-1-09/question/1-Q-03-1-09.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-1-09/answer/1-A-03-1-09.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-1-10",
+                  "number": 10,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-1-10/question/1-Q-03-1-10.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-1-10/answer/1-A-03-1-10.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-1-11",
+                  "number": 11,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-1-11/question/1-Q-03-1-11.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-1-11/answer/1-A-03-1-11.1.png",
+                    "default-kira-linear-strengthened-03-1-11/answer/2-A-03-1-11.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-1-12",
+                  "number": 12,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-1-12/question/1-Q-03-1-12.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-1-12/answer/1-A-03-1-12.1.png"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "default-kira-linear-strengthened-chapter-03-section-2",
+              "name": "填空题",
+              "questions": [
+                {
+                  "id": "default-kira-linear-strengthened-03-2-01",
+                  "number": 1,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-2-01/question/1-Q-03-2-01.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-2-01/answer/1-A-03-2-01.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-2-02",
+                  "number": 2,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-2-02/question/1-Q-03-2-02.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-2-02/answer/1-A-03-2-02.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-2-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-2-03/question/1-Q-03-2-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-2-03/answer/1-A-03-2-03.1.png"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "default-kira-linear-strengthened-chapter-03-section-3",
+              "name": "解答题",
+              "questions": [
+                {
+                  "id": "default-kira-linear-strengthened-03-3-01",
+                  "number": 1,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-3-01/question/1-Q-03-3-01.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-3-01/answer/1-A-03-3-01.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-3-02",
+                  "number": 2,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-3-02/question/1-Q-03-3-02.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-3-02/answer/1-A-03-3-02.1.png",
+                    "default-kira-linear-strengthened-03-3-02/answer/2-A-03-3-02.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-3-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-3-03/question/1-Q-03-3-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-3-03/answer/1-A-03-3-03.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-3-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-3-04/question/1-Q-03-3-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-3-04/answer/1-A-03-3-04.1.png",
+                    "default-kira-linear-strengthened-03-3-04/answer/2-A-03-3-04.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-3-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-3-05/question/1-Q-03-3-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-3-05/answer/1-A-03-3-05.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-3-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-3-06/question/1-Q-03-3-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-3-06/answer/1-A-03-3-06.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-3-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-3-07/question/1-Q-03-3-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-3-07/answer/1-A-03-3-07.1.png",
+                    "default-kira-linear-strengthened-03-3-07/answer/2-A-03-3-07.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-03-3-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-03-3-08/question/1-Q-03-3-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-03-3-08/answer/1-A-03-3-08.1.png"
                   ]
                 }
               ]
@@ -103491,37 +103635,634 @@
           ]
         },
         {
-          "id": "default-1784874021707-21-chapter-13",
-          "name": "轴",
+          "id": "default-kira-linear-strengthened-chapter-04",
+          "name": "04 线性方程组",
           "sections": [
             {
-              "id": "default-1784874021707-21-chapter-13-section-1",
-              "name": "课后习题",
+              "id": "default-kira-linear-strengthened-chapter-04-section-1",
+              "name": "选择题",
               "questions": [
                 {
-                  "id": "default-1784874021707-21-13-1-01",
+                  "id": "default-kira-linear-strengthened-04-1-01",
                   "number": 1,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-13-1-01/question/1-Q-13-1-01.1.png"
+                    "default-kira-linear-strengthened-04-1-01/question/1-Q-04-1-01.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-13-1-01/answer/1-A-13-1-01.1.png"
+                    "default-kira-linear-strengthened-04-1-01/answer/1-A-04-1-01.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-13-1-02",
+                  "id": "default-kira-linear-strengthened-04-1-02",
                   "number": 2,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-13-1-02/question/1-Q-13-1-02.1.png"
+                    "default-kira-linear-strengthened-04-1-02/question/1-Q-04-1-02.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-13-1-02/answer/1-A-13-1-02.1.png"
+                    "default-kira-linear-strengthened-04-1-02/answer/1-A-04-1-02.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-03/question/1-Q-04-1-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-03/answer/1-A-04-1-03.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-04/question/1-Q-04-1-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-04/answer/1-A-04-1-04.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-05/question/1-Q-04-1-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-05/answer/1-A-04-1-05.1.png",
+                    "default-kira-linear-strengthened-04-1-05/answer/2-A-04-1-05.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-06/question/1-Q-04-1-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-06/answer/1-A-04-1-06.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-07/question/1-Q-04-1-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-07/answer/1-A-04-1-07.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-08/question/1-Q-04-1-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-08/answer/1-A-04-1-08.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-09/question/1-Q-04-1-09.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-09/answer/1-A-04-1-09.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-10",
+                  "number": 10,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-10/question/1-Q-04-1-10.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-10/answer/1-A-04-1-10.1.png",
+                    "default-kira-linear-strengthened-04-1-10/answer/2-A-04-1-10.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-11",
+                  "number": 11,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-11/question/1-Q-04-1-11.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-11/answer/1-A-04-1-11.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-12",
+                  "number": 12,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-12/question/1-Q-04-1-12.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-12/answer/1-A-04-1-12.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-13",
+                  "number": 13,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-13/question/1-Q-04-1-13.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-13/answer/1-A-04-1-13.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-14",
+                  "number": 14,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-14/question/1-Q-04-1-14.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-14/answer/1-A-04-1-14.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-15",
+                  "number": 15,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-15/question/1-Q-04-1-15.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-15/answer/1-A-04-1-15.1.png",
+                    "default-kira-linear-strengthened-04-1-15/answer/2-A-04-1-15.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-16",
+                  "number": 16,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-16/question/1-Q-04-1-16.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-16/answer/1-A-04-1-16.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-17",
+                  "number": 17,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-17/question/1-Q-04-1-17.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-17/answer/1-A-04-1-17.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-1-18",
+                  "number": 18,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-1-18/question/1-Q-04-1-18.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-1-18/answer/1-A-04-1-18.1.png"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "default-kira-linear-strengthened-chapter-04-section-2",
+              "name": "填空题",
+              "questions": [
+                {
+                  "id": "default-kira-linear-strengthened-04-2-01",
+                  "number": 1,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-01/question/1-Q-04-2-01.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-01/answer/1-A-04-2-01.1.png",
+                    "default-kira-linear-strengthened-04-2-01/answer/2-A-04-2-01.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-02",
+                  "number": 2,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-02/question/1-Q-04-2-02.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-02/answer/1-A-04-2-02.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-03/question/1-Q-04-2-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-03/answer/1-A-04-2-03.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-04/question/1-Q-04-2-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-04/answer/1-A-04-2-04.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-05/question/1-Q-04-2-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-05/answer/1-A-04-2-05.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-06/question/1-Q-04-2-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-06/answer/1-A-04-2-06.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-07/question/1-Q-04-2-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-07/answer/1-A-04-2-07.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-08/question/1-Q-04-2-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-08/answer/1-A-04-2-08.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-09/question/1-Q-04-2-09.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-09/answer/1-A-04-2-09.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-10",
+                  "number": 10,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-10/question/1-Q-04-2-10.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-10/answer/1-A-04-2-10.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-11",
+                  "number": 11,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-11/question/1-Q-04-2-11.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-11/answer/1-A-04-2-11.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-12",
+                  "number": 12,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-12/question/1-Q-04-2-12.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-12/answer/1-A-04-2-12.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-2-13",
+                  "number": 13,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-2-13/question/1-Q-04-2-13.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-2-13/answer/1-A-04-2-13.1.png"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "default-kira-linear-strengthened-chapter-04-section-3",
+              "name": "解答题",
+              "questions": [
+                {
+                  "id": "default-kira-linear-strengthened-04-3-01",
+                  "number": 1,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-01/question/1-Q-04-3-01.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-01/answer/1-A-04-3-01.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-02",
+                  "number": 2,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-02/question/1-Q-04-3-02.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-02/answer/1-A-04-3-02.1.png",
+                    "default-kira-linear-strengthened-04-3-02/answer/2-A-04-3-02.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-03/question/1-Q-04-3-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-03/answer/1-A-04-3-03.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-04/question/1-Q-04-3-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-04/answer/1-A-04-3-04.1.png",
+                    "default-kira-linear-strengthened-04-3-04/answer/2-A-04-3-04.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-05/question/1-Q-04-3-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-05/answer/1-A-04-3-05.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-06/question/1-Q-04-3-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-06/answer/1-A-04-3-06.1.png",
+                    "default-kira-linear-strengthened-04-3-06/answer/2-A-04-3-06.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-07/question/1-Q-04-3-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-07/answer/1-A-04-3-07.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-08/question/1-Q-04-3-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-08/answer/1-A-04-3-08.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-09/question/1-Q-04-3-09.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-09/answer/1-A-04-3-09.1.png",
+                    "default-kira-linear-strengthened-04-3-09/answer/2-A-04-3-09.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-10",
+                  "number": 10,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-10/question/1-Q-04-3-10.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-10/answer/1-A-04-3-10.1.png",
+                    "default-kira-linear-strengthened-04-3-10/answer/2-A-04-3-10.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-11",
+                  "number": 11,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-11/question/1-Q-04-3-11.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-11/answer/1-A-04-3-11.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-04-3-12",
+                  "number": 12,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-04-3-12/question/1-Q-04-3-12.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-04-3-12/answer/1-A-04-3-12.1.png"
                   ]
                 }
               ]
@@ -103529,48 +104270,973 @@
           ]
         },
         {
-          "id": "default-1784874021707-21-chapter-14",
-          "name": "机械系统总体方案设计",
+          "id": "default-kira-linear-strengthened-chapter-05",
+          "name": "05 特征值与特征向量",
           "sections": [
             {
-              "id": "default-1784874021707-21-chapter-14-section-1",
-              "name": "课后习题",
+              "id": "default-kira-linear-strengthened-chapter-05-section-1",
+              "name": "选择题",
               "questions": [
                 {
-                  "id": "default-1784874021707-21-14-1-01",
+                  "id": "default-kira-linear-strengthened-05-1-01",
                   "number": 1,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-14-1-01/question/1-Q-14-1-01.1.png"
+                    "default-kira-linear-strengthened-05-1-01/question/1-Q-05-1-01.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-14-1-01/answer/1-A-14-1-01.1.png"
+                    "default-kira-linear-strengthened-05-1-01/answer/1-A-05-1-01.1.png"
                   ]
                 },
                 {
-                  "id": "default-1784874021707-21-14-1-02",
+                  "id": "default-kira-linear-strengthened-05-1-02",
                   "number": 2,
                   "text": "",
                   "answer": "见答案图片",
                   "analysis": "暂无文字解析",
+                  "type": "图片题",
                   "imageKeys": [
-                    "default-1784874021707-21-14-1-02/question/1-Q-14-1-02.1.png"
+                    "default-kira-linear-strengthened-05-1-02/question/1-Q-05-1-02.1.png"
                   ],
                   "answerImageKeys": [
-                    "default-1784874021707-21-14-1-02/answer/1-A-14-1-02.1.png",
-                    "default-1784874021707-21-14-1-02/answer/2-A-14-1-02.2.png"
+                    "default-kira-linear-strengthened-05-1-02/answer/1-A-05-1-02.1.png"
                   ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-1-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-1-03/question/1-Q-05-1-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-1-03/answer/1-A-05-1-03.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-1-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-1-04/question/1-Q-05-1-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-1-04/answer/1-A-05-1-04.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-1-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-1-05/question/1-Q-05-1-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-1-05/answer/1-A-05-1-05.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-1-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-1-06/question/1-Q-05-1-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-1-06/answer/1-A-05-1-06.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-1-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-1-07/question/1-Q-05-1-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-1-07/answer/1-A-05-1-07.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-1-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-1-08/question/1-Q-05-1-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-1-08/answer/1-A-05-1-08.1.png",
+                    "default-kira-linear-strengthened-05-1-08/answer/2-A-05-1-08.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-1-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-1-09/question/1-Q-05-1-09.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-1-09/answer/1-A-05-1-09.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-1-10",
+                  "number": 10,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-1-10/question/1-Q-05-1-10.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-1-10/answer/1-A-05-1-10.1.png"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "default-kira-linear-strengthened-chapter-05-section-2",
+              "name": "填空题",
+              "questions": [
+                {
+                  "id": "default-kira-linear-strengthened-05-2-01",
+                  "number": 1,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-01/question/1-Q-05-2-01.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-01/answer/1-A-05-2-01.1.png",
+                    "default-kira-linear-strengthened-05-2-01/answer/2-A-05-2-01.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-02",
+                  "number": 2,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-02/question/1-Q-05-2-02.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-02/answer/1-A-05-2-02.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-03/question/1-Q-05-2-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-03/answer/1-A-05-2-03.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-04/question/1-Q-05-2-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-04/answer/1-A-05-2-04.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-05/question/1-Q-05-2-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-05/answer/1-A-05-2-05.1.png",
+                    "default-kira-linear-strengthened-05-2-05/answer/2-A-05-2-05.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-06/question/1-Q-05-2-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-06/answer/1-A-05-2-06.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-07/question/1-Q-05-2-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-07/answer/1-A-05-2-07.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-08/question/1-Q-05-2-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-08/answer/1-A-05-2-08.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-09/question/1-Q-05-2-09.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-09/answer/1-A-05-2-09.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-10",
+                  "number": 10,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-10/question/1-Q-05-2-10.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-10/answer/1-A-05-2-10.1.png",
+                    "default-kira-linear-strengthened-05-2-10/answer/2-A-05-2-10.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-11",
+                  "number": 11,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-11/question/1-Q-05-2-11.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-11/answer/1-A-05-2-11.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-12",
+                  "number": 12,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-12/question/1-Q-05-2-12.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-12/answer/1-A-05-2-12.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-2-13",
+                  "number": 13,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-2-13/question/1-Q-05-2-13.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-2-13/answer/1-A-05-2-13.1.png"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "default-kira-linear-strengthened-chapter-05-section-3",
+              "name": "解答题",
+              "questions": [
+                {
+                  "id": "default-kira-linear-strengthened-05-3-01",
+                  "number": 1,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-01/question/1-Q-05-3-01.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-01/answer/1-A-05-3-01.1.png",
+                    "default-kira-linear-strengthened-05-3-01/answer/2-A-05-3-01.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-02",
+                  "number": 2,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-02/question/1-Q-05-3-02.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-02/answer/1-A-05-3-02.1.png",
+                    "default-kira-linear-strengthened-05-3-02/answer/2-A-05-3-02.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-03/question/1-Q-05-3-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-03/answer/1-A-05-3-03.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-04/question/1-Q-05-3-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-04/answer/1-A-05-3-04.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-05/question/1-Q-05-3-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-05/answer/1-A-05-3-05.1.png",
+                    "default-kira-linear-strengthened-05-3-05/answer/2-A-05-3-05.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-06/question/1-Q-05-3-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-06/answer/1-A-05-3-06.1.png",
+                    "default-kira-linear-strengthened-05-3-06/answer/2-A-05-3-06.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-07/question/1-Q-05-3-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-07/answer/1-A-05-3-07.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-08/question/1-Q-05-3-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-08/answer/1-A-05-3-08.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-09/question/1-Q-05-3-09.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-09/answer/1-A-05-3-09.1.png",
+                    "default-kira-linear-strengthened-05-3-09/answer/2-A-05-3-09.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-10",
+                  "number": 10,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-10/question/1-Q-05-3-10.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-10/answer/1-A-05-3-10.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-11",
+                  "number": 11,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-11/question/1-Q-05-3-11.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-11/answer/1-A-05-3-11.1.png",
+                    "default-kira-linear-strengthened-05-3-11/answer/2-A-05-3-11.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-12",
+                  "number": 12,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-12/question/1-Q-05-3-12.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-12/answer/1-A-05-3-12.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-13",
+                  "number": 13,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-13/question/1-Q-05-3-13.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-13/answer/1-A-05-3-13.1.png",
+                    "default-kira-linear-strengthened-05-3-13/answer/2-A-05-3-13.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-14",
+                  "number": 14,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-14/question/1-Q-05-3-14.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-14/answer/1-A-05-3-14.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-15",
+                  "number": 15,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-15/question/1-Q-05-3-15.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-15/answer/1-A-05-3-15.1.png",
+                    "default-kira-linear-strengthened-05-3-15/answer/2-A-05-3-15.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-16",
+                  "number": 16,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-16/question/1-Q-05-3-16.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-16/answer/1-A-05-3-16.1.png",
+                    "default-kira-linear-strengthened-05-3-16/answer/2-A-05-3-16.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-17",
+                  "number": 17,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-17/question/1-Q-05-3-17.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-17/answer/1-A-05-3-17.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-05-3-18",
+                  "number": 18,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-05-3-18/question/1-Q-05-3-18.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-05-3-18/answer/1-A-05-3-18.1.png"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "default-kira-linear-strengthened-chapter-06",
+          "name": "06 二次型",
+          "sections": [
+            {
+              "id": "default-kira-linear-strengthened-chapter-06-section-1",
+              "name": "选择题",
+              "questions": [
+                {
+                  "id": "default-kira-linear-strengthened-06-1-01",
+                  "number": 1,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-1-01/question/1-Q-06-1-01.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-1-01/answer/1-A-06-1-01.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-1-02",
+                  "number": 2,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-1-02/question/1-Q-06-1-02.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-1-02/answer/1-A-06-1-02.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-1-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-1-03/question/1-Q-06-1-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-1-03/answer/1-A-06-1-03.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-1-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-1-04/question/1-Q-06-1-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-1-04/answer/1-A-06-1-04.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-1-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-1-05/question/1-Q-06-1-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-1-05/answer/1-A-06-1-05.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-1-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-1-06/question/1-Q-06-1-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-1-06/answer/1-A-06-1-06.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-1-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-1-07/question/1-Q-06-1-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-1-07/answer/1-A-06-1-07.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-1-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-1-08/question/1-Q-06-1-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-1-08/answer/1-A-06-1-08.1.png",
+                    "default-kira-linear-strengthened-06-1-08/answer/2-A-06-1-08.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-1-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-1-09/question/1-Q-06-1-09.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-1-09/answer/1-A-06-1-09.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-1-10",
+                  "number": 10,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-1-10/question/1-Q-06-1-10.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-1-10/answer/1-A-06-1-10.1.png"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "default-kira-linear-strengthened-chapter-06-section-2",
+              "name": "填空题",
+              "questions": [
+                {
+                  "id": "default-kira-linear-strengthened-06-2-01",
+                  "number": 1,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-2-01/question/1-Q-06-2-01.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-2-01/answer/1-A-06-2-01.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-2-02",
+                  "number": 2,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-2-02/question/1-Q-06-2-02.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-2-02/answer/1-A-06-2-02.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-2-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-2-03/question/1-Q-06-2-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-2-03/answer/1-A-06-2-03.1.png",
+                    "default-kira-linear-strengthened-06-2-03/answer/2-A-06-2-03.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-2-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-2-04/question/1-Q-06-2-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-2-04/answer/1-A-06-2-04.1.png"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "default-kira-linear-strengthened-chapter-06-section-3",
+              "name": "解答题",
+              "questions": [
+                {
+                  "id": "default-kira-linear-strengthened-06-3-01",
+                  "number": 1,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-3-01/question/1-Q-06-3-01.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-3-01/answer/1-A-06-3-01.1.png",
+                    "default-kira-linear-strengthened-06-3-01/answer/2-A-06-3-01.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-3-02",
+                  "number": 2,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-3-02/question/1-Q-06-3-02.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-3-02/answer/1-A-06-3-02.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-3-03",
+                  "number": 3,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-3-03/question/1-Q-06-3-03.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-3-03/answer/1-A-06-3-03.1.png",
+                    "default-kira-linear-strengthened-06-3-03/answer/2-A-06-3-03.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-3-04",
+                  "number": 4,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-3-04/question/1-Q-06-3-04.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-3-04/answer/1-A-06-3-04.1.png",
+                    "default-kira-linear-strengthened-06-3-04/answer/2-A-06-3-04.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-3-05",
+                  "number": 5,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-3-05/question/1-Q-06-3-05.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-3-05/answer/1-A-06-3-05.1.png",
+                    "default-kira-linear-strengthened-06-3-05/answer/2-A-06-3-05.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-3-06",
+                  "number": 6,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-3-06/question/1-Q-06-3-06.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-3-06/answer/1-A-06-3-06.1.png",
+                    "default-kira-linear-strengthened-06-3-06/answer/2-A-06-3-06.2.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-3-07",
+                  "number": 7,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-3-07/question/1-Q-06-3-07.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-3-07/answer/1-A-06-3-07.1.png",
+                    "default-kira-linear-strengthened-06-3-07/answer/2-A-06-3-07.2.png",
+                    "default-kira-linear-strengthened-06-3-07/answer/3-A-06-3-07.3.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-3-08",
+                  "number": 8,
+                  "text": "",
+                  "answer": "见答案图片",
+                  "analysis": "暂无文字解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-3-08/question/1-Q-06-3-08.1.png"
+                  ],
+                  "answerImageKeys": [
+                    "default-kira-linear-strengthened-06-3-08/answer/1-A-06-3-08.1.png"
+                  ]
+                },
+                {
+                  "id": "default-kira-linear-strengthened-06-3-09",
+                  "number": 9,
+                  "text": "",
+                  "answer": "暂无答案解析",
+                  "analysis": "当前题库未提供对应答案解析",
+                  "type": "图片题",
+                  "imageKeys": [
+                    "default-kira-linear-strengthened-06-3-09/question/1-Q-06-3-09.1.png"
+                  ],
+                  "answerImageKeys": []
                 }
               ]
             }
           ]
         }
       ],
-      "description": "默认本地题库",
-      "subject": "professional",
-      "workspaceFolder": "专业课/机械设计·讲义课后习题"
+      "description": "Kira·27考研数学线性代数强化习题",
+      "subject": "math",
+      "workspaceFolder": "数学/线代/Kira线代强化"
     }
   ],
   "folders": {
@@ -103595,6 +105261,6 @@
     "default-math-1000b-calculus": "数学/高数/27数二1000B-高数",
     "default-math-1000b-linear": "数学/线代/27数二1000B-线代",
     "default-1784554026524-19": "数学/真题/数学二真题",
-    "default-1784874021707-21": "专业课/机械设计·讲义课后习题"
+    "default-kira-linear-strengthened": "数学/线代/Kira线代强化"
   }
 }
