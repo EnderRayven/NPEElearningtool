@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, type PointerEvent, type WheelEvent as ReactWheelEvent } from 'react'
 import { History, Pause, Play, RotateCcw, Square, Timer, Trash2, X } from 'lucide-react'
 import { completeCountdown, deleteTimerHistory, finishTimerSession, getCountdownRemainingMs, getTimerElapsedMs, loadCountdownState, loadTimerData, pauseCountdown, pauseTimer, resetCountdown as resetCountdownState, resetCurrentTimer, saveCountdownState, saveTimerData, startCountdown, startTimer, type CountdownState, type CountdownStatus, type TimerData, type TimerHistoryRecord, type TimerState, type TimerStatus } from './timer'
+import { useDialogFocus } from './useDialogFocus'
+import { useModalScrollLock } from './useModalScrollLock'
 
 type TimerView = 'large' | 'mini'
 
@@ -353,6 +355,7 @@ function TimerHistory({ records, onDelete }: { records: TimerHistoryRecord[]; on
 }
 
 export default function TimerDialog({ view, onViewChange, onClose }: TimerDialogProps) {
+  useModalScrollLock(view === 'large')
   const [timerData, setTimerData] = useState<TimerData>(loadTimerData)
   const [now, setNow] = useState(() => Date.now())
   const [timerStyle, setTimerStyle] = useState<TimerStyle>(loadTimerStyle)
@@ -425,13 +428,6 @@ export default function TimerDialog({ view, onViewChange, onClose }: TimerDialog
     stage.classList.remove('is-measuring')
   }, [countdownState.status, timerMode])
 
-  useEffect(() => {
-    if (view !== 'large') return
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') requestClose() }
-    document.addEventListener('keydown', closeOnEscape)
-    return () => document.removeEventListener('keydown', closeOnEscape)
-  })
-
   function requestClose() {
     if (countdownActive || focusActive) {
       onViewChange('mini')
@@ -449,6 +445,10 @@ export default function TimerDialog({ view, onViewChange, onClose }: TimerDialog
     saveTimerData(resetData)
     onClose()
   }
+  const dialogRootRef = useDialogFocus<HTMLDivElement>(requestClose, {
+    active: view === 'large',
+    initialFocusSelector: '[aria-label="关闭计时器"]',
+  })
 
   function updateTimer(update: (state: TimerState, now: number) => TimerState) {
     const timestamp = Date.now()
@@ -520,7 +520,7 @@ export default function TimerDialog({ view, onViewChange, onClose }: TimerDialog
     </button>
   }
 
-  return <div className="timer-modal-backdrop" onClick={event => { if (event.target === event.currentTarget) requestClose() }}>
+  return <div ref={dialogRootRef} className="timer-modal-backdrop" onClick={event => { if (event.target === event.currentTarget) requestClose() }}>
     <section className="timer-dialog" role="dialog" aria-modal="true" aria-labelledby="timer-title" onClick={event => event.stopPropagation()}>
       <div className="timer-dialog-scroll">
         <div className="timer-dialog-toolbar">
@@ -573,6 +573,6 @@ export default function TimerDialog({ view, onViewChange, onClose }: TimerDialog
         {timerMode === 'timer' && <TimerHistory records={timerData.history} onDelete={deleteHistoryRecord}/>}
       </div>
     </section>
-    <button className="dashboard-question-dialog-close" type="button" aria-label="关闭计时器" onClick={requestClose}><X size={19}/></button>
+    <button className="dashboard-question-dialog-close" type="button" aria-label="关闭计时器" data-dialog-initial-focus onClick={requestClose}><X size={19}/></button>
   </div>
 }

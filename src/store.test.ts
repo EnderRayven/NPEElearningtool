@@ -201,6 +201,28 @@ describe('navigation recovery', () => {
     expect(loadNavigation()?.mathStudyPositions).toEqual({ calculus, linear })
   })
 
+  it('分别保存每个题库的最后学习位置', () => {
+    const first = { bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section' as const }
+    const second = { bankId: 'bank-2', sectionId: 'section-2', questionId: 'question-2', view: 'wrong' as const }
+    saveNavigation({ ...second, page: 'study', profileBankId: '', studyPositions: {}, bankStudyPositions: { 'bank-1': first, 'bank-2': second } })
+    expect(loadNavigation()?.bankStudyPositions).toEqual({ 'bank-1': first, 'bank-2': second })
+  })
+
+  it('忽略损坏的题库位置并保留有效位置', () => {
+    localStorage.setItem('npee:navigation:v1', JSON.stringify({
+      bankId: 'bank-1',
+      sectionId: 'section-1',
+      questionId: 'question-1',
+      bankStudyPositions: {
+        broken: { bankId: 1 },
+        valid: { bankId: 'bank-2', sectionId: 'section-2', questionId: 'question-2', view: 'wrong' },
+      },
+    }))
+    expect(loadNavigation()?.bankStudyPositions).toEqual({
+      'bank-2': { bankId: 'bank-2', sectionId: 'section-2', questionId: 'question-2', view: 'wrong' },
+    })
+  })
+
   it('兼容未记录我的板块的旧版位置', () => {
     localStorage.setItem('npee:navigation:v1', JSON.stringify({ bankId: 'bank-1', sectionId: 'section-1', questionId: 'question-1', view: 'section' }))
     expect(loadNavigation()).toMatchObject({ page: 'study', profileBankId: '', studyPositions: {} })

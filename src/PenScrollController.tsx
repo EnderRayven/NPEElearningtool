@@ -7,11 +7,17 @@ const PEN_SCROLL_IGNORE_SELECTOR = [
   '.handwriting-canvas',
   '.handwriting-toolbar',
   '.handwriting-size-popover',
-  '.dashboard-question-backdrop',
   'input',
   'textarea',
   'select',
   '[contenteditable="true"]',
+].join(',')
+const PEN_SCROLL_MODAL_BACKDROP_SELECTOR = [
+  '.modal-backdrop',
+  '.notes-modal-backdrop',
+  '.timer-modal-backdrop',
+  '.dashboard-question-backdrop',
+  '.confirm-dialog-backdrop',
 ].join(',')
 
 type PenScrollState = {
@@ -37,6 +43,16 @@ function isVerticalScrollable(element: HTMLElement) {
 function findScrollTarget(target: EventTarget | null) {
   const element = elementFromTarget(target)
   if (!element || element.closest(PEN_SCROLL_IGNORE_SELECTOR)) return null
+
+  const modalBackdrop = element.closest(PEN_SCROLL_MODAL_BACKDROP_SELECTOR)
+  if (modalBackdrop) {
+    let modalCandidate: HTMLElement | null = element instanceof HTMLElement ? element : element.parentElement
+    while (modalCandidate && modalCandidate !== modalBackdrop) {
+      if (isVerticalScrollable(modalCandidate)) return modalCandidate
+      modalCandidate = modalCandidate.parentElement
+    }
+    return null
+  }
 
   let candidate: HTMLElement | null = element instanceof HTMLElement ? element : element.parentElement
   while (candidate && candidate !== document.body) {

@@ -31,6 +31,48 @@ describe('questionNotes', () => {
     })
   })
 
+  it('preserves supported shape metadata and discards unknown shapes', () => {
+    const drawing = validateHandwritingDrawing({
+      strokes: [
+        { id: 'shape', color: '#8f3028', size: 2, input: 'mouse', shape: 'rectangle', shapeLineStyle: 'dotted', shapeFill: true, shapeFillColor: '#3474A7', shapeFillOpacity: 1.5, points: [{ x: .1, y: .2 }, { x: .5, y: .6 }] },
+        { id: 'unknown', color: '#8f3028', size: 2, input: 'mouse', shape: 'star', points: [{ x: .2, y: .3 }] },
+      ],
+    })
+    expect(drawing.strokes[0]).toMatchObject({
+      shape: 'rectangle',
+      shapeLineStyle: 'dotted',
+      shapeFill: true,
+      shapeFillColor: '#3474a7',
+      shapeFillOpacity: 1,
+    })
+    expect(drawing.strokes[1].shape).toBeUndefined()
+  })
+
+  it('repairs shapes saved by the former edge-per-stroke format', () => {
+    const segment = (id: string, from: [number, number], to: [number, number]) => ({
+      id,
+      color: '#8f3028',
+      size: 2,
+      input: 'mouse',
+      points: [
+        { x: from[0], y: from[1], pressure: .5 },
+        { x: to[0], y: to[1], pressure: .5 },
+      ],
+    })
+    const drawing = validateHandwritingDrawing({
+      strokes: [
+        segment('top', [.1, .2], [.5, .2]),
+        segment('right', [.5, .2], [.5, .6]),
+        segment('bottom', [.5, .6], [.1, .6]),
+        segment('left', [.1, .6], [.1, .2]),
+      ],
+    })
+
+    expect(drawing.strokes).toHaveLength(1)
+    expect(drawing.strokes[0]).toMatchObject({ id: 'top', shape: 'rectangle' })
+    expect(drawing.strokes[0].points).toHaveLength(5)
+  })
+
   it('filters empty or malformed notes', () => {
     expect(validateQuestionNotes({
       empty: emptyQuestionNote(),
@@ -38,6 +80,18 @@ describe('questionNotes', () => {
       valid: { text: '保留', drawing: null },
     })).toEqual({
       valid: { text: '保留', drawing: validateHandwritingDrawing(null), updatedAt: '' },
+    })
+  })
+
+  it('keeps an empty drawing when its expanded canvas space is intentional', () => {
+    const expanded = {
+      ...emptyQuestionNote(),
+      drawing: { ...emptyQuestionNote().drawing, aspectRatio: 1 },
+    }
+
+    expect(hasQuestionNote(expanded)).toBe(true)
+    expect(validateQuestionNotes({ expanded })).toEqual({
+      expanded: { ...expanded, updatedAt: '' },
     })
   })
 
@@ -64,5 +118,13 @@ describe('questionNotes', () => {
       { id: 'far', color: '#000000', size: 2, input: 'pen' as const, points: [{ x: .8, y: .8 }] },
     ]
     expect(eraseHandwritingStrokes(strokes, { x: .22, y: .2 }, .05).map(stroke => stroke.id)).toEqual(['far'])
+  })
+
+  it('erases a whole shape when the eraser touches the middle of an edge', () => {
+    const strokes = [
+      { id: 'line', color: '#000000', size: 2, input: 'mouse' as const, shape: 'line' as const, points: [{ x: .1, y: .2 }, { x: .9, y: .2 }] },
+      { id: 'far', color: '#000000', size: 2, input: 'mouse' as const, points: [{ x: .8, y: .8 }] },
+    ]
+    expect(eraseHandwritingStrokes(strokes, { x: .5, y: .21 }, .02).map(stroke => stroke.id)).toEqual(['far'])
   })
 })

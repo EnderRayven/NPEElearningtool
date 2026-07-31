@@ -1,3 +1,5 @@
+import type { HandwritingShape, HandwritingShapeLineStyle } from './questionNotes'
+
 export type HandwritingClipboardSpace = 'normalized' | 'canvas'
 
 export interface ClipboardPoint {
@@ -11,6 +13,11 @@ export interface ClipboardStroke {
   points: ClipboardPoint[]
   size?: number
   input?: 'pen' | 'touch' | 'mouse'
+  shape?: HandwritingShape
+  shapeLineStyle?: HandwritingShapeLineStyle
+  shapeFill?: boolean
+  shapeFillColor?: string
+  shapeFillOpacity?: number
 }
 
 export interface HandwritingClipboardData {
@@ -28,6 +35,11 @@ function clone(data: HandwritingClipboardData): HandwritingClipboardData {
       color: stroke.color,
       ...(stroke.size === undefined ? {} : { size: stroke.size }),
       ...(stroke.input === undefined ? {} : { input: stroke.input }),
+      ...(stroke.shape === undefined ? {} : { shape: stroke.shape }),
+      ...(stroke.shapeLineStyle === undefined ? {} : { shapeLineStyle: stroke.shapeLineStyle }),
+      ...(stroke.shapeFill === undefined ? {} : { shapeFill: stroke.shapeFill }),
+      ...(stroke.shapeFillColor === undefined ? {} : { shapeFillColor: stroke.shapeFillColor }),
+      ...(stroke.shapeFillOpacity === undefined ? {} : { shapeFillOpacity: stroke.shapeFillOpacity }),
       points: stroke.points.map(point => ({ ...point })),
     })),
   }
@@ -46,7 +58,36 @@ function parse(value: string) {
     const strokes = data.strokes.flatMap(stroke => {
       if (!stroke || typeof stroke.color !== 'string' || !Array.isArray(stroke.points)) return []
       const points = stroke.points.filter(point => point && Number.isFinite(point.x) && Number.isFinite(point.y)).map(point => ({ ...point }))
-      return points.length ? [{ ...stroke, points }] : []
+      const shape = stroke.shape === 'line' || stroke.shape === 'arrow' || stroke.shape === 'rectangle' || stroke.shape === 'ellipse' || stroke.shape === 'triangle'
+        ? stroke.shape
+        : undefined
+      const shapeLineStyle = shape && (stroke.shapeLineStyle === 'solid' || stroke.shapeLineStyle === 'dashed' || stroke.shapeLineStyle === 'dotted')
+        ? stroke.shapeLineStyle
+        : undefined
+      const shapeFill = shape && stroke.shapeFill === true ? true : undefined
+      const shapeFillColor = shapeFill && typeof stroke.shapeFillColor === 'string' && /^#[0-9a-f]{6}$/i.test(stroke.shapeFillColor)
+        ? stroke.shapeFillColor.toLowerCase()
+        : undefined
+      const shapeFillOpacity = shapeFill && typeof stroke.shapeFillOpacity === 'number' && Number.isFinite(stroke.shapeFillOpacity)
+        ? Math.min(1, Math.max(0, stroke.shapeFillOpacity))
+        : undefined
+      const {
+        shape: _discardedShape,
+        shapeLineStyle: _discardedShapeLineStyle,
+        shapeFill: _discardedShapeFill,
+        shapeFillColor: _discardedShapeFillColor,
+        shapeFillOpacity: _discardedShapeFillOpacity,
+        ...strokeWithoutShape
+      } = stroke
+      return points.length ? [{
+        ...strokeWithoutShape,
+        points,
+        ...(shape ? { shape } : {}),
+        ...(shapeLineStyle ? { shapeLineStyle } : {}),
+        ...(shapeFill ? { shapeFill } : {}),
+        ...(shapeFillColor ? { shapeFillColor } : {}),
+        ...(shapeFillOpacity !== undefined ? { shapeFillOpacity } : {}),
+      }] : []
     })
     return strokes.length ? { space: data.space, strokes } : null
   } catch {

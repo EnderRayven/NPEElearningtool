@@ -59,6 +59,19 @@ export interface DefaultWorkspaceIndex {
 
 const MATH_MODULE_FOLDERS = new Set(['高数', '线代', '真题'])
 const GROUPING_FOLDERS = new Set(['数学', '英语', '专业课'])
+const workspaceWriteQueues = new WeakMap<FileSystemDirectoryHandle, Map<string, Promise<void>>>()
+
+function queueWorkspaceWrite(handle: FileSystemDirectoryHandle, key: string, write: () => Promise<void>) {
+  const queues = workspaceWriteQueues.get(handle) || new Map<string, Promise<void>>()
+  if (!workspaceWriteQueues.has(handle)) workspaceWriteQueues.set(handle, queues)
+  const previous = queues.get(key) || Promise.resolve()
+  const next = previous.catch(() => {}).then(write)
+  queues.set(key, next)
+  void next.finally(() => {
+    if (queues.get(key) === next) queues.delete(key)
+  }).catch(() => {})
+  return next
+}
 
 function normalizeWorkspacePath(value: string) {
   return value.replaceAll('\\', '/').replace(/^\/|\/$/g, '')
@@ -227,12 +240,15 @@ export async function readWorkspaceNoteBuckets(handle: FileSystemDirectoryHandle
 }
 
 export async function writeWorkspaceNoteBucket(handle: FileSystemDirectoryHandle, bucket: QuestionNoteBucket) {
-  const notesDirectory = await handle.getDirectoryHandle(WORKSPACE_NOTES_FOLDER, { create: true })
-  const bankDirectory = await notesDirectory.getDirectoryHandle(workspaceNoteSegment(bucket.bankId), { create: true })
-  const fileHandle = await bankDirectory.getFileHandle(`${workspaceNoteSegment(bucket.chapterId)}.json`, { create: true })
-  const writable = await fileHandle.createWritable()
-  await writable.write(JSON.stringify({ version: 1, bankId: bucket.bankId, chapterId: bucket.chapterId, updatedAt: new Date().toISOString(), notes: validateQuestionNotes(bucket.notes) }, null, 2))
-  await writable.close()
+  const key = `${WORKSPACE_NOTES_FOLDER}/${workspaceNoteSegment(bucket.bankId)}/${workspaceNoteSegment(bucket.chapterId)}.json`
+  await queueWorkspaceWrite(handle, key, async () => {
+    const notesDirectory = await handle.getDirectoryHandle(WORKSPACE_NOTES_FOLDER, { create: true })
+    const bankDirectory = await notesDirectory.getDirectoryHandle(workspaceNoteSegment(bucket.bankId), { create: true })
+    const fileHandle = await bankDirectory.getFileHandle(`${workspaceNoteSegment(bucket.chapterId)}.json`, { create: true })
+    const writable = await fileHandle.createWritable()
+    await writable.write(JSON.stringify({ version: 1, bankId: bucket.bankId, chapterId: bucket.chapterId, updatedAt: new Date().toISOString(), notes: validateQuestionNotes(bucket.notes) }, null, 2))
+    await writable.close()
+  })
 }
 
 export async function writeWorkspaceNoteBuckets(handle: FileSystemDirectoryHandle, notes: QuestionNotes, banks: QuestionBank[], bucketKeys?: Iterable<string>) {
@@ -321,17 +337,21 @@ export async function chooseWorkspace() {
 }
 
 export async function writeWorkspaceManifest(handle: FileSystemDirectoryHandle, banks: QuestionBank[], folders: Record<string, string> = {}) {
-  const fileHandle = await handle.getFileHandle(WORKSPACE_MANIFEST, { create: true })
-  const writable = await fileHandle.createWritable()
-  await writable.write(JSON.stringify(createWorkspaceManifest(banks, folders), null, 2))
-  await writable.close()
+  await queueWorkspaceWrite(handle, WORKSPACE_MANIFEST, async () => {
+    const fileHandle = await handle.getFileHandle(WORKSPACE_MANIFEST, { create: true })
+    const writable = await fileHandle.createWritable()
+    await writable.write(JSON.stringify(createWorkspaceManifest(banks, folders), null, 2))
+    await writable.close()
+  })
 }
 
 export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}) {
-  const fileHandle = await handle.getFileHandle(WORKSPACE_USER_DATA, { create: true })
-  const writable = await fileHandle.createWritable()
-  await writable.write(JSON.stringify(createWorkspaceMetadata(rounds, settings, errorRecords), null, 2))
-  await writable.close()
+  await queueWorkspaceWrite(handle, WORKSPACE_USER_DATA, async () => {
+    const fileHandle = await handle.getFileHandle(WORKSPACE_USER_DATA, { create: true })
+    const writable = await fileHandle.createWritable()
+    await writable.write(JSON.stringify(createWorkspaceMetadata(rounds, settings, errorRecords), null, 2))
+    await writable.close()
+  })
 }
 
 export async function readWorkspaceManifest(handle: FileSystemDirectoryHandle): Promise<WorkspaceManifest | null> {

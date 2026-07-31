@@ -103,6 +103,62 @@
   margin: 16px 24px 0;
 }
 
+.answer-toggle-shell {
+  position: relative;
+}
+
+.standard-answer-toggle-shell {
+  width: calc(100% - 48px);
+  margin: 16px 24px 0;
+}
+
+.standard-answer-toggle-shell .standard-answer-toggle {
+  width: 100%;
+  margin: 0;
+}
+
+.answer-toggle-shell .has-answer-lock {
+  padding-right: 92px;
+  padding-left: 92px;
+}
+
+.answer-lock-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 68px;
+  height: 28px;
+  padding: 0 8px;
+  transform: translateY(-50%);
+  border: 1px solid #dfd5cd;
+  border-radius: 7px;
+  background: #fff;
+  color: #8e8178;
+  font-size: 10px;
+  white-space: nowrap;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.answer-lock-toggle:hover {
+  border-color: #cba39d;
+  color: #8f3028;
+}
+
+.answer-lock-toggle:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(159, 46, 37, .12);
+}
+
+.answer-lock-toggle.active {
+  border-color: #bd6d65;
+  background: #f7e7e3;
+  color: #8f3028;
+}
+
 .answer-toggle.standard-answer-toggle svg:last-child {
   margin-left: 0;
 }
@@ -123,10 +179,30 @@
 }
 
 @media screen and (max-width: 580px) {
-  .standard-answer-toggle {
+  .standard-answer-toggle,
+  .standard-answer-toggle-shell {
     width: calc(100% - 36px);
     margin-right: 18px;
     margin-left: 18px;
+  }
+
+  .standard-answer-toggle-shell .standard-answer-toggle {
+    width: 100%;
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  .answer-toggle-shell .has-answer-lock {
+    padding-right: 62px;
+    padding-left: 16px;
+  }
+
+  .answer-lock-toggle {
+    min-width: 44px;
+  }
+
+  .answer-lock-toggle span {
+    display: none;
   }
 
   .standard-answer-panel {
@@ -529,7 +605,7 @@
 }
 
 @media screen and (max-width: 580px) {
-  .settings-tools-popover { position: fixed; top: 70px; right: 10px; left: 10px; width: auto; }
+  .settings-tools-popover { position: fixed; top: 110px; right: 10px; left: 10px; width: auto; }
   .settings-tools-popover section > div { grid-template-columns: 1fr; }
   .settings-tools-popover .countdown-settings-section > div,
   .settings-tools-popover .round-settings-section > div { flex-direction: column; }

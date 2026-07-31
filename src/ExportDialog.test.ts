@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { dateFolderName, exportEntriesForScope, ExportPage, filterQuestionsForExport, imageExportFolderName, imageExportRootFolderName, originalAssetName, splitPages } from './ExportDialog'
+import ExportDialog, { dateFolderName, estimatedExportNoteHeight, exportDrawingHeightForNote, exportEntriesForScope, exportQuestionsPerPage, ExportPage, filterQuestionsForExport, filterQuestionsWithNotes, imageExportFolderName, imageExportRootFolderName, originalAssetName, paginateNotesForExport, splitPages } from './ExportDialog'
 import type { Question } from './types'
 import { isImageAnswerPlaceholder } from './questionPresentation'
 
@@ -19,6 +19,36 @@ describe('export selection', () => {
   it('支持每页一题或两题', () => {
     expect(splitPages(questions, 1).map(page => page.length)).toEqual([1, 1, 1, 1, 1])
     expect(splitPages(questions, 2).map(page => page.length)).toEqual([2, 2, 1])
+  })
+
+  it('包含笔记时使用单题分页，避免笔记挤出页面', () => {
+    expect(exportQuestionsPerPage(2, true)).toBe(1)
+    expect(exportQuestionsPerPage(2, false)).toBe(2)
+    expect(exportQuestionsPerPage(1, true)).toBe(1)
+  })
+
+  it('从独立笔记入口打开时只显示笔记导出选项', () => {
+    const bank = {
+      id: 'bank-1',
+      name: '测试题库',
+      source: 'local' as const,
+      chapters: [{ id: 'chapter-1', name: '第一章', sections: [{ id: 'section-1', name: '选择题', questions }] }],
+    }
+    const markup = renderToStaticMarkup(createElement(ExportDialog, {
+      banks: [bank],
+      statuses: {},
+      notes: {},
+      defaultBankId: bank.id,
+      defaultSectionId: 'section-1',
+      mode: 'notes',
+      onClose: () => {},
+      onPdf: () => {},
+      onNotice: () => {},
+    }))
+    expect(markup).toContain('<h2 id="export-title">导出笔记</h2>')
+    expect(markup).toContain('仅含有笔记的题目')
+    expect(markup).toContain('当前范围内没有可导出的笔记')
+    expect(markup).not.toContain('复制原图到文件夹')
   })
 
   it('支持整库、整章和整节，并保留题目来源', () => {
@@ -62,5 +92,80 @@ describe('export selection', () => {
     expect(markup).toContain('模糊')
     expect(markup).not.toContain('秘密答案')
     expect(markup).not.toContain('秘密解析')
+  })
+
+  it('按导出设置包含文字和手写笔记', () => {
+    const markup = renderToStaticMarkup(createElement(ExportPage, {
+      questions: [questions[0]],
+      notes: {
+        'q-1': {
+          text: '注意换元范围',
+          updatedAt: '2026-07-29T00:00:00.000Z',
+          drawing: {
+            version: 1,
+            aspectRatio: 5 / 3,
+            strokes: [{ id: 'stroke-1', color: '#8f3028', size: 2, input: 'pen', points: [{ x: .1, y: .2 }, { x: .3, y: .4 }] }],
+          },
+        },
+      },
+      pageNumber: 1,
+    }))
+    expect(markup).toContain('我的笔记')
+    expect(markup).toContain('注意换元范围')
+    expect(markup).toContain('aria-label="手写笔记"')
+    expect(markup).toContain('<path')
+  })
+
+  it('笔记导出只保留有笔记的题号信息和笔记内容', () => {
+    const notes = {
+      'q-1': {
+        text: '只导出这条笔记',
+        updatedAt: '2026-07-29T00:00:00.000Z',
+        drawing: { version: 1 as const, aspectRatio: 5 / 3, strokes: [] },
+      },
+    }
+    expect(filterQuestionsWithNotes(questions, notes).map(question => question.id)).toEqual(['q-1'])
+    const markup = renderToStaticMarkup(createElement(ExportPage, {
+      questions: [{ ...questions[0], text: '不应出现的题干', options: ['A. 不应出现的选项'] }],
+      statuses: { 'q-1': 'wrong' },
+      questionContext: { 'q-1': { chapterName: '第一章', sectionName: '选择题' } },
+      notes,
+      pageNumber: 1,
+      mode: 'notes',
+    }))
+    expect(markup).toContain('01')
+    expect(markup).toContain('第一章 · 选择题')
+    expect(markup).toContain('只导出这条笔记')
+    expect(markup).toContain('class="export-note export-note-only"')
+    expect(markup).not.toContain('<aside')
+    expect(markup).not.toContain('不应出现的题干')
+    expect(markup).not.toContain('不应出现的选项')
+    expect(markup).not.toContain('错题')
+  })
+
+  it('裁掉手写笔记底部空白并保留安全边距', () => {
+    const note = {
+      text: '',
+      updatedAt: '2026-07-29T00:00:00.000Z',
+      drawing: {
+        version: 1 as const,
+        aspectRatio: 5 / 3,
+        strokes: [{ id: 'stroke-1', color: '#8f3028', size: 2, input: 'pen' as const, points: [{ x: .1, y: .1 }, { x: .3, y: .25 }] }],
+      },
+    }
+    expect(exportDrawingHeightForNote(note)).toBe(206)
+    expect(exportDrawingHeightForNote(note)).toBeLessThan(600)
+  })
+
+  it('根据内容高度自动把多条短笔记排在同一页', () => {
+    const shortNotes = Object.fromEntries(questions.slice(0, 4).map(question => [question.id, {
+      text: '短笔记',
+      updatedAt: '2026-07-29T00:00:00.000Z',
+      drawing: { version: 1 as const, aspectRatio: 5 / 3, strokes: [] },
+    }]))
+    const pages = paginateNotesForExport(questions, shortNotes)
+    expect(pages).toHaveLength(1)
+    expect(pages[0]).toHaveLength(4)
+    expect(estimatedExportNoteHeight(shortNotes['q-1'])).toBeLessThan(200)
   })
 })

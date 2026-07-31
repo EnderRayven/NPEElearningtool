@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowUpRight, BookOpen, FileText, NotebookPen, Search, X } from 'lucide-react'
 import type { Chapter, Question, QuestionBank, Section } from './types'
 import { bankSubject, subjectLabels } from './subjects'
-import { canvasHeightForDrawing, pathsForStroke } from './QuestionNotePanel'
+import { croppedCanvasHeightForDrawing, pathsForStroke } from './QuestionNotePanel'
 import { DRAWING_WIDTH, type QuestionNote, type QuestionNotes } from './questionNotes'
+import { useDialogFocus } from './useDialogFocus'
+import { useModalScrollLock } from './useModalScrollLock'
 
 type NotesFilter = 'all' | 'text' | 'handwriting'
 
@@ -126,10 +128,10 @@ function groupBankEntries(entries: NoteEntry[]) {
 
 function NotesDrawing({ note }: { note: QuestionNote }) {
   if (!noteHasDrawing(note)) return null
-  const height = canvasHeightForDrawing(note.drawing)
+  const height = croppedCanvasHeightForDrawing(note.drawing)
   return <div className="notes-stream-drawing">
-    <svg viewBox={`0 0 ${DRAWING_WIDTH} ${height}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="完整手写笔记">
-      {note.drawing.strokes.flatMap(stroke => pathsForStroke(stroke).map((path, index) => <path key={`${stroke.id}-${index}`} d={path.d} fill="none" stroke={stroke.color} strokeWidth={path.width} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>))}
+    <svg viewBox={`0 0 ${DRAWING_WIDTH} ${height}`} preserveAspectRatio="xMidYMin meet" role="img" aria-label="完整手写笔记">
+      {note.drawing.strokes.flatMap(stroke => pathsForStroke(stroke).map((path, index) => <path key={`${stroke.id}-${index}`} d={path.d} fill={path.fill || 'none'} fillOpacity={path.fillOpacity} stroke={stroke.color} strokeWidth={path.width} strokeDasharray={path.dashArray} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>))}
     </svg>
   </div>
 }
@@ -159,23 +161,9 @@ export default function NotesDialog({ banks, notes, onClose, onOpenQuestion }: N
   const navRef = useRef<HTMLElement | null>(null)
   const hasInitialisedSectionScroll = useRef(false)
   const pendingSectionScroll = useRef(false)
+  const dialogRootRef = useDialogFocus<HTMLDivElement>(onClose, { initialFocusSelector: '[aria-label="关闭我的笔记"]' })
 
-  useEffect(() => {
-    const root = document.documentElement
-    const previousBodyOverflow = document.body.style.overflow
-    const previousRootOverflow = root.style.overflow
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
-    document.body.style.overflow = 'hidden'
-    root.style.overflow = 'hidden'
-    root.classList.add('notes-modal-open')
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.body.style.overflow = previousBodyOverflow
-      root.style.overflow = previousRootOverflow
-      root.classList.remove('notes-modal-open')
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [onClose])
+  useModalScrollLock(true, 'notes-modal-open')
 
   const entries = useMemo(() => buildNoteEntries(banks, notes), [banks, notes])
   const filteredEntries = useMemo(() => {
@@ -275,7 +263,7 @@ export default function NotesDialog({ banks, notes, onClose, onOpenQuestion }: N
     setActiveSectionKey(bankGroup.sections[0]?.key || '')
   }
 
-  return <div className="notes-modal-backdrop" role="presentation" onClick={event => { if (event.target === event.currentTarget) onClose() }}>
+  return <div ref={dialogRootRef} className="notes-modal-backdrop" role="presentation" onClick={event => { if (event.target === event.currentTarget) onClose() }}>
     <section className="notes-dialog" role="dialog" aria-modal="true" aria-labelledby="notes-dialog-title" onClick={event => event.stopPropagation()}>
       <header className="notes-dialog-header">
         <div className="notes-dialog-title">
@@ -307,6 +295,6 @@ export default function NotesDialog({ banks, notes, onClose, onOpenQuestion }: N
         </main>
       </div>
     </section>
-    <button className="dashboard-question-dialog-close" type="button" aria-label="关闭我的笔记" onClick={onClose}><X size={19}/></button>
+    <button className="dashboard-question-dialog-close" type="button" aria-label="关闭我的笔记" data-dialog-initial-focus onClick={onClose}><X size={19}/></button>
   </div>
 }

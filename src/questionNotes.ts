@@ -7,12 +7,20 @@ export interface HandwritingPoint {
   pressure?: number
 }
 
+export type HandwritingShape = 'line' | 'arrow' | 'rectangle' | 'ellipse' | 'triangle'
+export type HandwritingShapeLineStyle = 'solid' | 'dashed' | 'dotted'
+
 export interface HandwritingStroke {
   id: string
   color: string
   size: number
   input: 'pen' | 'touch' | 'mouse'
   points: HandwritingPoint[]
+  shape?: HandwritingShape
+  shapeLineStyle?: HandwritingShapeLineStyle
+  shapeFill?: boolean
+  shapeFillColor?: string
+  shapeFillOpacity?: number
 }
 
 export interface HandwritingDrawing {
@@ -148,7 +156,120 @@ function validateStroke(value: unknown, index: number): HandwritingStroke | null
   const color = typeof value.color === 'string' && /^#[0-9a-f]{6}$/i.test(value.color) ? value.color.toLowerCase() : '#8f3028'
   const size = clamp(finiteNumber(value.size, 2), 1, 18)
   const id = typeof value.id === 'string' && value.id ? value.id : `stroke-${index}`
-  return { id, color, size, input: value.input, points }
+  const shape = value.shape === 'line' || value.shape === 'arrow' || value.shape === 'rectangle' || value.shape === 'ellipse' || value.shape === 'triangle'
+    ? value.shape
+    : undefined
+  const shapeLineStyle = shape && (value.shapeLineStyle === 'solid' || value.shapeLineStyle === 'dashed' || value.shapeLineStyle === 'dotted')
+    ? value.shapeLineStyle
+    : undefined
+  const shapeFill = shape && value.shapeFill === true ? true : undefined
+  const shapeFillColor = shapeFill && typeof value.shapeFillColor === 'string' && /^#[0-9a-f]{6}$/i.test(value.shapeFillColor)
+    ? value.shapeFillColor.toLowerCase()
+    : undefined
+  const shapeFillOpacity = shapeFill && typeof value.shapeFillOpacity === 'number' && Number.isFinite(value.shapeFillOpacity)
+    ? clamp(value.shapeFillOpacity, 0, 1)
+    : undefined
+  return {
+    id,
+    color,
+    size,
+    input: value.input,
+    points,
+    ...(shape ? { shape } : {}),
+    ...(shapeLineStyle ? { shapeLineStyle } : {}),
+    ...(shapeFill ? { shapeFill } : {}),
+    ...(shapeFillColor ? { shapeFillColor } : {}),
+    ...(shapeFillOpacity !== undefined ? { shapeFillOpacity } : {}),
+  }
+}
+
+const samePoint = (left: HandwritingPoint, right: HandwritingPoint) =>
+  Math.abs(left.x - right.x) < .000001 && Math.abs(left.y - right.y) < .000001
+
+const isLegacyShapeSegment = (stroke: HandwritingStroke) =>
+  !stroke.shape && stroke.points.length === 2 && stroke.points.every(point => point.pressure === .5)
+
+const sameStrokeStyle = (strokes: HandwritingStroke[]) =>
+  strokes.every(stroke =>
+    isLegacyShapeSegment(stroke)
+    && stroke.color === strokes[0].color
+    && stroke.size === strokes[0].size
+    && stroke.input === strokes[0].input)
+
+/**
+ * The first shape-tool implementation saved each edge as a separate stroke.
+ * Recognize only its exact generated geometry so already-saved shapes regain
+ * whole-object selection without combining ordinary handwriting.
+ */
+function migrateLegacyShapeStrokes(strokes: HandwritingStroke[]) {
+  const migrated: HandwritingStroke[] = []
+  for (let index = 0; index < strokes.length;) {
+    const stroke = strokes[index]
+    if (stroke.shape) {
+      migrated.push(stroke)
+      index += 1
+      continue
+    }
+
+    const rectangle = strokes.slice(index, index + 4)
+    if (rectangle.length === 4 && sameStrokeStyle(rectangle)) {
+      const [first, second, third, fourth] = rectangle
+      const closed = samePoint(first.points[1], second.points[0])
+        && samePoint(second.points[1], third.points[0])
+        && samePoint(third.points[1], fourth.points[0])
+        && samePoint(fourth.points[1], first.points[0])
+      const axisAligned = rectangle.every(segment =>
+        Math.abs(segment.points[0].x - segment.points[1].x) < .000001
+        || Math.abs(segment.points[0].y - segment.points[1].y) < .000001)
+      if (closed && axisAligned) {
+        migrated.push({
+          ...first,
+          shape: 'rectangle',
+          points: [first.points[0], first.points[1], second.points[1], third.points[1], fourth.points[1]],
+        })
+        index += 4
+        continue
+      }
+    }
+
+    const threeSegments = strokes.slice(index, index + 3)
+    if (threeSegments.length === 3 && sameStrokeStyle(threeSegments)) {
+      const [first, second, third] = threeSegments
+      const arrow = samePoint(first.points[1], second.points[1]) && samePoint(first.points[1], third.points[1])
+      if (arrow) {
+        migrated.push({
+          ...first,
+          shape: 'arrow',
+          points: [first.points[0], first.points[1], second.points[0], second.points[1], third.points[0]],
+        })
+        index += 3
+        continue
+      }
+      const triangle = samePoint(first.points[1], second.points[0])
+        && samePoint(second.points[1], third.points[0])
+        && samePoint(third.points[1], first.points[0])
+      if (triangle) {
+        migrated.push({
+          ...first,
+          shape: 'triangle',
+          points: [first.points[0], first.points[1], second.points[1], third.points[1]],
+        })
+        index += 3
+        continue
+      }
+    }
+
+    const legacyEllipse = stroke.points.length === 65
+      && stroke.points.every(point => point.pressure === .5)
+      && samePoint(stroke.points[0], stroke.points[stroke.points.length - 1])
+    migrated.push(legacyEllipse
+      ? { ...stroke, shape: 'ellipse' }
+      : isLegacyShapeSegment(stroke)
+        ? { ...stroke, shape: 'line' }
+        : stroke)
+    index += 1
+  }
+  return migrated
 }
 
 export function validateHandwritingDrawing(value: unknown): HandwritingDrawing {
@@ -159,7 +280,7 @@ export function validateHandwritingDrawing(value: unknown): HandwritingDrawing {
   return {
     version: 1,
     aspectRatio: clamp(finiteNumber(value.aspectRatio, DEFAULT_ASPECT_RATIO), MIN_DRAWING_ASPECT_RATIO, 3),
-    strokes,
+    strokes: migrateLegacyShapeStrokes(strokes),
   }
 }
 
@@ -170,7 +291,7 @@ export function validateQuestionNotes(value: unknown): QuestionNotes {
     if (!questionId || !isRecord(rawNote)) continue
     const text = typeof rawNote.text === 'string' ? rawNote.text.slice(0, MAX_TEXT_LENGTH) : ''
     const drawing = validateHandwritingDrawing(rawNote.drawing)
-    if (!text.trim() && !drawing.strokes.length) continue
+    if (!text.trim() && !drawing.strokes.length && drawing.aspectRatio >= DEFAULT_ASPECT_RATIO) continue
     notes[questionId] = {
       text,
       drawing,
@@ -196,11 +317,27 @@ export function validateQuestionErrorRecords(value: unknown): QuestionErrorRecor
 }
 
 export function hasQuestionNote(note: QuestionNote | undefined) {
-  return Boolean(note && (note.text.trim() || note.drawing.strokes.length))
+  return Boolean(note && (
+    note.text.trim()
+    || note.drawing.strokes.length
+    || note.drawing.aspectRatio < DEFAULT_ASPECT_RATIO
+  ))
+}
+
+function pointToSegmentDistance(point: HandwritingPoint, start: HandwritingPoint, end: HandwritingPoint) {
+  const dx = end.x - start.x
+  const dy = end.y - start.y
+  const lengthSquared = dx * dx + dy * dy
+  if (!lengthSquared) return Math.hypot(point.x - start.x, point.y - start.y)
+  const amount = clamp(((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared, 0, 1)
+  return Math.hypot(point.x - (start.x + dx * amount), point.y - (start.y + dy * amount))
 }
 
 export function eraseHandwritingStrokes(strokes: HandwritingStroke[], point: HandwritingPoint, radius: number) {
-  return strokes.filter(stroke => !stroke.points.some(strokePoint => Math.hypot(strokePoint.x - point.x, strokePoint.y - point.y) <= radius))
+  return strokes.filter(stroke => !stroke.points.some((strokePoint, index) => {
+    if (Math.hypot(strokePoint.x - point.x, strokePoint.y - point.y) <= radius) return true
+    return index > 0 && pointToSegmentDistance(point, stroke.points[index - 1], strokePoint) <= radius
+  }))
 }
 
 function readFallbackNotes() {

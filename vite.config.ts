@@ -1,5 +1,5 @@
 import { createReadStream } from 'node:fs'
-import { mkdir, readdir, readFile, realpath, stat, unlink, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, realpath, rename, stat, unlink, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { defineConfig, type Connect, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -7,6 +7,8 @@ import react from '@vitejs/plugin-react'
 const MANIFEST = '题库数据.json'
 const USER_DATA = '用户数据.json'
 const NOTES_FOLDER = '用户笔记'
+const MAX_JSON_BODY_BYTES = 32 * 1024 * 1024
+const MAX_IMAGE_BODY_BYTES = 128 * 1024 * 1024
 const IMAGE_PATTERN = /\.(png|jpe?g|webp|gif|bmp|avif)$/i
 const STRUCTURED_IMAGE_PATTERN = /^(?:Q|A)-\d+-\d+-\d+(?:\.\d+)?\.(?:png|jpe?g|webp|gif|bmp|avif)$/i
 const IMAGE_CONTENT_TYPES: Record<string, string> = {
@@ -15,6 +17,57 @@ const IMAGE_CONTENT_TYPES: Record<string, string> = {
 }
 const MATH_MODULE_FOLDERS = new Set(['高数', '线代', '真题'])
 const GROUPING_FOLDERS = new Set(['数学', '英语', '专业课'])
+
+function requestError(message: string, statusCode: number) {
+  return Object.assign(new Error(message), { statusCode })
+}
+
+function readRequestBody(request: Connect.IncomingMessage, maximumBytes: number): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = []
+    let totalBytes = 0
+    let settled = false
+    request.on('data', chunk => {
+      if (settled) return
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      totalBytes += buffer.length
+      if (totalBytes > maximumBytes) {
+        settled = true
+        reject(requestError('请求内容过大', 413))
+        return
+      }
+      chunks.push(buffer)
+    })
+    request.on('end', () => {
+      if (settled) return
+      settled = true
+      resolve(Buffer.concat(chunks))
+    })
+    request.on('aborted', () => {
+      if (settled) return
+      settled = true
+      reject(requestError('请求已中断', 400))
+    })
+    request.on('error', error => {
+      if (settled) return
+      settled = true
+      reject(error)
+    })
+  })
+}
+
+async function atomicWriteFile(target: string, data: string | Buffer) {
+  const directory = path.dirname(target)
+  await mkdir(directory, { recursive: true })
+  const temporary = path.join(directory, `.${path.basename(target)}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`)
+  try {
+    await writeFile(temporary, data)
+    await rename(temporary, target)
+  } catch (error) {
+    await unlink(temporary).catch(() => {})
+    throw error
+  }
+}
 
 function bankFoldersFromDirectoryPaths(directoryPaths: string[]) {
   const folders = new Set<string>()
@@ -38,6 +91,20 @@ function bankFoldersFromDirectoryPaths(directoryPaths: string[]) {
 function defaultWorkspacePlugin(): Plugin {
   const root = path.resolve(process.cwd(), '默认题库')
   const userDataRoot = path.resolve(process.cwd(), '用户数据')
+  const pendingWrites = new Map<string, Promise<void>>()
+  function queueAtomicWrite(target: string, data: string | Buffer) {
+    const previous = pendingWrites.get(target) || Promise.resolve()
+    const next = previous.catch(() => {}).then(() => atomicWriteFile(target, data))
+    pendingWrites.set(target, next)
+    void next.finally(() => {
+      if (pendingWrites.get(target) === next) pendingWrites.delete(target)
+    }).catch(() => {})
+    return next
+  }
+  function sendWriteError(response: Connect.ServerResponse, error: unknown, fallback: string) {
+    response.statusCode = (error as { statusCode?: number })?.statusCode || 400
+    response.end(error instanceof Error ? error.message : fallback)
+  }
   function resolveBankPath(relativePath: string, bankFolders: string[]) {
     const knownFolder = [...bankFolders]
       .sort((left, right) => right.length - left.length)
@@ -134,15 +201,12 @@ function defaultWorkspacePlugin(): Plugin {
         const relative = new URL(request.url || '', 'http://localhost').searchParams.get('path') || ''
         const absolute = path.resolve(root, relative)
         if (absolute === root || !absolute.startsWith(`${root}${path.sep}`)) { response.statusCode = 403; response.end('路径不安全'); return }
-        const chunks: Buffer[] = []
-        request.on('data', chunk => chunks.push(chunk))
-        request.on('end', async () => {
+        void readRequestBody(request, MAX_IMAGE_BODY_BYTES).then(async body => {
           try {
-            await mkdir(path.dirname(absolute), { recursive: true })
-            await writeFile(absolute, Buffer.concat(chunks))
+            await queueAtomicWrite(absolute, body)
             response.setHeader('Content-Type', 'application/json'); response.end('{"ok":true}')
-          } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '图片写入失败') }
-        })
+          } catch (error) { sendWriteError(response, error, '图片写入失败') }
+        }).catch(error => sendWriteError(response, error, '图片写入失败'))
       })
       server.middlewares.use('/api/default-workspace/delete-image', (request, response) => {
         if (request.method !== 'DELETE') { response.statusCode = 405; response.end(); return }
@@ -185,18 +249,16 @@ function defaultWorkspacePlugin(): Plugin {
         if (!bankFolder || !fileName || fileName.includes('/') || fileName.includes('\\') || !IMAGE_PATTERN.test(fileName)) { response.statusCode = 400; response.end('替换目标无效'); return }
         const folder = path.resolve(root, bankFolder)
         if (!folder.startsWith(`${root}${path.sep}`)) { response.statusCode = 403; response.end('路径不安全'); return }
-        const chunks: Buffer[] = []
-        request.on('data', chunk => chunks.push(chunk))
-        request.on('end', async () => {
+        void readRequestBody(request, MAX_IMAGE_BODY_BYTES).then(async body => {
           try {
             const matches = await findFilesByName(folder, fileName)
             if (!matches.length) { response.statusCode = 404; response.end('原图片不存在'); return }
             if (matches.length > 1) { response.statusCode = 409; response.end('存在多个同名图片') ; return }
-            await writeFile(matches[0], Buffer.concat(chunks))
+            await queueAtomicWrite(matches[0], body)
             response.setHeader('Content-Type', 'application/json')
             response.end(JSON.stringify({ relativePath: path.relative(root, matches[0]).replaceAll(path.sep, '/'), modified: Date.now() }))
-          } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '图片替换失败') }
-        })
+          } catch (error) { sendWriteError(response, error, '图片替换失败') }
+        }).catch(error => sendWriteError(response, error, '图片替换失败'))
       })
       server.middlewares.use('/api/default-workspace/add-image', (request, response) => {
         if (request.method !== 'PUT') { response.statusCode = 405; response.end(); return }
@@ -207,62 +269,52 @@ function defaultWorkspacePlugin(): Plugin {
         if (!bankFolder || !anchorFileName || !fileName || [anchorFileName, fileName].some(value => value.includes('/') || value.includes('\\') || !IMAGE_PATTERN.test(value))) { response.statusCode = 400; response.end('新增目标无效'); return }
         const folder = path.resolve(root, bankFolder)
         if (!folder.startsWith(`${root}${path.sep}`)) { response.statusCode = 403; response.end('路径不安全'); return }
-        const chunks: Buffer[] = []
-        request.on('data', chunk => chunks.push(chunk))
-        request.on('end', async () => {
+        void readRequestBody(request, MAX_IMAGE_BODY_BYTES).then(async body => {
           try {
             const matches = await findFilesByName(folder, anchorFileName)
             if (!matches.length) { response.statusCode = 404; response.end('找不到图片目录'); return }
             if (matches.length > 1) { response.statusCode = 409; response.end('存在多个同名图片'); return }
             const target = path.join(path.dirname(matches[0]), fileName)
-            await writeFile(target, Buffer.concat(chunks))
+            await queueAtomicWrite(target, body)
             response.setHeader('Content-Type', 'application/json')
             response.end(JSON.stringify({ relativePath: path.relative(root, target).replaceAll(path.sep, '/'), modified: Date.now() }))
-          } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '图片新增失败') }
-        })
+          } catch (error) { sendWriteError(response, error, '图片新增失败') }
+        }).catch(error => sendWriteError(response, error, '图片新增失败'))
       })
       server.middlewares.use('/api/default-workspace/manifest', (request, response) => {
         if (request.method !== 'PUT') { response.statusCode = 405; response.end(); return }
-        const chunks: Buffer[] = []
-        request.on('data', chunk => chunks.push(chunk))
-        request.on('end', async () => {
+        void readRequestBody(request, MAX_JSON_BODY_BYTES).then(async body => {
           try {
-            const content = Buffer.concat(chunks).toString('utf8')
+            const content = body.toString('utf8')
             JSON.parse(content)
-            await writeFile(path.join(root, MANIFEST), content)
+            await queueAtomicWrite(path.join(root, MANIFEST), content)
             response.setHeader('Content-Type', 'application/json'); response.end('{"ok":true}')
-          } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '写入失败') }
-        })
+          } catch (error) { sendWriteError(response, error, '写入失败') }
+        }).catch(error => sendWriteError(response, error, '写入失败'))
       })
       server.middlewares.use('/api/default-workspace/user-data', (request, response) => {
         if (request.method !== 'PUT') { response.statusCode = 405; response.end(); return }
-        const chunks: Buffer[] = []
-        request.on('data', chunk => chunks.push(chunk))
-        request.on('end', async () => {
+        void readRequestBody(request, MAX_JSON_BODY_BYTES).then(async body => {
           try {
-            const content = Buffer.concat(chunks).toString('utf8')
+            const content = body.toString('utf8')
             JSON.parse(content)
-            await mkdir(userDataRoot, { recursive: true })
-            await writeFile(path.join(userDataRoot, USER_DATA), content)
+            await queueAtomicWrite(path.join(userDataRoot, USER_DATA), content)
             response.setHeader('Content-Type', 'application/json'); response.end('{"ok":true}')
-          } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '写入失败') }
-        })
+          } catch (error) { sendWriteError(response, error, '写入失败') }
+        }).catch(error => sendWriteError(response, error, '写入失败'))
       })
       server.middlewares.use('/api/default-workspace/note-bucket', (request, response) => {
         if (request.method !== 'PUT') { response.statusCode = 405; response.end(); return }
-        const chunks: Buffer[] = []
-        request.on('data', chunk => chunks.push(chunk))
-        request.on('end', async () => {
+        void readRequestBody(request, MAX_JSON_BODY_BYTES).then(async body => {
           try {
-            const content = Buffer.concat(chunks).toString('utf8')
+            const content = body.toString('utf8')
             const payload = JSON.parse(content) as { bankId?: string; chapterId?: string }
             if (!payload.bankId || !payload.chapterId) { response.statusCode = 400; response.end('章节信息缺失'); return }
             const bankDirectory = path.join(userDataRoot, NOTES_FOLDER, noteSegment(payload.bankId))
-            await mkdir(bankDirectory, { recursive: true })
-            await writeFile(path.join(bankDirectory, `${noteSegment(payload.chapterId)}.json`), content)
+            await queueAtomicWrite(path.join(bankDirectory, `${noteSegment(payload.chapterId)}.json`), content)
             response.setHeader('Content-Type', 'application/json'); response.end('{"ok":true}')
-          } catch (error) { response.statusCode = 400; response.end(error instanceof Error ? error.message : '写入失败') }
-        })
+          } catch (error) { sendWriteError(response, error, '写入失败') }
+        }).catch(error => sendWriteError(response, error, '写入失败'))
       })
   }
   return {

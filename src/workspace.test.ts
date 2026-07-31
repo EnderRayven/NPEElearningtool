@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { QuestionBank } from './types'
-import { createWorkspaceManifest, createWorkspaceMetadata, createWorkspaceUserData, resolveWorkspaceImagePath, resolveWorkspaceUserData, workspaceBankFoldersFromDirectoryPaths } from './workspace'
+import { createWorkspaceManifest, createWorkspaceMetadata, createWorkspaceUserData, resolveWorkspaceImagePath, resolveWorkspaceUserData, workspaceBankFoldersFromDirectoryPaths, writeWorkspaceManifest } from './workspace'
 
 const bank: QuestionBank = {
   id: 'bank-1',
@@ -73,6 +73,35 @@ describe('workspace data separation', () => {
     const metadata = createWorkspaceMetadata({ '1': { statuses: {}, activities: [] } }, { examDate: '', activeRound: 1, roundCount: 5 }, {})
     expect(metadata).not.toHaveProperty('notes')
     expect(metadata).toHaveProperty('rounds')
+  })
+
+  it('serializes repeated writes to the same workspace file', async () => {
+    let activeWriters = 0
+    let maximumActiveWriters = 0
+    const writtenBankNames: string[] = []
+    const handle = {
+      getFileHandle: async () => ({
+        createWritable: async () => {
+          activeWriters += 1
+          maximumActiveWriters = Math.max(maximumActiveWriters, activeWriters)
+          return {
+            write: async (content: string) => {
+              writtenBankNames.push((JSON.parse(content) as { banks: QuestionBank[] }).banks[0].name)
+              await new Promise(resolve => setTimeout(resolve, 5))
+            },
+            close: async () => { activeWriters -= 1 },
+          }
+        },
+      }),
+    } as unknown as FileSystemDirectoryHandle
+
+    await Promise.all([
+      writeWorkspaceManifest(handle, [{ ...bank, name: '第一次写入' }]),
+      writeWorkspaceManifest(handle, [{ ...bank, name: '第二次写入' }]),
+    ])
+
+    expect(maximumActiveWriters).toBe(1)
+    expect(writtenBankNames).toEqual(['第一次写入', '第二次写入'])
   })
 
   it('recognizes a bank stored below a grouping folder', () => {

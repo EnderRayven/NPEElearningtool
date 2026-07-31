@@ -139,6 +139,7 @@ export interface NavigationState {
     linear?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
     exams?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
   }
+  bankStudyPositions?: Record<string, Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>>
 }
 
 function parseStudyPosition(value: unknown) {
@@ -178,6 +179,12 @@ export function loadNavigation(): NavigationState | null {
       const exams = parseStudyPosition(value.mathStudyPositions.exams)
       if (exams) mathStudyPositions.exams = exams
       migrated.mathStudyPositions = mathStudyPositions
+    }
+    if (isRecord(value.bankStudyPositions)) {
+      migrated.bankStudyPositions = Object.fromEntries(Object.values(value.bankStudyPositions)
+        .map(parseStudyPosition)
+        .filter(position => position !== undefined)
+        .map(position => [position.bankId, position]))
     }
     if (raw !== JSON.stringify(migrated)) trySetItem(NAVIGATION_KEY, JSON.stringify(migrated))
     return migrated

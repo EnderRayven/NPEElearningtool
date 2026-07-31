@@ -1,6 +1,8 @@
-import { useEffect, useState, type ComponentType } from 'react'
-import { CalendarDays, ChevronRight, CircleHelp, Download, ExternalLink, FileImage, FileText, FileUp, FolderOpen, FolderSync, HardDrive, Info, Pencil, Plus, RotateCcw, Settings as SettingsIcon, SunMedium, X } from 'lucide-react'
+import { useState, type ComponentType } from 'react'
+import { CalendarDays, ChevronRight, CircleHelp, Download, ExternalLink, FileImage, FileText, FileUp, FolderOpen, FolderSync, HardDrive, History, Info, NotebookPen, Pencil, Plus, RotateCcw, Settings as SettingsIcon, SunMedium, X } from 'lucide-react'
 import type { UserSettings } from './userSettings'
+import { useDialogFocus } from './useDialogFocus'
+import { useModalScrollLock } from './useModalScrollLock'
 
 type SettingsSection = 'study' | 'focus' | 'data' | 'about'
 type WorkspaceState = 'none' | 'available' | 'syncing' | 'connected' | 'error'
@@ -24,19 +26,21 @@ interface Props {
   onToggleScreenAwake: () => void
   onOpenNewBank: () => void
   onOpenEditor: () => void
+  onOpenStudyRecords: () => void
   onOpenDataManager: () => void
   onConnectWorkspace: () => void
   onSwitchWorkspace: () => void
   onImportData: () => void
   onImportImages: () => void
   onOpenExport: () => void
+  onOpenNotesExport: () => void
   onExportData: () => void
 }
 
 const sectionItems: Array<{ id: SettingsSection; label: string; description: string; icon: PanelIcon }> = [
+  { id: 'data', label: '题库与数据', description: '题库、导入导出与备份', icon: HardDrive },
   { id: 'study', label: '学习设置', description: '轮次与考试日期', icon: RotateCcw },
   { id: 'focus', label: '专注模式', description: '不熄屏与学习状态', icon: SunMedium },
-  { id: 'data', label: '题库与数据', description: '题库、导入导出与备份', icon: HardDrive },
   { id: 'about', label: '关于', description: '版本与项目链接', icon: Info },
 ]
 
@@ -47,9 +51,9 @@ const sectionTitles: Record<SettingsSection, { eyebrow: string; title: string; d
   about: { eyebrow: 'ABOUT', title: '关于', description: '查看当前版本、项目地址和数据说明。' },
 }
 
-function ActionCard(props: { icon: PanelIcon; title: string; description: string; onClick: () => void; accent?: boolean }) {
+function ActionCard(props: { icon: PanelIcon; title: string; description: string; onClick: () => void }) {
   const Icon = props.icon
-  return <button className={props.accent ? 'settings-panel-action accent' : 'settings-panel-action'} type="button" onClick={props.onClick}>
+  return <button className="settings-panel-action" type="button" onClick={props.onClick}>
     <span className="settings-panel-action-icon"><Icon size={18}/></span>
     <span className="settings-panel-action-copy"><strong>{props.title}</strong><small>{props.description}</small></span>
     <ChevronRight className="settings-panel-action-arrow" size={15}/>
@@ -70,34 +74,10 @@ function GitHubMark({ size = 19 }: { size?: number }) {
 }
 
 export default function SettingsPanel(props: Props) {
-  const [activeSection, setActiveSection] = useState<SettingsSection>('study')
+  const [activeSection, setActiveSection] = useState<SettingsSection>('data')
   const heading = sectionTitles[activeSection]
-
-  useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') props.onClose() }
-    document.addEventListener('keydown', closeOnEscape)
-    return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [props.onClose])
-
-  useEffect(() => {
-    const html = document.documentElement
-    const body = document.body
-    const previousHtmlOverscroll = html.style.overscrollBehavior
-    const previousBodyOverflow = body.style.overflow
-    const previousBodyOverscroll = body.style.overscrollBehavior
-    const previousBodyPaddingRight = body.style.paddingRight
-    const scrollbarWidth = window.innerWidth - html.clientWidth
-    html.style.overscrollBehavior = 'none'
-    body.style.overflow = 'hidden'
-    body.style.overscrollBehavior = 'none'
-    if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`
-    return () => {
-      html.style.overscrollBehavior = previousHtmlOverscroll
-      body.style.overflow = previousBodyOverflow
-      body.style.overscrollBehavior = previousBodyOverscroll
-      body.style.paddingRight = previousBodyPaddingRight
-    }
-  }, [])
+  const dialogRef = useDialogFocus<HTMLElement>(props.onClose)
+  useModalScrollLock()
 
   function renderStudySettings() {
     return <div className="settings-panel-stack">
@@ -132,8 +112,15 @@ export default function SettingsPanel(props: Props) {
       <section className="settings-panel-group">
         <GroupHeading title="题库操作" description="创建、编辑和维护当前题库"/>
         <div className="settings-panel-action-grid">
-          <ActionCard icon={Plus} title="新建题库" description="批量导入图片建立新题库" onClick={props.onOpenNewBank} accent/>
+          <ActionCard icon={Plus} title="新建题库" description="批量导入图片建立新题库" onClick={props.onOpenNewBank}/>
           <ActionCard icon={Pencil} title="编辑题目与图片" description="从 PDF 截图、裁剪并替换题图" onClick={props.onOpenEditor}/>
+        </div>
+      </section>
+
+      <section className="settings-panel-group">
+        <GroupHeading title="学习记录" description="按题目查看、补录、修改或删除全部做题记录"/>
+        <div className="settings-panel-action-grid single">
+          <ActionCard icon={History} title="学习记录管理" description="查看每题全部记录，并修改状态与日期时间" onClick={props.onOpenStudyRecords}/>
         </div>
       </section>
 
@@ -141,7 +128,7 @@ export default function SettingsPanel(props: Props) {
         <GroupHeading title="题库连接" description="同步本地题库文件夹"/>
         <WorkspaceStatus state={props.workspaceState}/>
         <div className="settings-panel-action-grid">
-          <ActionCard icon={FolderSync} title={props.workspaceState === 'connected' ? '重新同步题库' : '连接题库文件夹'} description={props.workspaceState === 'connected' ? '重新读取当前题库与用户数据' : '连接本地目录并启用实时保存'} onClick={props.onConnectWorkspace} accent/>
+          <ActionCard icon={FolderSync} title={props.workspaceState === 'connected' ? '重新同步题库' : '连接题库文件夹'} description={props.workspaceState === 'connected' ? '重新读取当前题库与用户数据' : '连接本地目录并启用实时保存'} onClick={props.onConnectWorkspace}/>
           <ActionCard icon={FolderOpen} title="切换题库文件夹" description="选择另一套本地题库目录" onClick={props.onSwitchWorkspace}/>
         </div>
       </section>
@@ -149,9 +136,10 @@ export default function SettingsPanel(props: Props) {
       <section className="settings-panel-group">
         <GroupHeading title="导入与导出" description="迁移题库、图片和学习资料"/>
         <div className="settings-panel-action-grid">
-          <ActionCard icon={FileUp} title="导入题库" description="载入 JSON 题库或完整备份" onClick={props.onImportData} accent/>
+          <ActionCard icon={FileUp} title="导入题库" description="载入 JSON 题库或完整备份" onClick={props.onImportData}/>
           <ActionCard icon={FileImage} title="导入图片" description="按命名规则匹配题图与解析图" onClick={props.onImportImages}/>
           <ActionCard icon={FileText} title="导出题目" description="按当前范围生成 PDF 或图片" onClick={props.onOpenExport}/>
+          <ActionCard icon={NotebookPen} title="导出笔记" description="按范围导出文字与手写笔记" onClick={props.onOpenNotesExport}/>
           <ActionCard icon={Download} title="完整备份" description="保存题库、学习记录和题目笔记" onClick={props.onExportData}/>
         </div>
         <div className="settings-panel-rule-inline">
@@ -164,7 +152,7 @@ export default function SettingsPanel(props: Props) {
       <section className="settings-panel-group">
         <GroupHeading title="备份与重置" description="存储占用、清除标注和恢复数据"/>
         <div className="settings-panel-action-grid">
-          <ActionCard icon={HardDrive} title="备份与重置管理" description="查看存储、导出单库、恢复内置或出厂设置" onClick={props.onOpenDataManager} accent/>
+          <ActionCard icon={HardDrive} title="备份与重置管理" description="查看存储、导出单库、恢复内置或出厂设置" onClick={props.onOpenDataManager}/>
         </div>
       </section>
 
@@ -197,8 +185,8 @@ export default function SettingsPanel(props: Props) {
   }
 
   return <div className="modal-backdrop settings-panel-backdrop" onClick={props.onClose}>
-    <section className="settings-panel-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-panel-title" onClick={event => event.stopPropagation()}>
-      <div className="settings-panel-header"><div className="settings-panel-heading"><span className="settings-panel-heading-icon"><SettingsIcon size={19}/></span><div><h2 id="settings-panel-title">设置</h2><p>按类别管理考研学习空间</p></div></div><button className="settings-panel-close" type="button" aria-label="关闭设置" onClick={props.onClose}><X size={18}/></button></div>
+    <section ref={dialogRef} className="settings-panel-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-panel-title" tabIndex={-1} onClick={event => event.stopPropagation()}>
+      <div className="settings-panel-header"><div className="settings-panel-heading"><span className="settings-panel-heading-icon"><SettingsIcon size={19}/></span><div><h2 id="settings-panel-title">设置</h2><p>按类别管理考研学习空间</p></div></div><button className="settings-panel-close" type="button" aria-label="关闭设置" data-dialog-initial-focus onClick={props.onClose}><X size={18}/></button></div>
       <div className="settings-panel-layout">
         <nav className="settings-panel-nav" aria-label="设置分类">
           <span className="settings-panel-nav-label">设置分类</span>

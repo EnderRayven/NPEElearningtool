@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { BookOpen, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ClipboardPaste, Crop, FileImage, FileText, RotateCw, Save, Square, Trash2, Upload, X } from 'lucide-react'
+import { BookOpen, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ClipboardPaste, Crop, FileImage, FileText, RotateCw, Save, Square, Trash2, Upload, X, ZoomIn, ZoomOut } from 'lucide-react'
 import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy } from 'pdfjs-dist'
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { getAssetBlobs, getAssetRevision, subscribeAssetChanges, type ImageKind } from './assets'
 import { orderedQuestionEntriesForBank } from './bankManagement'
 import { questionImageSources, questionWithImageSources, type QuestionImageSource } from './questionImages'
 import type { Question, QuestionBank, Section } from './types'
+import { useDialogFocus } from './useDialogFocus'
+import { useModalScrollLock } from './useModalScrollLock'
 
 GlobalWorkerOptions.workerSrc = pdfWorker
 
@@ -48,6 +50,9 @@ interface PendingImage { key: string; file: File; url: string; index: number; so
 type ImageSource = QuestionImageSource
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+const MIN_CROP_ZOOM = 1
+const MAX_CROP_ZOOM = 6
+const CROP_ZOOM_STEP = 0.25
 
 function cloneQuestion(question: Question): Question {
   return {
@@ -120,6 +125,7 @@ function imageChangeKey(bankId: string, questionId: string, kind: ImageKind) {
 }
 
 export default function QuestionBankEditor({ banks, activeBankId, activeQuestionId, onClose, onSave }: Props) {
+  useModalScrollLock()
   const [selectedBankId, setSelectedBankId] = useState(activeBankId)
   const selectedBank = banks.find(bank => bank.id === selectedBankId) || banks[0]
   const entries = useMemo(() => selectedBank ? orderedQuestionEntriesForBank(selectedBank) : [], [selectedBank])
@@ -151,11 +157,14 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
   const [pendingEditorAction, setPendingEditorAction] = useState<PendingEditorAction | null>(null)
   const [message, setMessage] = useState('')
   const [cropInteraction, setCropInteraction] = useState<CropInteraction | null>(null)
+  const [cropZoom, setCropZoom] = useState(MIN_CROP_ZOOM)
+  const [cropSurfaceSize, setCropSurfaceSize] = useState({ width: 0, height: 0 })
   const [expandedChapterIds, setExpandedChapterIds] = useState<Set<string>>(() => new Set(selectedEntry ? [selectedEntry.chapterId] : entries[0] ? [entries[0].chapterId] : []))
   const [expandedSectionIds, setExpandedSectionIds] = useState<Set<string>>(() => new Set(selectedEntry ? [selectedEntry.sectionId] : entries[0] ? [entries[0].sectionId] : []))
   const sourceImageRef = useRef<HTMLImageElement>(null)
   const pdfCanvasRef = useRef<HTMLCanvasElement>(null)
   const cropAreaRef = useRef<HTMLDivElement>(null)
+  const cropSurfaceRef = useRef<HTMLDivElement>(null)
   const sourceUrlRef = useRef('')
   const fullSelection: CropSelection = { x: 0, y: 0, width: 1, height: 1 }
 
@@ -173,10 +182,27 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
     else setCropSelection(fullSelection)
   }
 
+  function updateCropSurfaceSize() {
+    const area = cropAreaRef.current
+    const image = sourceImageRef.current
+    const canvas = pdfCanvasRef.current
+    if (!area) return
+    const sourceWidth = pdfUrl ? Number.parseFloat(canvas?.style.width || '0') : image?.naturalWidth || 0
+    const sourceHeight = pdfUrl ? Number.parseFloat(canvas?.style.height || '0') : image?.naturalHeight || 0
+    if (!sourceWidth || !sourceHeight) return
+    const fitScale = Math.min(1, area.clientWidth / sourceWidth, 510 / sourceHeight)
+    const width = Math.max(1, Math.floor(sourceWidth * fitScale))
+    const height = Math.max(1, Math.floor(sourceHeight * fitScale))
+    setCropSurfaceSize(previous => previous.width === width && previous.height === height ? previous : { width, height })
+  }
+
   function resetEditorSelections() {
     setCropSelection(fullSelection)
     setFillSelection(null)
     setEditorTool('crop')
+    setCropZoom(MIN_CROP_ZOOM)
+    setCropSurfaceSize({ width: 0, height: 0 })
+    window.requestAnimationFrame(() => cropAreaRef.current?.scrollTo({ left: 0, top: 0 }))
   }
 
   function selectEditorTool(tool: EditorTool) {
@@ -291,6 +317,21 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
     return () => window.clearTimeout(timer)
   }, [message])
 
+  useEffect(() => {
+    const area = cropAreaRef.current
+    if (!area) {
+      setCropSurfaceSize({ width: 0, height: 0 })
+      return
+    }
+    const frame = window.requestAnimationFrame(updateCropSurfaceSize)
+    const observer = new ResizeObserver(updateCropSurfaceSize)
+    observer.observe(area)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      observer.disconnect()
+    }
+  }, [sourceUrl, pdfUrl, pdfPageNumber, pdfRendering])
+
   function setSource(file: File) {
     if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
       if (sourceUrl) URL.revokeObjectURL(sourceUrl)
@@ -393,7 +434,7 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
   }
 
   function pointerPosition(event: React.PointerEvent) {
-    const target = pdfUrl ? pdfCanvasRef.current : cropAreaRef.current
+    const target = pdfUrl ? pdfCanvasRef.current : sourceImageRef.current
     if (!target) return null
     const rect = target.getBoundingClientRect()
     return { x: clamp((event.clientX - rect.left) / rect.width, 0, 1), y: clamp((event.clientY - rect.top) / rect.height, 0, 1) }
@@ -402,7 +443,7 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
   function startCropInteraction(event: React.PointerEvent, mode: CropInteraction['mode'], handle?: CropHandle) {
     const point = pointerPosition(event)
     if (!point) return
-    cropAreaRef.current?.setPointerCapture(event.pointerId)
+    cropSurfaceRef.current?.setPointerCapture(event.pointerId)
     setCropInteraction({ mode, handle, start: point, selection: activeSelection() || fullSelection })
     if (mode === 'draw') updateActiveSelection({ x: point.x, y: point.y, width: 0, height: 0 })
   }
@@ -458,6 +499,24 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
     } else {
       setCropSelection(previous => previous.width < 0.02 || previous.height < 0.02 ? fullSelection : previous)
     }
+  }
+
+  function changeCropZoom(nextZoom: number) {
+    const zoom = clamp(nextZoom, MIN_CROP_ZOOM, MAX_CROP_ZOOM)
+    if (zoom === cropZoom) return
+    const area = cropAreaRef.current
+    const selection = activeSelection() || fullSelection
+    const focusX = cropSurfaceSize.width * (selection.x + selection.width / 2)
+    const focusY = cropSurfaceSize.height * (selection.y + selection.height / 2)
+    setCropZoom(zoom)
+    if (!area) return
+    window.requestAnimationFrame(() => {
+      area.scrollTo({
+        left: Math.max(0, focusX * zoom - area.clientWidth / 2),
+        top: Math.max(0, focusY * zoom - area.clientHeight / 2),
+        behavior: 'auto',
+      })
+    })
   }
 
   async function applyCrop() {
@@ -667,9 +726,17 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
     } catch (error) { setMessage(error instanceof Error ? error.message : '保存失败') }
     finally { setBusy(false) }
   }
+  const dialogRef = useDialogFocus<HTMLElement>(requestClose, { initialFocusSelector: '[aria-label="关闭"]' })
+  const exitPromptRef = useDialogFocus<HTMLDivElement>(() => {
+    if (!busy) setPendingEditorAction(null)
+  }, {
+    active: Boolean(pendingEditorAction),
+    closeOnEscape: !busy,
+    initialFocusSelector: '.editor-exit-continue',
+  })
 
   if (!selectedBank || !draft) {
-    return <div className="modal-backdrop"><section className="editor-dialog empty-editor"><button className="modal-close" onClick={onClose} aria-label="关闭"><X/></button><BookOpen size={30}/><h2>还没有可编辑的题目</h2><p>请先导入题库或图片。</p></section></div>
+    return <div className="modal-backdrop"><section ref={dialogRef} className="editor-dialog empty-editor" role="dialog" aria-modal="true" aria-labelledby="empty-editor-title" tabIndex={-1}><button className="modal-close" data-dialog-initial-focus onClick={onClose} aria-label="关闭"><X/></button><BookOpen size={30}/><h2 id="empty-editor-title">还没有可编辑的题目</h2><p>请先导入题库或图片。</p></section></div>
   }
 
   const targetLabel = targetKind === 'question' ? '题目图片' : '解析图片'
@@ -690,8 +757,39 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
     return <div className="editor-crop-tool-controls"><button type="button" className={editorTool === 'crop' ? 'active' : ''} onClick={() => selectEditorTool('crop')}><Crop size={13}/>裁剪</button><button type="button" className={editorTool === 'fill' ? 'active' : ''} onClick={() => selectEditorTool('fill')}><Square size={13}/>矩形填充</button>{editorTool === 'fill' && <label className="editor-fill-color"><span>填充色</span><input type="color" value={fillColor} onChange={event => setFillColor(event.target.value)} aria-label="矩形填充颜色"/></label>}</div>
   }
 
+  function renderZoomControls() {
+    const zoomPercent = Math.round(cropZoom * 100)
+    return <div className="editor-crop-zoom-controls" role="group" aria-label="裁剪预览缩放">
+      <button type="button" onClick={() => changeCropZoom(cropZoom - CROP_ZOOM_STEP)} disabled={cropZoom <= MIN_CROP_ZOOM} aria-label="缩小裁剪预览" title="缩小预览"><ZoomOut size={13}/></button>
+      <input type="range" min={MIN_CROP_ZOOM} max={MAX_CROP_ZOOM} step={CROP_ZOOM_STEP} value={cropZoom} onChange={event => changeCropZoom(Number(event.target.value))} aria-label={`裁剪预览缩放 ${zoomPercent}%`}/>
+      <button type="button" onClick={() => changeCropZoom(cropZoom + CROP_ZOOM_STEP)} disabled={cropZoom >= MAX_CROP_ZOOM} aria-label="放大裁剪预览" title="放大预览"><ZoomIn size={13}/></button>
+      <button type="button" className="editor-crop-zoom-value" onClick={() => changeCropZoom(MIN_CROP_ZOOM)} disabled={cropZoom === MIN_CROP_ZOOM} title="恢复 100%">{zoomPercent}%</button>
+    </div>
+  }
+
+  function renderCropViewport(isPdf: boolean) {
+    const zoomShellStyle = cropSurfaceSize.width && cropSurfaceSize.height
+      ? { width: `${cropSurfaceSize.width * cropZoom}px`, height: `${cropSurfaceSize.height * cropZoom}px` }
+      : undefined
+    const surfaceStyle = {
+      width: cropSurfaceSize.width ? `${cropSurfaceSize.width}px` : undefined,
+      height: cropSurfaceSize.height ? `${cropSurfaceSize.height}px` : undefined,
+      transform: `scale(${cropZoom})`,
+      '--crop-zoom': cropZoom,
+    } as React.CSSProperties
+    return <div className={isPdf ? 'editor-crop-area editor-pdf-crop-area' : 'editor-crop-area'} ref={cropAreaRef}>
+      <div className="editor-crop-zoom-shell" style={zoomShellStyle}>
+        <div className="editor-crop-surface" ref={cropSurfaceRef} style={surfaceStyle} onPointerDown={beginCrop} onPointerMove={moveCrop} onPointerUp={finishCrop} onPointerCancel={finishCrop}>
+          {isPdf ? <canvas ref={pdfCanvasRef} aria-label={`PDF 第 ${pdfPageNumber} 页`}/> : <img ref={sourceImageRef} src={sourceUrl} alt="待裁剪图片" draggable={false} onLoad={updateCropSurfaceSize}/>}
+          {renderSelection('crop', cropSelection)}
+          {renderSelection('fill', fillSelection)}
+        </div>
+      </div>
+    </div>
+  }
+
   return <div className="modal-backdrop editor-backdrop" onClick={requestClose}>
-    <section className="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="question-editor-title" onClick={event => event.stopPropagation()}>
+    <section ref={dialogRef} className="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="question-editor-title" tabIndex={-1} onClick={event => event.stopPropagation()}>
       <div className="editor-header">
         <div className="editor-heading"><span><Crop/></span><div><h2 id="question-editor-title">题库题目编辑器</h2><p>编辑文字，截取图片，快速新增或替换题图和解析图</p></div></div>
         <div className="editor-target-bar">
@@ -732,8 +830,8 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
               <div className="editor-target-group"><span className="editor-target-label">目标</span><div className="editor-target-segments"><button type="button" className={targetKind === 'question' ? 'active' : ''} onClick={() => selectTargetKind('question')}>题目图片</button><button type="button" className={targetKind === 'answer' ? 'active' : ''} onClick={() => selectTargetKind('answer')}>解析图片</button></div></div>
               <div className="editor-target-group editor-mode-group"><span className="editor-target-label">方式</span><div className="editor-target-segments"><button type="button" className={imageApplyMode === 'replace' ? 'active' : ''} onClick={() => setImageApplyMode('replace')} disabled={!targetImageCount}>替换当前图{currentTargetNumber ? ` · 第 ${currentTargetNumber} 张` : ''}</button><button type="button" className={imageApplyMode === 'append' ? 'active' : ''} onClick={() => setImageApplyMode('append')}>添加新图</button></div></div>
             </div>
-            {pdfUrl && <div className="editor-pdf-source"><div className="editor-pdf-toolbar"><FileText size={15}/><strong>PDF 页面选择</strong><button type="button" onClick={() => setPdfPageNumber(previous => Math.max(1, previous - 1))} disabled={pdfRendering || pdfPageNumber <= 1}><ChevronLeft size={14}/></button><label>第 <input type="number" min={1} max={pdfPageCount || 1} value={pdfPageNumber} onChange={event => setPdfPageNumber(clamp(Number(event.target.value) || 1, 1, pdfPageCount || 1))}/> / {pdfPageCount || '—'} 页</label><button type="button" onClick={() => setPdfPageNumber(previous => Math.min(pdfPageCount || previous, previous + 1))} disabled={pdfRendering || !pdfPageCount || pdfPageNumber >= pdfPageCount}><ChevronRight size={14}/></button><a href={pdfUrl} target="_blank" rel="noreferrer">新窗口打开</a></div>{pdfError ? <p className="editor-pdf-error">{pdfError}</p> : <div className="editor-pdf-crop-stage"><div className="editor-crop-toolbar"><span>{pdfRendering ? '正在渲染当前页…' : editorTool === 'fill' ? '拖动框选要填充的区域，框选后仍可调整' : `框选后将${cropApplyLabel}，选区可继续调整`}</span>{renderToolControls()}<button type="button" onClick={resetActiveSelection} disabled={pdfRendering}>{editorTool === 'fill' ? '清除矩形' : '全页'}</button></div><div className="editor-crop-area editor-pdf-crop-area" ref={cropAreaRef} onPointerDown={beginCrop} onPointerMove={moveCrop} onPointerUp={finishCrop} onPointerCancel={finishCrop}><canvas ref={pdfCanvasRef} aria-label={`PDF 第 ${pdfPageNumber} 页`}/>{renderSelection('crop', cropSelection)}{renderSelection('fill', fillSelection)}</div><button className="editor-apply-crop" onClick={() => void applyCrop()} disabled={pdfRendering || !pdfDocument || (editorTool === 'fill' && !fillSelection)}><Check size={15}/>{cropActionLabel}</button></div>}<p>先切换到目标页，再拖动框选需要的区域；矩形填充会绘制进最终图片。</p></div>}
-            {!pdfUrl && sourceUrl && <div className="editor-crop-stage"><div className="editor-crop-toolbar"><span>{editorTool === 'fill' ? '拖动框选要填充的区域，框选后仍可调整' : `框选后将${cropApplyLabel}，选区可继续调整`}</span>{renderToolControls()}<button onClick={() => void rotateSource()} disabled={!sourceUrl}><RotateCw size={14}/>旋转 90°</button><button type="button" onClick={resetActiveSelection}>{editorTool === 'fill' ? '清除矩形' : '全图'}</button></div><div className="editor-crop-area" ref={cropAreaRef} onPointerDown={beginCrop} onPointerMove={moveCrop} onPointerUp={finishCrop} onPointerCancel={finishCrop}><img ref={sourceImageRef} src={sourceUrl} alt="待裁剪图片" draggable={false}/>{renderSelection('crop', cropSelection)}{renderSelection('fill', fillSelection)}</div><button className="editor-apply-crop" onClick={() => void applyCrop()} disabled={editorTool === 'fill' && !fillSelection}><Check size={15}/>{cropActionLabel}</button></div>}
+            {pdfUrl && <div className="editor-pdf-source"><div className="editor-pdf-toolbar"><FileText size={15}/><strong>PDF 页面选择</strong><button type="button" onClick={() => setPdfPageNumber(previous => Math.max(1, previous - 1))} disabled={pdfRendering || pdfPageNumber <= 1}><ChevronLeft size={14}/></button><label>第 <input type="number" min={1} max={pdfPageCount || 1} value={pdfPageNumber} onChange={event => setPdfPageNumber(clamp(Number(event.target.value) || 1, 1, pdfPageCount || 1))}/> / {pdfPageCount || '—'} 页</label><button type="button" onClick={() => setPdfPageNumber(previous => Math.min(pdfPageCount || previous, previous + 1))} disabled={pdfRendering || !pdfPageCount || pdfPageNumber >= pdfPageCount}><ChevronRight size={14}/></button><a href={pdfUrl} target="_blank" rel="noreferrer">新窗口打开</a></div>{pdfError ? <p className="editor-pdf-error">{pdfError}</p> : <div className="editor-pdf-crop-stage"><div className="editor-crop-toolbar"><span>{pdfRendering ? '正在渲染当前页…' : editorTool === 'fill' ? '拖动框选要填充的区域，框选后仍可调整' : `框选后将${cropApplyLabel}，选区可继续调整`}</span>{renderToolControls()}{renderZoomControls()}<button type="button" onClick={resetActiveSelection} disabled={pdfRendering}>{editorTool === 'fill' ? '清除矩形' : '全页'}</button></div>{renderCropViewport(true)}<button className="editor-apply-crop" onClick={() => void applyCrop()} disabled={pdfRendering || !pdfDocument || (editorTool === 'fill' && !fillSelection)}><Check size={15}/>{cropActionLabel}</button></div>}<p>先切换到目标页，再放大预览并框选需要的区域；矩形填充会绘制进最终图片。</p></div>}
+            {!pdfUrl && sourceUrl && <div className="editor-crop-stage"><div className="editor-crop-toolbar"><span>{editorTool === 'fill' ? '拖动框选要填充的区域，框选后仍可调整' : `框选后将${cropApplyLabel}，选区可继续调整`}</span>{renderToolControls()}{renderZoomControls()}<button onClick={() => void rotateSource()} disabled={!sourceUrl}><RotateCw size={14}/>旋转 90°</button><button type="button" onClick={resetActiveSelection}>{editorTool === 'fill' ? '清除矩形' : '全图'}</button></div>{renderCropViewport(false)}<button className="editor-apply-crop" onClick={() => void applyCrop()} disabled={editorTool === 'fill' && !fillSelection}><Check size={15}/>{cropActionLabel}</button></div>}
             {!pdfUrl && !sourceUrl && <div className="editor-dropzone" onDragOver={event => event.preventDefault()} onDrop={event => { event.preventDefault(); const file = event.dataTransfer.files[0]; if (file) setSource(file) }}><FileImage size={27}/><strong>把图片拖到这里</strong><span>也可以导入 PDF 后复制截图，或直接粘贴剪贴板图片</span></div>}
             {message && <p className="editor-message">{message}</p>}
           </div>
@@ -746,7 +844,7 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
         </div>
       </div>
       {pendingEditorAction && <div className="editor-exit-prompt-backdrop" onClick={event => event.stopPropagation()}>
-        <div className="editor-exit-prompt" role="alertdialog" aria-modal="true" aria-labelledby="editor-exit-title">
+        <div ref={exitPromptRef} className="editor-exit-prompt" role="alertdialog" aria-modal="true" aria-labelledby="editor-exit-title" tabIndex={-1}>
           <div className="editor-exit-icon"><Save size={17}/></div>
           <h3 id="editor-exit-title">{pendingEditorAction.type === 'question' ? '切换题目前需要保存吗？' : '有未保存的修改'}</h3>
           <p>{pendingEditorAction.type === 'question' ? '当前题目的文字或图片已经修改，切换后将离开当前题目。是否先保存？' : '当前题目的文字或图片已经修改，退出前是否保存？'}</p>

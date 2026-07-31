@@ -3,16 +3,24 @@ setlocal
 cd /d "%~dp0"
 echo [1/4] Checking runtime...
 where node >nul 2>nul
+if not errorlevel 1 node -e "const [major,minor]=process.versions.node.split('.').map(Number);process.exit(major>22||(major===22&&minor>=13)?0:1)" >nul 2>nul
 if errorlevel 1 (
   where winget >nul 2>nul
   if errorlevel 1 (
-    echo Node.js and winget were not found. Install Node.js 20+ from https://nodejs.org/
+    echo Node.js 22.13+ is required. Install it from https://nodejs.org/
     pause
     exit /b 1
   )
-  echo Installing Node.js LTS...
-  winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements
+  echo Installing or upgrading Node.js 22.13+...
+  winget upgrade --id OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements
+  if errorlevel 1 winget install --id OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements
   set "PATH=C:\Program Files\nodejs;%PATH%"
+)
+node -e "const [major,minor]=process.versions.node.split('.').map(Number);process.exit(major>22||(major===22&&minor>=13)?0:1)" >nul 2>nul
+if errorlevel 1 (
+  echo Node.js is still older than 22.13. Restart Windows or update PATH, then try again.
+  pause
+  exit /b 1
 )
 
 echo [2/4] Checking pnpm...

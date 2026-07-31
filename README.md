@@ -8,17 +8,18 @@
 
 当前默认内置 **22 个题库、7252 道题**。英语真题按“年份 → 题型”组织，数学和专业课图片题按“章节 → 小节 → 题号”组织；题库内容与个人学习记录分开存储，更新题库不会覆盖熟练度和复习历史。
 
-> 当前正式版：**v0.4.0** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
+> 当前正式版：**v0.4.1** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
 
-[**下载 v0.4.0 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.0/NPEE-Study-Space-v0.4.0-Software.zip) · [下载 v0.4.0 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.0/NPEE-Study-Space-v0.4.0-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.0) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
+[**下载 v0.4.1 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.1/NPEE-Study-Space-v0.4.1-Software.zip) · [下载 v0.4.1 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.1/NPEE-Study-Space-v0.4.1-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.1) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
 
 软件包与题库数据分开发布：软件包包含应用源码、启动脚本和运行所需配置，不包含默认题库图片；题库数据包包含 `默认题库/` 目录和题库清单。首次使用时，将两个压缩包解压到同一个目录，再运行对应系统的一键启动脚本；后续更新软件或题库时可以单独替换对应包。无需安装 Git 或克隆仓库。
 
 ## 快速导航
 
 - [界面预览](#界面预览)：查看学习、看板和复习界面
+- [功能图谱](#功能图谱)：用截图快速了解每个主要模块
 - [下载与启动](#下载与启动)：下载软件包和题库数据并一键启动
-- [v0.4.0 新内容](#v040-题目编辑器与学习设置升级)：查看本次正式版重点更新
+- [v0.4.1 新内容](#v041-学习记录与移动端体验更新)：查看本次正式版重点更新
 - [典型学习流程](#典型学习流程)：从选题库到多轮复习
 - [核心功能](#核心功能)：完整能力总览
 - [默认题库](#默认题库)：内置题库及题目数量
@@ -33,6 +34,15 @@
 - **错题复盘：** 将模糊、错误题集中到复盘入口，掌握后自动退出当前错题列表。
 - **长期进度跟踪：** 用日历查看每天做题量、正确率和待复盘数量，用多轮数据区分一刷、二刷。
 - **离线与隐私优先：** 不需要账号或云数据库，适合保存个人购买资料和学习记录。
+
+## v0.4.1 学习记录与移动端体验更新
+
+- **学习记录可维护：** 在设置中查看和整理学习活动、熟练度与复习记录，批量修正历史数据后仍保留题库与个人数据分离。
+- **笔记与草稿可导出：** 导出窗口支持按题库、章节、小节和状态筛选题目，也可以只导出包含文字或手写内容的题目笔记。
+- **学习界面更顺手：** 题目切换会恢复对应题库位置，答案解析支持锁定展开状态；错题导航、考点导航和全卷题号导航更清晰。
+- **窄屏体验更完整：** 侧栏可收起，菜单支持键盘焦点、Esc 关闭和滚动锁定，手机或窄窗口下仍保留搜索、筛选和题号导航。
+- **启动更轻量：** 设置、笔记、计时器和题目编辑器按需加载，并加入延迟预加载，减少首次进入学习页面的负担。
+- **文档与发布更可靠：** README 新增当前界面功能图谱，发布前自动执行测试和生产构建；默认题库保持 22 个题库、7,252 道题。
 
 ## v0.4.0 题目编辑器与学习设置升级
 
@@ -115,11 +125,43 @@
 | 迁移或维护数据 | 顶部“设置” | 独立用户数据、学习轮次、完整备份和本地工作区同步状态 |
 | 整理纸质练习 | 设置 → 导出题目 | 按范围、掌握状态和每页题数生成 PDF，或复制原图到文件夹 |
 
+### 功能图谱
+
+下面的截图均来自当前应用界面；可以点击图片放大查看，后文按功能展开说明。
+
+<table>
+<tr>
+<td><img src="./docs/screenshots/question-study.png" alt="英语真题学习" width="300"><br><sub>英语真题学习：章节、题目与全卷导航</sub></td>
+<td><img src="./docs/screenshots/image-question-study.png" alt="数学与专业课图片题" width="300"><br><sub>图片题学习：原图、解析图与状态筛选</sub></td>
+<td><img src="./docs/screenshots/english-error-options.png" alt="英语错误选项记录" width="300"><br><sub>英语错题：阅读题型与具体错误选项</sub></td>
+</tr>
+<tr>
+<td><img src="./docs/screenshots/question-notes.png" alt="题目笔记" width="300"><br><sub>题目笔记：文字笔记与手写笔记</sub></td>
+<td><img src="./docs/screenshots/question-review.png" alt="分次复习" width="300"><br><sub>分次复习：初始标记与复习时间线</sub></td>
+<td><img src="./docs/screenshots/learning-dashboard.png" alt="学习看板" width="300"><br><sub>学习看板：日历、正确率与层级进度</sub></td>
+</tr>
+<tr>
+<td><img src="./docs/screenshots/settings-and-data.png" alt="设置与数据管理" width="300"><br><sub>设置与数据：轮次、同步、导入与备份</sub></td>
+<td><img src="./docs/screenshots/export-questions.png" alt="导出题目" width="300"><br><sub>导出打印：按范围筛选并生成 PDF</sub></td>
+<td><img src="./docs/screenshots/question-editor.png" alt="题目编辑器" width="300"><br><sub>题目编辑器：文字、题图与解析图维护</sub></td>
+</tr>
+<tr>
+<td><img src="./docs/screenshots/toolbox.png" alt="工具箱" width="300"><br><sub>工具箱：计时器与我的笔记入口</sub></td>
+<td><img src="./docs/screenshots/timer.png" alt="计时器" width="300"><br><sub>计时器：秒表、倒计时与快速预设</sub></td>
+<td><img src="./docs/screenshots/draftbook.png" alt="无限手写草稿本" width="300"><br><sub>草稿本：独立画布、套索与缩放</sub></td>
+</tr>
+<tr>
+<td><img src="./docs/screenshots/mobile-layout.png" alt="移动端布局" width="300"><br><sub>移动端布局：窄屏下的导航与题号面板</sub></td>
+<td></td>
+<td></td>
+</tr>
+</table>
+
 ### 英语真题学习
 
 年份、题型、题目、备选项、原文、答案解析和全卷导航集中在一个学习界面；长文阅读、新题型与写作都保留适合真题的排版。
 
-![v0.4.0 主学习界面](./docs/screenshots/question-study.png)
+![v0.4.1 主学习界面](./docs/screenshots/question-study.png)
 
 > 截图展示当前学习界面；题目编辑器与分类设置面板可从顶部“设置”入口打开。
 
@@ -130,6 +172,8 @@
 3. **题目状态：** 英语使用正确/错误两档，数学和专业课使用熟练/模糊/错误三档；再次点击即可撤销。
 4. **右侧全卷导航：** 一眼查看整张试卷 1–52 题状态，点击题号即可跨题型快速跳转。
 5. **搜索与筛选：** 可以只看未标记、错误、模糊或熟练题，也能搜索当前小节内容。
+
+英语阅读客观题还可以单独记录阅读题型和具体错误选项，便于复盘“错在什么选项”，而不是只保留一个错误状态。
 
 ### 数学与专业课图片题
 
@@ -142,6 +186,18 @@
 - 顶部与底部都提供上一题/下一题，长题看完后无需滚回页面顶部。
 - 右侧题号颜色对应未标记、熟练、模糊和错题，当前题使用描边强调。
 - 当前小节正确率只按已标记题目计算；再次点击已选状态可以撤销，避免误操作污染统计。
+
+### 题目编辑器与素材截取
+
+从“设置 → 题库与数据 → 编辑题目与图片”进入题目编辑器，可直接维护题目文字与图片素材。
+
+![题目编辑器](./docs/screenshots/question-editor.png)
+
+- **快速定位：** 按题号、题干或章节搜索，左侧按“章节 → 小节 → 题目”导航。
+- **图片来源：** 支持导入图片/PDF、粘贴剪贴板截图和拖拽素材。
+- **图片处理：** 支持裁剪、旋转、矩形填充，以及题图/解析图的新增、替换、删除。
+- **文字字段：** 可编辑题号、题型、考点、题干、选项、答案和文字解析。
+- **安全保存：** 保存后写回当前本地题库；题库内容与个人熟练度、复习历史仍然分开保存。
 
 ### 题目笔记与手写
 
@@ -200,10 +256,20 @@
 
 工具箱集中提供计时器、倒计时、我的笔记和全屏入口；右下角草稿本适合在做题过程中临时演算，不会混入题目笔记。
 
+| 工具箱 | 计时器 | 草稿本 |
+| --- | --- | --- |
+| ![工具箱](./docs/screenshots/toolbox.png) | ![计时器](./docs/screenshots/timer.png) | ![无限手写草稿本](./docs/screenshots/draftbook.png) |
+
 - **秒表计时器：** 记录专注时长，可暂停、继续和结束；已结束的学习片段会进入历史记录。
 - **专注倒计时：** 默认 5 分钟，可随时暂停、重置或重新开始；关闭弹窗不会中断正在运行的倒计时。
 - **草稿本缩放：** 点击百分比可选择 35%–320% 的常用比例，或输入自定义值；缩放以画布中心为基准。
 - **手写协作：** 草稿本和题目笔记支持笔迹复制粘贴、套索选中和批量改色，触控笔可直接拖动页面滚动。
+
+### 窄屏与移动端布局
+
+桌面端使用完整双栏布局，窄屏会把章节导航收起为菜单，并保留题目搜索、状态筛选和全卷题号导航。
+
+![移动端自适应布局](./docs/screenshots/mobile-layout.png)
 
 ### 按范围导出与打印
 
@@ -243,13 +309,13 @@ flowchart LR
 
 ### 一键启动
 
-1. 在同一个 [v0.4.0 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.0) 中分别下载 `NPEE-Study-Space-v0.4.0-Software.zip` 和 `NPEE-Study-Space-v0.4.0-Question-Bank.zip`。
+1. 在同一个 [v0.4.1 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.1) 中分别下载 `NPEE-Study-Space-v0.4.1-Software.zip` 和 `NPEE-Study-Space-v0.4.1-Question-Bank.zip`。
 2. 将两个压缩包解压到同一个可长期保存的目录，使 `默认题库/` 与 `一键启动.command` 或 `一键启动.bat` 位于同一级；不要直接在压缩包预览中运行。
 3. 按系统启动：
    - macOS：双击 `一键启动.command`，自动配置 Homebrew、Node.js、pnpm 和项目依赖。
    - Windows：双击 `一键启动.bat`，通过 winget 自动配置 Node.js、pnpm 和项目依赖。
 
-软件包首次启动需要联网安装 Node.js、pnpm 和项目依赖；macOS 安装 Homebrew 时可能要求输入系统密码。配置完成后会自动打开浏览器；以后双击通常可以直接启动。也可以使用命令行：
+软件包首次启动需要联网安装 Node.js 22.13+、pnpm 和项目依赖；macOS 安装 Homebrew 时可能要求输入系统密码。配置完成后会自动打开浏览器；以后双击通常可以直接启动。也可以使用命令行：
 
 ```bash
 pnpm install

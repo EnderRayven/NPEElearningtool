@@ -1323,7 +1323,7 @@
 @media screen and (max-width: 580px) {
   .toolbox-popover {
     position: fixed;
-    top: 70px;
+    top: 110px;
     right: 10px;
     left: 10px;
     width: auto;

@@ -124,6 +124,7 @@
 .handwriting-toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   min-height: 48px;
   padding: 7px 10px;
@@ -138,7 +139,7 @@
   justify-content: center;
   gap: 5px;
   min-height: 32px;
-  padding: 0 9px;
+  padding: 0 8px;
   border: 1px solid #e2dad2;
   border-radius: 8px;
   background: #fff;
@@ -152,8 +153,240 @@
   align-items: center;
 }
 
+.handwriting-shapes {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.handwriting-shape-toggle {
+  min-width: 52px;
+}
+
+.handwriting-shape-toggle > svg:last-child {
+  transition: transform .16s ease;
+}
+
+.handwriting-shapes.open .handwriting-shape-toggle > svg:last-child {
+  transform: rotate(180deg);
+}
+
+.handwriting-shape-popover {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 0;
+  z-index: 40;
+  width: 218px;
+  padding: 10px;
+  border: 1px solid #decfc5;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(72, 48, 38, .16);
+}
+
+.handwriting-shape-popover::before {
+  position: absolute;
+  top: -6px;
+  left: 32px;
+  width: 10px;
+  height: 10px;
+  border-top: 1px solid #decfc5;
+  border-left: 1px solid #decfc5;
+  background: #fff;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.handwriting-toolbar .handwriting-shape-popover button {
+  width: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+}
+
+.handwriting-shape-popover button.selected {
+  border-color: #bf8179;
+  background: #f9eeeb;
+  color: #8f3028;
+}
+
+.handwriting-shape-options,
+.handwriting-shape-line-options,
+.handwriting-shape-fill-options {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.handwriting-shape-options {
+  justify-content: space-between;
+}
+
+.handwriting-shape-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid #eee5de;
+}
+
+.handwriting-shape-fill-options {
+  padding-left: 9px;
+  border-left: 1px solid #eee5de;
+}
+
+.handwriting-shape-setting-icon {
+  width: 23px;
+  height: 18px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.handwriting-shape-setting-icon .shape-fill-preview {
+  fill: currentColor;
+  fill-opacity: .2;
+}
+
+.handwriting-shape-setting-icon .shape-fill-none-preview {
+  fill: #fff;
+}
+
+.handwriting-shape-setting-icon .shape-fill-slash {
+  stroke: #b64a41;
+  stroke-width: 1.6;
+}
+
+.handwriting-shape-fill-controls {
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid #eee5de;
+}
+
+.handwriting-shape-fill-palette,
+.handwriting-shape-fill-swatches,
+.handwriting-shape-opacity-controls {
+  display: flex;
+  align-items: center;
+}
+
+.handwriting-shape-fill-palette {
+  justify-content: space-between;
+}
+
+.handwriting-shape-fill-swatches {
+  gap: 4px;
+}
+
+.handwriting-toolbar .handwriting-shape-fill-swatches button {
+  width: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--shape-fill-color);
+  box-shadow: 0 0 0 1px #d9d0c8;
+}
+
+.handwriting-toolbar .handwriting-shape-fill-swatches button:hover:not(:disabled) {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px #c59a93;
+}
+
+.handwriting-toolbar .handwriting-shape-fill-swatches button.selected {
+  border-color: #fff;
+  background: var(--shape-fill-color);
+  box-shadow: 0 0 0 2px #8f3028;
+}
+
+.handwriting-shape-fill-color {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  padding-left: 4px;
+  border-left: 1px solid #e9e0d8;
+  background: #fff;
+}
+
+.handwriting-shape-fill-color input {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.handwriting-shape-fill-color.selected input {
+  box-shadow: 0 0 0 2px #8f3028;
+}
+
+.handwriting-shape-fill-color input:disabled,
+.handwriting-shape-opacity-controls input[type='range']:disabled {
+  cursor: default;
+  opacity: .35;
+}
+
+.handwriting-shape-opacity-controls:has(input[type='range']:disabled) .handwriting-shape-opacity-icon,
+.handwriting-shape-opacity-controls:has(input[type='range']:disabled) output {
+  opacity: .35;
+}
+
+.handwriting-shape-fill-color input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.handwriting-shape-fill-color input::-webkit-color-swatch {
+  border: 1px solid rgba(71, 55, 46, .18);
+  border-radius: 50%;
+}
+
+.handwriting-shape-opacity-controls {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 34px;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.handwriting-shape-opacity-icon {
+  width: 18px;
+  height: 21px;
+  fill: none;
+  stroke: #837a72;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.handwriting-shape-opacity-icon .shape-opacity-fill {
+  fill: currentColor;
+  fill-opacity: .22;
+  stroke: none;
+}
+
+.handwriting-shape-opacity-controls input[type='range'] {
+  width: 100%;
+  min-width: 0;
+  accent-color: #9f2e25;
+  cursor: pointer;
+}
+
+.handwriting-shape-fill-controls output {
+  color: #8f3028;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: right;
+}
+
 .handwriting-size-toggle {
-  min-width: 76px;
+  min-width: 58px;
 }
 
 .handwriting-size-dot {
@@ -174,13 +407,6 @@
 .handwriting-toolbar button:hover:not(:disabled) {
   border-color: #c9aaa4;
   color: #8f3028;
-}
-
-.handwriting-toolbar button.handwriting-two-line {
-  min-width: 68px;
-  padding-right: 8px;
-  padding-left: 8px;
-  text-align: center;
 }
 
 .handwriting-space-icon {
@@ -206,19 +432,6 @@
   vector-effect: non-scaling-stroke;
 }
 
-.handwriting-button-label {
-  display: inline-grid;
-  grid-template-rows: repeat(2, 1em);
-  gap: 0;
-  line-height: 1;
-  white-space: nowrap;
-  text-align: center;
-}
-
-.handwriting-button-label > span {
-  display: block;
-}
-
 .handwriting-toolbar button.active {
   border-color: #bf8179;
   background: #f9eeeb;
@@ -238,8 +451,8 @@
 }
 
 .handwriting-colors {
-  gap: 7px;
-  padding-right: 6px;
+  gap: 5px;
+  padding: 0 5px;
 }
 
 .handwriting-swatches {
@@ -274,12 +487,10 @@
   display: inline-flex;
   height: 24px;
   align-items: center;
-  gap: 4px;
-  padding: 0 6px 0 4px;
+  padding: 0 0 0 4px;
   border-left: 1px solid #e9e0d8;
   color: #756e67;
   cursor: pointer;
-  font-size: 8px;
 }
 
 .handwriting-custom-color input {
@@ -413,6 +624,41 @@
 
 .handwriting-lasso-preview {
   pointer-events: none;
+}
+
+.handwriting-line-alignment {
+  pointer-events: none;
+}
+
+.handwriting-line-alignment-guide {
+  fill: none;
+  stroke: #ba847d;
+  stroke-width: 1.25;
+  stroke-dasharray: 9 7;
+  opacity: .48;
+  pointer-events: none;
+}
+
+.handwriting-line-alignment-guide.snapped {
+  stroke: #8f3028;
+  stroke-width: 1.7;
+  stroke-dasharray: 4 5;
+  opacity: .75;
+}
+
+.handwriting-line-snap-marker {
+  fill: #fff;
+  stroke: #ba847d;
+  stroke-width: 1.5;
+  opacity: .78;
+  pointer-events: none;
+}
+
+.handwriting-line-snap-marker.snapped {
+  fill: #8f3028;
+  stroke: #fff;
+  stroke-width: 2;
+  opacity: 1;
 }
 
 .handwriting-selection-overlay {
@@ -661,16 +907,10 @@
   }
 
   .handwriting-toolbar {
-    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   .handwriting-toolbar-spacer {
-    display: none;
-  }
-
-  .handwriting-colors > span,
-  .handwriting-size-toggle > span:first-child,
-  .handwriting-toolbar button:not(.handwriting-expand):not(.handwriting-size-toggle) span {
     display: none;
   }
 
@@ -678,10 +918,6 @@
     order: 3;
     width: 100%;
     justify-content: flex-start;
-  }
-
-  .handwriting-custom-color span {
-    display: inline;
   }
 
   .handwriting-size-popover {

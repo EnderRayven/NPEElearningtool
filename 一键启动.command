@@ -22,10 +22,19 @@ if ! command -v brew >/dev/null 2>&1; then
   fi
 fi
 
-if ! command -v node >/dev/null 2>&1 || [ "$(node -p 'Number(process.versions.node.split(`.`)[0])' 2>/dev/null || echo 0)" -lt 20 ]; then
-  echo "正在安装 Node.js 20+..."
-  brew install node
+if ! command -v node >/dev/null 2>&1 || ! node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major > 22 || (major === 22 && minor >= 13) ? 0 : 1)' >/dev/null 2>&1; then
+  echo "正在安装或升级 Node.js 22.13+..."
+  if brew list --versions node >/dev/null 2>&1; then
+    brew upgrade node
+  else
+    brew install node
+  fi
   hash -r
+fi
+
+if ! node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major > 22 || (major === 22 && minor >= 13) ? 0 : 1)' >/dev/null 2>&1; then
+  echo "Node.js 版本仍低于 22.13，请更新 PATH 后重试。"
+  exit 1
 fi
 
 echo "[2/4] 检查包管理器..."

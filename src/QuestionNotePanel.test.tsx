@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import QuestionNotePanel, { canvasHeightForDrawing, canvasHeightForStrokes, clampSpaceAdjustment, historyActionForShortcut, insertSpaceIntoStrokes, pathsForStroke, updateSelectedStrokeSize } from './QuestionNotePanel'
+import QuestionNotePanel, { autoExtendedCanvasHeight, canvasHeightForDrawing, canvasHeightForMovingSelection, canvasHeightForStrokes, clampSpaceAdjustment, createShapeStrokes, croppedCanvasHeightForDrawing, handwritingPointFromClientDelta, handwritingToolForShortcut, historyActionForShortcut, insertSpaceIntoStrokes, lineSnapAxisForPoints, pathsForStroke, shouldResetCanvasForDrawingChange, snapLineEndPoint, updateSelectedStrokeSize } from './QuestionNotePanel'
 
 describe('QuestionNotePanel', () => {
   it('uses an answer-style disclosure and marks saved content', () => {
@@ -57,10 +57,57 @@ describe('QuestionNotePanel', () => {
     })).toBeGreaterThan(600 * 1.4)
   })
 
+  it('extends the canvas in fixed steps when content approaches the bottom', () => {
+    expect(autoExtendedCanvasHeight(600, 520)).toBe(600)
+    expect(autoExtendedCanvasHeight(600, 540)).toBe(900)
+    expect(autoExtendedCanvasHeight(600, 1250)).toBe(1500)
+  })
+
+  it('extends the canvas from the moved selection bottom only while moving downward', () => {
+    expect(canvasHeightForMovingSelection(600, .8, .1)).toBe(900)
+    expect(canvasHeightForMovingSelection(600, .8, -.05)).toBe(600)
+    expect(canvasHeightForMovingSelection(600, .4, .05)).toBe(600)
+  })
+
+  it('keeps pointer movement stable when canvas layout changes during a stroke', () => {
+    const next = handwritingPointFromClientDelta(
+      { x: .4, y: .8, pressure: .4 },
+      { x: 500, y: 500 },
+      { x: 520, y: 510 },
+      1000,
+    )
+
+    expect(next.x).toBeCloseTo(.42)
+    expect(next.y).toBeCloseTo(.8 + 10 / 600)
+    expect(next.pressure).toBe(.4)
+  })
+
   it('shrinks to the remaining strokes without going below the default height', () => {
     expect(canvasHeightForStrokes([])).toBe(600)
     expect(canvasHeightForStrokes([{ id: 'upper', color: '#000000', size: 2, input: 'pen', points: [{ x: .2, y: .4 }] }])).toBe(600)
     expect(canvasHeightForStrokes([{ id: 'lower', color: '#000000', size: 2, input: 'pen', points: [{ x: .2, y: 1.4 }] }])).toBeGreaterThan(600 * 1.4)
+  })
+
+  it('provides a safely cropped display height without changing the stored canvas', () => {
+    const drawing = {
+      version: 1 as const,
+      aspectRatio: 5 / 3,
+      strokes: [{ id: 'upper', color: '#8f3028', size: 2, input: 'pen' as const, points: [{ x: .2, y: .1 }, { x: .4, y: .25 }] }],
+    }
+    expect(croppedCanvasHeightForDrawing(drawing)).toBe(206)
+    expect(canvasHeightForDrawing(drawing)).toBe(600)
+  })
+
+  it('crops from the lowest point across every stroke instead of the last-created stroke', () => {
+    const drawing = {
+      version: 1 as const,
+      aspectRatio: 5 / 3,
+      strokes: [
+        { id: 'lower-earlier', color: '#8f3028', size: 2, input: 'pen' as const, points: [{ x: .2, y: .72 }, { x: .4, y: .8 }] },
+        { id: 'upper-latest', color: '#8f3028', size: 2, input: 'pen' as const, points: [{ x: .5, y: .1 }, { x: .6, y: .16 }] },
+      ],
+    }
+    expect(croppedCanvasHeightForDrawing(drawing)).toBe(536)
   })
 
   it('inserts space by moving only strokes below the insertion line', () => {
@@ -107,6 +154,19 @@ describe('QuestionNotePanel', () => {
     expect(historyActionForShortcut('z', true, false, true)).toBe(null)
   })
 
+  it('maps one non-repeating number keypress to one handwriting tool change', () => {
+    expect(handwritingToolForShortcut('1')).toBe('eraser')
+    expect(handwritingToolForShortcut('5')).toBe('shape')
+    expect(handwritingToolForShortcut('2', { repeat: true })).toBeNull()
+    expect(handwritingToolForShortcut('3', { ctrlKey: true })).toBeNull()
+    expect(handwritingToolForShortcut('6')).toBeNull()
+  })
+
+  it('does not reset a newly started stroke when the previous drawing update arrives late', () => {
+    expect(shouldResetCanvasForDrawingChange(17)).toBe(false)
+    expect(shouldResetCanvasForDrawingChange(null)).toBe(true)
+  })
+
   it('updates only lasso-selected stroke sizes', () => {
     const strokes = [
       { id: 'selected', color: '#000000', size: 2, input: 'pen' as const, points: [{ x: .2, y: .2 }] },
@@ -115,5 +175,99 @@ describe('QuestionNotePanel', () => {
     const result = updateSelectedStrokeSize(strokes, ['selected'], 9)
     expect(result.map(stroke => stroke.size)).toEqual([9, 5])
     expect(strokes.map(stroke => stroke.size)).toEqual([2, 5])
+  })
+
+  it('creates each shape as one editable handwriting object', () => {
+    const style = { color: '#8f3028', size: 3, input: 'mouse' as const }
+    const start = { x: .1, y: .2 }
+    const end = { x: .5, y: .6 }
+
+    expect(createShapeStrokes('line', start, end, style)).toHaveLength(1)
+    expect(createShapeStrokes('arrow', start, end, style)).toHaveLength(1)
+    expect(createShapeStrokes('rectangle', start, end, style)).toHaveLength(1)
+    expect(createShapeStrokes('triangle', start, end, style)).toHaveLength(1)
+    expect(createShapeStrokes('ellipse', start, end, style)[0].points).toHaveLength(65)
+    expect(createShapeStrokes('rectangle', start, end, style)[0]).toMatchObject({
+      color: style.color,
+      size: style.size,
+      shape: 'rectangle',
+    })
+  })
+
+  it('renders shapes as straight, uniform ink matching the main freehand weight', () => {
+    const [shape] = createShapeStrokes('rectangle', { x: .1, y: .2 }, { x: .5, y: .6 }, {
+      color: '#8f3028',
+      size: 2,
+      input: 'mouse',
+      lineStyle: 'dashed',
+      fill: true,
+      fillColor: '#3474a7',
+      fillOpacity: .42,
+    })
+    const freehand = {
+      id: 'freehand',
+      color: '#8f3028',
+      size: 2,
+      input: 'mouse' as const,
+      points: [
+        { x: .1, y: .2 },
+        { x: .101, y: .201 },
+        { x: .102, y: .202 },
+        { x: .103, y: .203 },
+        { x: .104, y: .204 },
+        { x: .105, y: .205 },
+        { x: .106, y: .206 },
+      ],
+    }
+    const shapePaths = pathsForStroke(shape)
+    const freehandPaths = pathsForStroke(freehand)
+
+    expect(shapePaths).toHaveLength(1)
+    expect(shapePaths[0].d).toContain(' L ')
+    expect(shapePaths[0].d).not.toContain(' Q ')
+    expect(shapePaths[0].width).toBe(Math.max(...freehandPaths.map(path => path.width)))
+    expect(shapePaths[0]).toMatchObject({
+      dashArray: '16 11',
+      fill: '#3474a7',
+      fillOpacity: .42,
+    })
+  })
+
+  it('does not fill open line and arrow shapes', () => {
+    const [line] = createShapeStrokes('line', { x: .1, y: .2 }, { x: .5, y: .6 }, {
+      color: '#3474a7',
+      size: 2,
+      input: 'mouse',
+      fill: true,
+    })
+    expect(line.shapeFill).toBeUndefined()
+    expect(pathsForStroke(line)[0].fill).toBeUndefined()
+  })
+
+  it('recognizes horizontal and vertical line snap candidates in canvas space', () => {
+    expect(lineSnapAxisForPoints({ x: .1, y: .2 }, { x: .7, y: .205 })).toBe('horizontal')
+    expect(lineSnapAxisForPoints({ x: .3, y: .1 }, { x: .305, y: .8 })).toBe('vertical')
+    expect(lineSnapAxisForPoints({ x: .1, y: .1 }, { x: .6, y: .6 })).toBeNull()
+  })
+
+  it('snaps only the aligned coordinate and preserves pointer data', () => {
+    const start = { x: .2, y: .3, pressure: .4 }
+    const end = { x: .7, y: .34, pressure: .6 }
+
+    expect(snapLineEndPoint(start, end, 'horizontal')).toEqual({ x: .7, y: .3, pressure: .6 })
+    expect(snapLineEndPoint(start, end, 'vertical')).toEqual({ x: .2, y: .34, pressure: .6 })
+  })
+
+  it('keeps generated shape points inside the dragged bounds', () => {
+    const strokes = createShapeStrokes('ellipse', { x: .8, y: .9 }, { x: .2, y: .3 }, {
+      color: '#3474a7',
+      size: 2,
+      input: 'pen',
+    })
+    const points = strokes.flatMap(stroke => stroke.points)
+    expect(Math.min(...points.map(point => point.x))).toBeCloseTo(.2)
+    expect(Math.max(...points.map(point => point.x))).toBeCloseTo(.8)
+    expect(Math.min(...points.map(point => point.y))).toBeCloseTo(.3)
+    expect(Math.max(...points.map(point => point.y))).toBeCloseTo(.9)
   })
 })

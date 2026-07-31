@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CalendarClock, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Plus, RotateCcw, Trash2, X } from 'lucide-react'
+import { CalendarClock, ChevronDown, CircleHelp, Lock, Plus, RotateCcw, Trash2, Unlock, X } from 'lucide-react'
 import AssetGallery from './AssetGallery'
 import { questionImageSources } from './questionImages'
 import { isImageAnswerPlaceholder } from './questionPresentation'
@@ -9,6 +9,8 @@ import type { Question, QuestionStatus } from './types'
 import QuestionNotePanel from './QuestionNotePanel'
 import type { QuestionNote } from './questionNotes'
 import ConfirmDialog from './ConfirmDialog'
+import { useDialogFocus } from './useDialogFocus'
+import { useModalScrollLock } from './useModalScrollLock'
 
 interface DashboardQuestionDialogProps {
   bankName: string
@@ -55,6 +57,7 @@ const calendarDaysSince = (date: string) => {
 
 export default function DashboardQuestionDialog({ bankName, chapterName, sectionName, question, questions = [], questionStatuses = {}, status, activities, note, binaryMode, onStatusChange, onReviewStatusChange, onResetReview, onDeleteReview, onNoteChange, onClose, onQuestionSelect, onPreviousQuestion, onNextQuestion }: DashboardQuestionDialogProps) {
   const [answerOpen, setAnswerOpen] = useState(false)
+  const [answerLocked, setAnswerLocked] = useState(false)
   const questionScrollRef = useRef<HTMLDivElement>(null)
   const timeline = buildQuestionReviewTimeline(activities, question.id)
   const effectiveStatus = binaryMode && status === 'vague' ? 'none' : status
@@ -63,6 +66,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
   const lastReviewDate = reviewEntries.at(-1)?.date || initialMark?.date
   const daysSinceLastReview = lastReviewDate ? calendarDaysSince(lastReviewDate) : null
   const [manualReviewSlots, setManualReviewSlots] = useState<number[]>([])
+  const dialogRootRef = useDialogFocus<HTMLDivElement>(onClose, { initialFocusSelector: '[aria-label="关闭题目弹窗"]' })
   const [resetPending, setResetPending] = useState(false)
   const [deleteReviewAttempt, setDeleteReviewAttempt] = useState<number | null>(null)
   const baseReviewSlotCount = Math.max(3, reviewEntries.length)
@@ -86,24 +90,9 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
     ? value === 'proficient' ? '正确' : value === 'wrong' ? '错误' : '未标记'
     : statusMeta[value].label
 
+  useModalScrollLock(true, 'dashboard-question-modal-open')
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow
-    const root = document.documentElement
-    const previousRootOverflow = root.style.overflow
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose() }
-    document.body.style.overflow = 'hidden'
-    root.style.overflow = 'hidden'
-    root.classList.add('dashboard-question-modal-open')
-    window.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.body.style.overflow = previousOverflow
-      root.style.overflow = previousRootOverflow
-      root.classList.remove('dashboard-question-modal-open')
-      window.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [onClose])
-  useEffect(() => {
-    setAnswerOpen(false)
+    if (!answerLocked) setAnswerOpen(false)
     setManualReviewSlots([])
     setDeleteReviewAttempt(null)
     const frame = window.requestAnimationFrame(() => questionScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }))
@@ -155,9 +144,14 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
           <AssetGallery sources={questionImageSources(question, 'question')} alt="题目配图"/>
           {question.options && <div className="options">{question.options.map((option, index) => <div key={index}>{option}</div>)}</div>}
         </div>
-        <button className="passage-answer-toggle dashboard-answer-toggle" aria-expanded={answerOpen} onClick={() => setAnswerOpen(previous => !previous)}>
-          <CircleHelp size={18}/>{answerOpen ? '收起答案与解析' : '查看答案与解析'}<ChevronDown className={answerOpen ? 'rotated' : ''} size={17}/>
-        </button>
+        <div className="answer-toggle-shell dashboard-answer-toggle-shell">
+          <button className={answerOpen ? 'passage-answer-toggle dashboard-answer-toggle has-answer-lock' : 'passage-answer-toggle dashboard-answer-toggle'} aria-expanded={answerOpen} onClick={() => setAnswerOpen(previous => !previous)}>
+            <CircleHelp size={18}/>{answerOpen ? '收起答案与解析' : '查看答案与解析'}<ChevronDown className={answerOpen ? 'rotated' : ''} size={17}/>
+          </button>
+          {answerOpen && <button type="button" className={answerLocked ? 'answer-lock-toggle active' : 'answer-lock-toggle'} aria-label={answerLocked ? '取消锁定解析' : '锁定解析，切题时保持当前展开状态'} aria-pressed={answerLocked} title={answerLocked ? '已锁定，切题时解析保持展开' : '锁定后切题不再自动折叠'} onClick={() => setAnswerLocked(value => !value)}>
+            {answerLocked ? <Lock size={14}/> : <Unlock size={14}/>}<span>{answerLocked ? '已锁定' : '锁定'}</span>
+          </button>}
+        </div>
         {answerOpen && <div className="dashboard-question-answer passage-answer">
           {!usesImageAnswer && <div className="answer-result"><span>参考答案</span><strong>{question.answer}</strong></div>}
           <div className={usesImageAnswer ? 'answer-analysis combined-image-answer' : 'answer-analysis'}>
@@ -171,12 +165,10 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
         <QuestionNotePanel questionId={question.id} note={note} onChange={onNoteChange}/>
       </div>
       {hasQuestionNavigation
-        ? <footer className="dashboard-question-status dashboard-question-navigated-footer">
-            <div className="dashboard-question-pager" aria-label="题目切换">
-              <button disabled={!hasQuestionNavigation || questionIndex <= 0} onClick={onPreviousQuestion}><ChevronLeft size={14}/>上一题</button>
-              <span>{hasQuestionNavigation ? `第 ${questionIndex + 1} / ${questions.length} 题` : '题目切换'}</span>
-              <button disabled={!hasQuestionNavigation || questionIndex >= questions.length - 1} onClick={onNextQuestion}>下一题<ChevronRight size={14}/></button>
-            </div>
+        ? <footer className="dashboard-question-status dashboard-question-navigated-footer question-bottom-pager" aria-label="题目切换">
+            <button disabled={!hasQuestionNavigation || questionIndex <= 0} onClick={onPreviousQuestion}><span>←</span> 上一题</button>
+            <em>{questionIndex + 1} / {questions.length}</em>
+            <button disabled={!hasQuestionNavigation || questionIndex >= questions.length - 1} onClick={onNextQuestion}>下一题 <span>→</span></button>
           </footer>
         : <footer className="dashboard-question-status"><span>掌握情况</span>{statusControls}</footer>}
       </div>
@@ -220,10 +212,10 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
     ? <div className="dashboard-question-modal-shell">{questionNavigation}{questionContent}</div>
     : questionContent
 
-  return <div className="dashboard-question-backdrop" role="presentation" onPointerDown={event => { if (event.target === event.currentTarget) onClose() }}>
+  return <div ref={dialogRootRef} className="dashboard-question-backdrop" role="presentation" onPointerDown={event => { if (event.target === event.currentTarget) onClose() }}>
     {modalContent}
     {resetPending && <ConfirmDialog title="重置本题复习记录？" description="本题的全部复习记录将被清除，仅保留初始标记。" confirmLabel="确认重置" onConfirm={confirmResetReview} onCancel={() => setResetPending(false)}/>}
     {deleteReviewAttempt !== null && <ConfirmDialog title={`删除第 ${deleteReviewAttempt} 次复习记录？`} description="该次复习记录将被删除，其他复习记录会保留。" confirmLabel="确认删除" onConfirm={confirmDeleteReview} onCancel={() => setDeleteReviewAttempt(null)}/>}
-    <button className="dashboard-question-dialog-close" onClick={onClose} aria-label="关闭题目弹窗"><X size={19}/></button>
+    <button className="dashboard-question-dialog-close" onClick={onClose} aria-label="关闭题目弹窗" data-dialog-initial-focus><X size={19}/></button>
   </div>
 }

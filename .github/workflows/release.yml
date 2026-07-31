@@ -8,9 +8,39 @@ permissions:
   contents: write
 
 jobs:
+  validate:
+    name: 发布前测试与构建
+    if: startsWith(github.ref_name, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 检出正式版源码
+        uses: actions/checkout@v6
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.12.0
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.13.0
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 运行测试
+        run: pnpm test
+
+      - name: 生成生产构建
+        run: pnpm build
+
   package-software:
     name: 生成软件包
     if: startsWith(github.ref_name, 'v')
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: 检出正式版源码
@@ -50,6 +80,7 @@ jobs:
   package-question-bank:
     name: 生成题库数据包
     if: startsWith(github.ref_name, 'v')
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: 检出正式版题库数据

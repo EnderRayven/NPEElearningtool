@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { BookOpen, Database, Download, Eraser, HardDrive, Pencil, Plus, RefreshCcw, RotateCcw, Trash2, X } from 'lucide-react'
 import type { QuestionBank, QuestionStatus } from './types'
+import { useDialogFocus } from './useDialogFocus'
+import { useModalScrollLock } from './useModalScrollLock'
 
 interface Props {
   banks: QuestionBank[]
@@ -27,13 +29,18 @@ export default function SettingsDialog(props: Props) {
   const [storage, setStorage] = useState<{ usage?: number; quota?: number }>({})
   const [pending, setPending] = useState<{ title: string; description: string; run: () => Promise<void> | void } | null>(null)
   const [busy, setBusy] = useState(false)
+  const dialogRef = useDialogFocus<HTMLElement>(() => {
+    if (pending) setPending(null)
+    else props.onClose()
+  }, { closeOnEscape: !busy })
+  useModalScrollLock()
 
   useEffect(() => { navigator.storage?.estimate().then(result => setStorage({ usage: result.usage, quota: result.quota })).catch(() => {}) }, [])
   async function confirmAction() { if (!pending) return; setBusy(true); try { await pending.run(); setPending(null) } finally { setBusy(false) } }
 
   return <div className="modal-backdrop settings-backdrop" onClick={props.onClose}>
-    <section className="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title" onClick={event => event.stopPropagation()}>
-      <button className="modal-close" aria-label="关闭" onClick={props.onClose}><X/></button>
+    <section ref={dialogRef} className="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabIndex={-1} onClick={event => event.stopPropagation()}>
+      <button className="modal-close" aria-label="关闭" data-dialog-initial-focus onClick={props.onClose}><X/></button>
       <div className="settings-heading"><span><Database/></span><div><h2 id="settings-title">设置与数据管理</h2><p>批量管理标注、题库和本地数据</p></div></div>
 
       <section className="settings-section settings-create-bank">
