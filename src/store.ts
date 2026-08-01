@@ -29,6 +29,11 @@ function requiredString(value: unknown, path: string) {
   return value.trim()
 }
 
+function requiredText(value: unknown, path: string) {
+  if (typeof value !== 'string') throw new Error(`${path} 必须是文本`)
+  return value.trim()
+}
+
 function optionalString(value: unknown, path: string) {
   if (value === undefined || value === null || value === '') return undefined
   if (typeof value !== 'string') throw new Error(`${path} 必须是文本`)
@@ -263,7 +268,7 @@ export function validateBanks(value: unknown): QuestionBank[] {
                   number: rawQuestion.number as number,
                   text,
                   answer: requiredString(rawQuestion.answer, `${questionPath}.answer`),
-                  analysis: requiredString(rawQuestion.analysis, `${questionPath}.analysis`),
+                  analysis: requiredText(rawQuestion.analysis, `${questionPath}.analysis`),
                 }
                 if (type !== undefined) question.type = type
                 if (score !== undefined) question.score = score

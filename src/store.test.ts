@@ -67,6 +67,12 @@ describe('validateBanks', () => {
     expect(question.answerImageKeys).toEqual(['a/1'])
   })
 
+  it('允许题库编辑器暂时保存空文字解析', () => {
+    const withoutAnalysis = structuredClone(validBank)
+    withoutAnalysis.chapters[0].sections[0].questions[0].analysis = ''
+    expect(validateBanks([withoutAnalysis])[0].chapters[0].sections[0].questions[0].analysis).toBe('')
+  })
+
   it('题型字段可以完全省略', () => {
     const withoutType = structuredClone(validBank)
     Reflect.deleteProperty(withoutType.chapters[0].sections[0].questions[0], 'type')
