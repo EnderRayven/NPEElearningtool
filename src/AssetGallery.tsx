@@ -1,8 +1,9 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { Fragment, useEffect, useState, useSyncExternalStore } from 'react'
+import { ZoomIn } from 'lucide-react'
 import { getAssetBlobs, getAssetRevision, subscribeAssetChanges } from './assets'
 import type { QuestionImageSource } from './questionImages'
 
-interface Props { keys?: string[]; urls?: string[]; sources?: QuestionImageSource[]; alt: string; className?: string; trackExportLoading?: boolean; eager?: boolean }
+interface Props { keys?: string[]; urls?: string[]; sources?: QuestionImageSource[]; alt: string; className?: string; trackExportLoading?: boolean; eager?: boolean; onImageZoom?: (source: QuestionImageSource) => void }
 
 // Default-workspace files are served with long-lived immutable caching. Keep a
 // small explicit version on direct image URLs so regenerated crops cannot be
@@ -14,7 +15,7 @@ function versionDefaultWorkspaceUrl(source: string) {
   return `${source}${source.includes('?') ? '&' : '?'}assetVersion=${DEFAULT_WORKSPACE_ASSET_VERSION}`
 }
 
-export default function AssetGallery({ keys = [], urls = [], sources, alt, className, trackExportLoading = false, eager = false }: Props) {
+export default function AssetGallery({ keys = [], urls = [], sources, alt, className, trackExportLoading = false, eager = false, onImageZoom }: Props) {
   const imageSources: QuestionImageSource[] = sources || [...urls.map(url => ({ url } as QuestionImageSource)), ...keys.filter(Boolean).map(key => ({ key }))]
   const keyEntries = imageSources.map((source, index) => ({ source, index })).filter(item => Boolean(item.source.key)) as Array<{ source: QuestionImageSource & { key: string }; index: number }>
   const keySignature = keyEntries.map(({ source }) => source.key).join('\u0000')
@@ -47,9 +48,12 @@ export default function AssetGallery({ keys = [], urls = [], sources, alt, class
     return () => { disposed = true; objectUrls.forEach(URL.revokeObjectURL) }
   }, [assetSignature, assetRevision])
 
-  const resolvedSources = imageSources.map((source, index) => source.url ? versionDefaultWorkspaceUrl(source.url) : loadState.signature === assetSignature ? localUrls[index] : null).filter((source): source is string => Boolean(source))
+  const resolvedEntries = imageSources.map((source, index) => ({ source, resolvedSource: source.url ? versionDefaultWorkspaceUrl(source.url) : loadState.signature === assetSignature ? localUrls[index] : null })).filter((entry): entry is { source: QuestionImageSource; resolvedSource: string } => Boolean(entry.resolvedSource))
   const exportState = loadState.signature === assetSignature ? loadState.status : keyEntries.length ? 'loading' : 'ready'
-  const renderedSources = resolvedSources
-  if (!renderedSources.length && !trackExportLoading) return null
-  return <div className={className || 'asset-gallery'} data-export-asset-state={trackExportLoading ? exportState : undefined}>{renderedSources.map((source, index) => <img key={`${source}-${index}`} src={source} alt={`${alt}${renderedSources.length > 1 ? ` ${index + 1}` : ''}`} loading={trackExportLoading || eager ? 'eager' : 'lazy'} draggable={false} onDragStart={event => event.preventDefault()}/>)}</div>
+  if (!resolvedEntries.length && !trackExportLoading) return null
+  return <div className={className || 'asset-gallery'} data-export-asset-state={trackExportLoading ? exportState : undefined}>{resolvedEntries.map(({ source, resolvedSource }, index) => {
+    const image = <img src={resolvedSource} alt={`${alt}${resolvedEntries.length > 1 ? ` ${index + 1}` : ''}`} loading={trackExportLoading || eager ? 'eager' : 'lazy'} draggable={false} onDragStart={event => event.preventDefault()}/>
+    if (!onImageZoom) return <Fragment key={`${resolvedSource}-${index}`}>{image}</Fragment>
+    return <span className="asset-gallery-item" key={`${resolvedSource}-${index}`}>{image}<button className="asset-gallery-zoom-trigger" type="button" aria-label={`放大查看${alt}${resolvedEntries.length > 1 ? ` ${index + 1}` : ''}`} title="放大图片" onClick={() => onImageZoom(source)}><ZoomIn size={15}/></button></span>
+  })}</div>
 }

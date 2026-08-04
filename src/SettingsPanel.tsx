@@ -1,15 +1,17 @@
 import { useState, type ComponentType } from 'react'
-import { CalendarDays, ChevronRight, CircleHelp, Download, ExternalLink, FileImage, FileText, FileUp, FolderOpen, FolderSync, HardDrive, History, Info, NotebookPen, Pencil, Plus, RotateCcw, Settings as SettingsIcon, SunMedium, X } from 'lucide-react'
+import { CalendarDays, ChevronRight, CircleHelp, Download, ExternalLink, FileImage, FileText, FileUp, FolderOpen, FolderSync, GripVertical, HardDrive, History, Info, NotebookPen, Pencil, Plus, RotateCcw, Settings as SettingsIcon, SunMedium, Tag, X } from 'lucide-react'
 import type { UserSettings } from './userSettings'
+import type { QuestionTagDefinition } from './questionTags'
 import { useDialogFocus } from './useDialogFocus'
 import { useModalScrollLock } from './useModalScrollLock'
 
-type SettingsSection = 'study' | 'focus' | 'data' | 'about'
+type SettingsSection = 'study' | 'tags' | 'focus' | 'data' | 'about'
 type WorkspaceState = 'none' | 'available' | 'syncing' | 'connected' | 'error'
 type PanelIcon = ComponentType<{ size?: number; strokeWidth?: number }>
 
 interface Props {
   userSettings: UserSettings
+  questionTags: QuestionTagDefinition[]
   screenWakeLockSupported: boolean
   examDate: string
   minExamDate: string
@@ -24,6 +26,8 @@ interface Props {
   onUpdateExamDate: (value: string) => void
   onResetExamDate: () => void
   onToggleScreenAwake: () => void
+  onUpdateQuestionTags: (tags: QuestionTagDefinition[]) => void
+  onResetQuestionTags: () => void
   onOpenNewBank: () => void
   onOpenEditor: () => void
   onOpenStudyRecords: () => void
@@ -40,12 +44,14 @@ interface Props {
 const sectionItems: Array<{ id: SettingsSection; label: string; description: string; icon: PanelIcon }> = [
   { id: 'data', label: '题库与数据', description: '题库、导入导出与备份', icon: HardDrive },
   { id: 'study', label: '学习设置', description: '轮次与考试日期', icon: RotateCcw },
+  { id: 'tags', label: '题目标记', description: '标签名称与颜色', icon: Tag },
   { id: 'focus', label: '专注模式', description: '不熄屏与学习状态', icon: SunMedium },
   { id: 'about', label: '关于', description: '版本与项目链接', icon: Info },
 ]
 
 const sectionTitles: Record<SettingsSection, { eyebrow: string; title: string; description: string }> = {
   study: { eyebrow: 'LEARNING', title: '学习设置', description: '管理学习轮次和考试倒计时。' },
+  tags: { eyebrow: 'QUESTION TAGS', title: '题目标记', description: '自定义题目标记的名称与颜色。' },
   focus: { eyebrow: 'FOCUS', title: '专注模式', description: '让学习页面更适合长时间使用。' },
   data: { eyebrow: 'QUESTION BANKS & DATA', title: '题库与数据', description: '集中管理题库、导入导出、备份与重置。' },
   about: { eyebrow: 'ABOUT', title: '关于', description: '查看当前版本、项目地址和数据说明。' },
@@ -75,6 +81,7 @@ function GitHubMark({ size = 19 }: { size?: number }) {
 
 export default function SettingsPanel(props: Props) {
   const [activeSection, setActiveSection] = useState<SettingsSection>('data')
+  const [draggedTagId, setDraggedTagId] = useState<string | null>(null)
   const heading = sectionTitles[activeSection]
   const dialogRef = useDialogFocus<HTMLElement>(props.onClose)
   useModalScrollLock()
@@ -104,6 +111,47 @@ export default function SettingsPanel(props: Props) {
         <button className={enabled ? 'settings-panel-switch on' : 'settings-panel-switch'} type="button" role="switch" aria-checked={enabled} aria-label="不熄屏" disabled={!props.screenWakeLockSupported} onClick={props.onToggleScreenAwake}><span/></button>
       </section>
       <section className="settings-panel-info-card"><strong>使用提示</strong><span>开启后浏览器会阻止设备自动熄屏；关闭页面或关闭开关后会释放屏幕唤醒锁。</span></section>
+    </div>
+  }
+
+  function renderTagSettings() {
+    function updateTag(id: string, patch: Partial<QuestionTagDefinition>) {
+      props.onUpdateQuestionTags(props.questionTags.map(tag => tag.id === id ? { ...tag, ...patch } : tag))
+    }
+
+    function moveTag(draggedId: string, targetId: string, placeAfter: boolean) {
+      if (draggedId === targetId) return
+      const draggedTag = props.questionTags.find(tag => tag.id === draggedId)
+      if (!draggedTag) return
+      const remaining = props.questionTags.filter(tag => tag.id !== draggedId)
+      const targetIndex = remaining.findIndex(tag => tag.id === targetId)
+      if (targetIndex < 0) return
+      remaining.splice(targetIndex + (placeAfter ? 1 : 0), 0, draggedTag)
+      props.onUpdateQuestionTags(remaining)
+    }
+
+    return <div className="settings-panel-stack">
+      <section className="settings-panel-card">
+        <div className="settings-panel-card-heading"><span className="settings-panel-card-icon"><Tag size={18}/></span><div><strong>标签颜色与名称</strong><small>题号旁的标签可以同时选择多个</small></div></div>
+        <div className="settings-panel-tag-list" aria-label="标签顺序">
+          {props.questionTags.map(tag => <div
+            className={draggedTagId === tag.id ? 'settings-panel-tag-row is-dragging' : 'settings-panel-tag-row'}
+            key={tag.id}
+            draggable
+            onDragStart={event => { setDraggedTagId(tag.id); event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', tag.id) }}
+            onDragOver={event => { event.preventDefault(); event.dataTransfer.dropEffect = 'move' }}
+            onDrop={event => { event.preventDefault(); const draggedId = draggedTagId || event.dataTransfer.getData('text/plain'); const rect = event.currentTarget.getBoundingClientRect(); moveTag(draggedId, tag.id, event.clientY > rect.top + rect.height / 2); setDraggedTagId(null) }}
+            onDragEnd={() => setDraggedTagId(null)}
+          >
+            <span className="settings-panel-tag-drag" title="拖动调整顺序" aria-label={`拖动${tag.name}调整顺序`}><GripVertical size={15}/></span>
+            <span className="settings-panel-tag-preview"><i style={{ backgroundColor: tag.color }}/><strong>{tag.name}</strong></span>
+            <label><span>显示名称</span><input aria-label={`${tag.name}标签名称`} value={tag.name} onChange={event => updateTag(tag.id, { name: event.target.value })}/></label>
+            <label className="settings-panel-color-field"><span>颜色</span><input aria-label={`${tag.name}标签颜色`} type="color" value={tag.color} onChange={event => updateTag(tag.id, { color: event.target.value })}/></label>
+          </div>)}
+        </div>
+        <div className="settings-panel-tag-actions"><button type="button" onClick={props.onResetQuestionTags}><RotateCcw size={13}/>恢复默认标签</button><span>红色默认“必做题”、蓝色默认“选做题”、灰色默认“特难题”、黑色默认“不做”。</span></div>
+      </section>
+      <section className="settings-panel-info-card"><strong>使用方式</strong><span>打开题目后，点击题号旁的标签图标即可添加或取消标记；标签会随题库和完整备份保存。</span></section>
     </div>
   }
 
@@ -179,6 +227,7 @@ export default function SettingsPanel(props: Props) {
 
   function renderContent() {
     if (activeSection === 'study') return renderStudySettings()
+    if (activeSection === 'tags') return renderTagSettings()
     if (activeSection === 'focus') return renderFocusSettings()
     if (activeSection === 'data') return renderDataSettings()
     return renderAboutSettings()

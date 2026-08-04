@@ -26,8 +26,14 @@ describe('NotesDialog', () => {
     const markup = renderToStaticMarkup(createElement(NotesDialog, {
       banks,
       notes,
+      personalNotebooks: [],
       onClose: () => {},
       onOpenQuestion: () => {},
+      onCreateNotebook: () => null,
+      onCreateNote: () => null,
+      onPersonalNoteChange: () => {},
+      onDeletePersonalNote: () => {},
+      onDeleteNotebook: () => {},
     }))
     expect(markup).toContain('aria-label="完整手写笔记"')
     expect(markup).toContain('viewBox="0 0 1000 206"')

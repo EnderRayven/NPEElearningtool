@@ -697,6 +697,16 @@
   cursor: nesw-resize;
 }
 
+.handwriting-selection-handle-n,
+.handwriting-selection-handle-s {
+  cursor: ns-resize;
+}
+
+.handwriting-selection-handle-e,
+.handwriting-selection-handle-w {
+  cursor: ew-resize;
+}
+
 .lasso-delete-icon {
   position: relative;
   display: inline-block;

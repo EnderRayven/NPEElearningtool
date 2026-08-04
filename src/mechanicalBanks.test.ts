@@ -33,7 +33,7 @@ describe('mechanical professional banks', () => {
 
   it('keeps every question backed by at least one full-width source image', () => {
     const questions = mechanicalBanks.flatMap(bank => bank.chapters.flatMap(chapter => chapter.sections.flatMap(section => section.questions)))
-    expect(questions).toHaveLength(2414)
+    expect(questions).toHaveLength(2467)
     expect(questions.every(question => question.imageKeys?.length)).toBe(true)
     expect(questions.every(question => question.answerImageKeys?.length)).toBe(true)
     expect(new Set(questions.map(question => question.id)).size).toBe(questions.length)

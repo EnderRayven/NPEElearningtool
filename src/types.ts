@@ -20,6 +20,7 @@ export interface Question {
   answerImageUrls?: Array<string | null>
   imageKeys?: string[]
   answerImageKeys?: string[]
+  tagIds?: string[]
   videoUrl?: string
   readingType?: ReadingQuestionType
 }

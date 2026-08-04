@@ -12,10 +12,15 @@ import { builtInBanks, defaultBankIds, englishBanks } from './data'
 import { mergeImageEntries } from './imageImport'
 import { addDefaultWorkspaceImage, BUILTIN_ENGLISH_VERSION, chooseWorkspace, clearWorkspaceHandle, createBankFolder, defaultWorkspaceFileUrl, deleteDefaultWorkspaceImage, deleteDefaultWorkspaceImageByName, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, readWorkspaceNoteBuckets, readWorkspaceUserData, removeBankFolder, replaceDefaultWorkspaceImage, resolveWorkspaceUserData, safeFolderName, scanWorkspaceBankFolders, scanWorkspaceImages, workspaceBankName, writeDefaultWorkspaceImage, writeDefaultWorkspaceManifest, writeDefaultWorkspaceNoteBuckets, writeDefaultWorkspaceUserData, writeWorkspaceManifest, writeWorkspaceNoteBuckets, writeWorkspaceUserData } from './workspace'
 import { formatPassageParagraphs } from './passageFormatting'
-import { isImageAnswerPlaceholder } from './questionPresentation'
+import { isImageAnswerPlaceholder, isImageQuestionType } from './questionPresentation'
+import AdvancedQuestionFilter from './AdvancedQuestionFilter'
+import QuestionTagPicker from './QuestionTagPicker'
+import { DEFAULT_QUESTION_TAGS, validateQuestionTagDefinitions, type QuestionTagDefinition } from './questionTags'
+import { advancedQuestionFilterCount, createEmptyAdvancedQuestionFilter, questionTypeFilterLabel, questionTypeFilterValue, matchesAdvancedQuestionFilter, type AdvancedQuestionFilter as AdvancedQuestionFilterState, IMAGE_QUESTION_TYPE, UNASSIGNED_QUESTION_TYPE } from './questionFilters'
 import { sortBanksForDisplay } from './bankSorting'
 import LearningDashboard from './LearningDashboard'
 import DashboardQuestionDialog from './DashboardQuestionDialog'
+import QuestionZoomDialog from './QuestionZoomDialog'
 import { updateStudyActivity } from './studyActivity'
 import { buildQuestionReviewTimeline, deleteQuestionReview, resetQuestionReview, updateQuestionReview } from './questionReview'
 import { calculateLearningStats, calculateQuestionStats, formatRate } from './learningStats'
@@ -26,7 +31,7 @@ import { DEFAULT_USER_SETTINGS, loadUserSettings, saveUserSettings, validateUser
 import { countMarkedQuestions, emptyStudyRound, getStudyRound, loadStudyRounds, migrateStudyRounds, saveStudyRounds, updateStudyRound } from './studyRounds'
 import QuestionNotePanel from './QuestionNotePanel'
 import type { QuestionBankEditorSave } from './QuestionBankEditor'
-import { hasQuestionNote, loadQuestionErrorRecords, loadQuestionNotes, questionNoteBucketKey, saveQuestionErrorRecords, saveQuestionNoteBuckets, splitQuestionNotes, validateQuestionErrorRecords, validateQuestionNotes, type QuestionErrorRecords, type QuestionNote, type QuestionNotes } from './questionNotes'
+import { hasQuestionNote, loadPersonalNotebooks, loadQuestionErrorRecords, loadQuestionNotes, questionNoteBucketKey, savePersonalNotebooks, saveQuestionErrorRecords, saveQuestionNoteBuckets, splitQuestionNotes, validatePersonalNotebooks, validateQuestionErrorRecords, validateQuestionNotes, type PersonalNote, type PersonalNotebook, type PersonalNotebooks, type QuestionErrorRecords, type QuestionNote, type QuestionNotes } from './questionNotes'
 import { appVersion, githubRepositoryUrl } from './appMeta'
 import { bankMathModule, bankMathModules, bankSubject, mathModuleLabels, mathModuleOrder, subjectLabels } from './subjects'
 import { englishSectionLabel, groupEnglishSections, type EnglishSectionGroupKey } from './englishNavigation'
@@ -155,6 +160,7 @@ function navigationProgress(questions: Question[], statuses: Record<string, Ques
 type BankQuestionEntry = ReturnType<typeof orderedQuestionEntriesForBank>[number]
 type SidebarSectionGroup = { key: EnglishSectionGroupKey | 'all'; label: string; sections: Section[] }
 type MathExamNavigationMode = 'paper' | 'keyPoint'
+type QuestionNavigationMode = 'mastery' | 'tags'
 type MathExamCatalogTopic = { key: string; aliases: string[] }
 type MathExamCatalogSection = { key: string; label: string; topics: MathExamCatalogTopic[] }
 type MathExamCatalogModule = { key: string; label: string; sections: MathExamCatalogSection[] }
@@ -275,20 +281,23 @@ export default function App() {
   const [statuses, setStatuses] = useState(() => initialRound.statuses)
   const [activities, setActivities] = useState(() => initialRound.activities)
   const [questionNotes, setQuestionNotes] = useState<QuestionNotes>({})
+  const [personalNotebooks, setPersonalNotebooks] = useState<PersonalNotebooks>([])
   const [questionErrorRecords, setQuestionErrorRecords] = useState<QuestionErrorRecords>({})
   const [notesReady, setNotesReady] = useState(false)
   const [errorRecordsReady, setErrorRecordsReady] = useState(false)
   const [bankId, setBankId] = useState(banks[0]?.id || '')
   const [sectionId, setSectionId] = useState(banks[0]?.chapters[0]?.sections[0]?.id || '')
   const [mathExamNavigationMode, setMathExamNavigationMode] = useState<MathExamNavigationMode>('paper')
+  const [questionNavigationMode, setQuestionNavigationMode] = useState<QuestionNavigationMode>('mastery')
   const [mathExamKeyPoint, setMathExamKeyPoint] = useState('')
   const [questionIndex, setQuestionIndex] = useState(0)
   const [answerOpen, setAnswerOpen] = useState(false)
   const [answerLocked, setAnswerLocked] = useState(false)
   const [expandedPassageAnswers, setExpandedPassageAnswers] = useState<Set<string>>(() => new Set())
   const [expandedChapterIds, setExpandedChapterIds] = useState<Set<string>>(() => new Set(banks[0]?.chapters[0] ? [banks[0].chapters[0].id] : []))
-  const [filter, setFilter] = useState<QuestionStatus | 'all'>('all')
   const [query, setQuery] = useState('')
+  const [advancedFilter, setAdvancedFilter] = useState<AdvancedQuestionFilterState>(createEmptyAdvancedQuestionFilter)
+  const [advancedFilterOpen, setAdvancedFilterOpen] = useState(false)
   const [sidebar, setSidebar] = useState(false)
   const [compactLayout, setCompactLayout] = useState(() => window.matchMedia('(max-width: 900px)').matches)
   const [activePage, setActivePage] = useState<'study' | 'profile'>('study')
@@ -312,6 +321,7 @@ export default function App() {
   const [notesOpen, setNotesOpen] = useState(false)
   const [deferredModules, setDeferredModules] = useState<DeferredModules>({})
   const [noteQuestionPreview, setNoteQuestionPreview] = useState<{ bankId: string; questionId: string } | null>(null)
+  const [questionZoomTarget, setQuestionZoomTarget] = useState<{ question: Question; imageSource: QuestionImageSource } | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [countdownNow, setCountdownNow] = useState(() => new Date())
   const [renameTarget, setRenameTarget] = useState<{ kind: 'bank' | 'chapter'; id: string; name: string } | null>(null)
@@ -322,11 +332,14 @@ export default function App() {
   const [workspaceFolders, setWorkspaceFolders] = useState<Record<string, string>>({})
   const [defaultWorkspaceConnected, setDefaultWorkspaceConnected] = useState(false)
   const [workspaceReady, setWorkspaceReady] = useState(false)
-  useModalScrollLock(newBankOpen || Boolean(renameTarget))
+  useModalScrollLock(newBankOpen || Boolean(renameTarget) || Boolean(questionZoomTarget))
   const screenWakeLockSupported = isScreenWakeLockSupported()
+  const questionTags = userSettings.questionTags?.length ? userSettings.questionTags : DEFAULT_QUESTION_TAGS
+  const questionTagById = useMemo(() => new Map(questionTags.map(tag => [tag.id, tag])), [questionTags])
   const notesLoaded = useRef(false)
   const dirtyLocalNoteBuckets = useRef(new Set<string>())
   const dirtyWorkspaceNoteBuckets = useRef(new Set<string>())
+  const personalNotebooksDirty = useRef(false)
   const studyPositions = useRef<Partial<Record<Subject, SavedNavigation>>>({})
   const mathStudyPositions = useRef<Partial<Record<MathModule, SavedNavigation>>>({})
   const bankStudyPositions = useRef<Record<string, SavedNavigation>>({})
@@ -340,6 +353,7 @@ export default function App() {
   const sectionScrollToTopPending = useRef(false)
   const displayedQuestionId = useRef('')
   const toolboxRef = useRef<HTMLDivElement>(null)
+  const filterToolsRef = useRef<HTMLDivElement>(null)
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null)
   const sidebarCloseButtonRef = useRef<HTMLButtonElement>(null)
   const sidebarWasOpen = useRef(false)
@@ -384,10 +398,11 @@ export default function App() {
   useEffect(() => { if (!saveUserSettings(userSettings)) setToast('用户设置保存失败，请检查浏览器存储空间') }, [userSettings])
   useEffect(() => {
     let cancelled = false
-    Promise.all([loadQuestionNotes(banks), loadQuestionErrorRecords()]).then(([savedNotes, savedErrorRecords]) => {
+    Promise.all([loadQuestionNotes(banks), loadPersonalNotebooks(), loadQuestionErrorRecords()]).then(([savedNotes, savedPersonalNotebooks, savedErrorRecords]) => {
       if (cancelled || notesLoaded.current) return
       notesLoaded.current = true
       setQuestionNotes(savedNotes)
+      setPersonalNotebooks(savedPersonalNotebooks)
       setQuestionErrorRecords(savedErrorRecords)
       setNotesReady(true)
       setErrorRecordsReady(true)
@@ -407,6 +422,17 @@ export default function App() {
     }, 350)
     return () => window.clearTimeout(timer)
   }, [banks, questionNotes, notesReady])
+  useEffect(() => {
+    if (!notesReady || !personalNotebooksDirty.current) return
+    const timer = window.setTimeout(() => {
+      personalNotebooksDirty.current = false
+      savePersonalNotebooks(personalNotebooks).catch(() => {
+        personalNotebooksDirty.current = true
+        setToast('个人笔记保存失败，请先导出完整备份')
+      })
+    }, 350)
+    return () => window.clearTimeout(timer)
+  }, [personalNotebooks, notesReady])
   useEffect(() => {
     if (!errorRecordsReady) return
     const timer = window.setTimeout(() => {
@@ -475,6 +501,14 @@ export default function App() {
     return () => { document.removeEventListener('pointerdown', closeOnOutside); document.removeEventListener('keydown', closeOnEscape) }
   }, [toolboxOpen])
   useEffect(() => {
+    if (!advancedFilterOpen) return
+    const closeOnOutside = (event: PointerEvent) => { if (!filterToolsRef.current?.contains(event.target as Node)) setAdvancedFilterOpen(false) }
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setAdvancedFilterOpen(false) }
+    document.addEventListener('pointerdown', closeOnOutside)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => { document.removeEventListener('pointerdown', closeOnOutside); document.removeEventListener('keydown', closeOnEscape) }
+  }, [advancedFilterOpen])
+  useEffect(() => {
     loadWorkspaceHandle().then(async handle => {
       if (!handle) { await loadDefaultWorkspace(); return }
       setWorkspaceHandle(handle)
@@ -502,12 +536,12 @@ export default function App() {
     const timer = window.setTimeout(() => {
       const rounds = updateStudyRound(studyRounds, userSettings.activeRound, statuses, activities)
       const save = defaultWorkspaceConnected
-        ? writeDefaultWorkspaceUserData(rounds, userSettings, {}, questionErrorRecords)
-        : workspaceHandle ? writeWorkspaceUserData(workspaceHandle, rounds, userSettings, {}, questionErrorRecords) : Promise.resolve()
+        ? writeDefaultWorkspaceUserData(rounds, userSettings, {}, questionErrorRecords, personalNotebooks)
+        : workspaceHandle ? writeWorkspaceUserData(workspaceHandle, rounds, userSettings, {}, questionErrorRecords, personalNotebooks) : Promise.resolve()
       save.catch(() => setWorkspaceState('error'))
     }, 450)
     return () => window.clearTimeout(timer)
-  }, [studyRounds, statuses, activities, userSettings, questionErrorRecords, workspaceHandle, workspaceState, defaultWorkspaceConnected, workspaceReady])
+  }, [studyRounds, statuses, activities, userSettings, questionErrorRecords, personalNotebooks, workspaceHandle, workspaceState, defaultWorkspaceConnected, workspaceReady])
   useEffect(() => {
     if (workspaceState !== 'connected' || !workspaceReady) return
     const bucketKeys = new Set(dirtyWorkspaceNoteBuckets.current)
@@ -524,6 +558,10 @@ export default function App() {
     }, 450)
     return () => window.clearTimeout(timer)
   }, [banks, questionNotes, workspaceHandle, workspaceState, defaultWorkspaceConnected, workspaceReady])
+  useEffect(() => {
+    setAdvancedFilter(createEmptyAdvancedQuestionFilter())
+    setAdvancedFilterOpen(false)
+  }, [bankId, sectionId, view])
   useEffect(() => {
     restoreSavedNavigation(banks, statuses)
     setNavigationReady(true)
@@ -655,6 +693,34 @@ export default function App() {
     : currentBankStats
   const currentStudyLabel = isMathExamKeyPointMode ? selectedExamKeyPointGroup?.key || '考点目录' : section?.name || '未选择'
   const binaryFilterMode = subject === 'english'
+  const questionNavigationTags = (item: Question) => (item.tagIds || [])
+    .map(tagId => questionTagById.get(tagId))
+    .filter((tag): tag is QuestionTagDefinition => Boolean(tag))
+  const questionNavigationTagLabel = (item: Question) => {
+    const tags = questionNavigationTags(item)
+    return tags.length ? tags.map(tag => tag.name).join('、') : '未添加标签'
+  }
+  const questionNavigationButtonClass = (selected: boolean, status: QuestionStatus) => `${selected ? 'selected ' : ''}${questionNavigationMode === 'mastery' ? status : 'tag-mode'}`
+  const questionNavigationButtonStyle = (item: Question) => {
+    if (questionNavigationMode !== 'tags') return undefined
+    const tags = questionNavigationTags(item)
+    if (!tags.length) return undefined
+    const backgrounds = tags.slice(0, 3).map(tag => `color-mix(in srgb, ${tag.color} 16%, #fff)`)
+    return { background: backgrounds.length === 1 ? backgrounds[0] : `linear-gradient(135deg, ${backgrounds.join(', ')})`, borderColor: `color-mix(in srgb, ${tags[0].color} 42%, #e3ddd5)` }
+  }
+  const renderQuestionNavigationIndicator = (item: Question, status: QuestionStatus) => {
+    if (questionNavigationMode === 'tags') return <span className={`question-nav-mastery-dot ${status}`} aria-hidden="true"/>
+    const tags = questionNavigationTags(item)
+    return <span className={tags.length ? 'question-nav-tag-dots' : 'question-nav-tag-dots empty'} aria-hidden="true">{tags.slice(0, 3).map(tag => <i key={tag.id} style={{ backgroundColor: tag.color }}/>) }{tags.length > 3 && <em>+{tags.length - 3}</em>}</span>
+  }
+  const questionNavigationTitle = (context: string, item: Question) => {
+    const title = `${context} · 第 ${item.number} 题`
+    return questionNavigationMode === 'tags' ? `${title} · 标签：${questionNavigationTagLabel(item)}` : title
+  }
+  const renderQuestionNavigationModeSwitch = () => <div className="question-nav-mode-switch" role="group" aria-label="题号导航显示方式">
+    <button type="button" className={questionNavigationMode === 'mastery' ? 'active' : ''} aria-pressed={questionNavigationMode === 'mastery'} onClick={() => setQuestionNavigationMode('mastery')}>熟练度</button>
+    <button type="button" className={questionNavigationMode === 'tags' ? 'active' : ''} aria-pressed={questionNavigationMode === 'tags'} onClick={() => setQuestionNavigationMode('tags')}>标签</button>
+  </div>
   const isPartBSection = view === 'section' && Boolean(section?.questions.length) && section!.questions.every(item => item.type === '阅读理解 Part B')
   const sharedPartBOptions = isPartBSection ? section?.questions[0]?.options || [] : []
   const hasLongPartBOptions = sharedPartBOptions.some(option => option.length > 180)
@@ -665,19 +731,28 @@ export default function App() {
       : section?.partBKind === 'viewpoint'
         ? { title: '备选观点', description: '以下观点供第 41–45 题共同使用。' }
         : { title: '备选句', description: '以下句子供第 41–45 题共同使用。' }
-  const filterOptions: Array<QuestionStatus | 'all'> = view === 'wrong'
-    ? binaryFilterMode ? ['all', 'wrong'] : ['all', 'vague', 'wrong']
-    : binaryFilterMode ? ['all', 'none', 'wrong', 'proficient'] : ['all', 'none', 'wrong', 'vague', 'proficient']
+  const statusFilterValues: QuestionStatus[] = view === 'wrong'
+    ? binaryFilterMode ? ['wrong'] : ['vague', 'wrong']
+    : binaryFilterMode ? ['none', 'wrong', 'proficient'] : ['none', 'wrong', 'vague', 'proficient']
+  const statusFilterOptions = statusFilterValues.map(value => ({ value, label: (binaryFilterMode ? binaryStatusMeta : statusMeta)[value].label }))
+  const activeQuestionFilterCount = advancedQuestionFilterCount(advancedFilter)
+  const availableQuestionTypes = useMemo(() => Array.from(new Set(sourceQuestions.map(questionTypeFilterValue).filter(value => value !== IMAGE_QUESTION_TYPE))).sort((left, right) => {
+    if (left === UNASSIGNED_QUESTION_TYPE) return 1
+    if (right === UNASSIGNED_QUESTION_TYPE) return -1
+    return left.localeCompare(right, 'zh-CN')
+  }).map(value => ({ value, label: questionTypeFilterLabel(value) })), [sourceQuestions])
   const filteredQuestions = useMemo(() => sourceQuestions.filter(q => {
-    const matchesStatus = filter === 'all' || effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode) === filter
+    const statusValue = effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode)
     const readingLabel = readingTypeMeta.find(item => item.value === q.readingType)?.label || ''
-    const haystack = `${q.text} ${q.answer} ${q.analysis} ${readingLabel}`.toLowerCase()
-    return matchesStatus && haystack.includes(query.trim().toLowerCase())
-  }), [sourceQuestions, filter, query, statuses, binaryFilterMode])
+    const tagLabel = (q.tagIds || []).map(tagId => questionTagById.get(tagId)?.name || '').join(' ')
+    const haystack = `${q.text} ${q.answer} ${q.analysis} ${q.type || ''} ${readingLabel} ${tagLabel}`.toLowerCase()
+    return matchesAdvancedQuestionFilter(q, advancedFilter, statusValue) && haystack.includes(query.trim().toLowerCase())
+  }), [sourceQuestions, query, statuses, binaryFilterMode, advancedFilter, questionTagById])
   const question = filteredQuestions[Math.min(questionIndex, Math.max(0, filteredQuestions.length - 1))]
   const questionSources = question ? questionImageSources(question, 'question') : []
   const answerSources = question ? questionImageSources(question, 'answer') : []
   const questionText = question && (question.type === '图片题' || questionSources.length) && question.text === `第 ${question.number} 题` ? '' : question?.text
+  const questionTypeLabel = question?.type && !isImageQuestionType(question.type) ? question.type : undefined
   const hasAnswerImages = answerSources.length > 0
   const usesImageAnswer = Boolean(question && hasAnswerImages && isImageAnswerPlaceholder(question.answer))
   const currentQuestionNavigationEntry = question ? bankQuestionEntries.find(entry => entry.question.id === question.id) : undefined
@@ -709,6 +784,19 @@ export default function App() {
       entries: reviewEntries.filter(entry => entry.sectionId === itemSection.id && visibleIds.has(entry.question.id)),
     }))).filter(group => group.entries.length)
   }, [view, filteredQuestions, bank.chapters, reviewEntries])
+  const questionNavigationLegendQuestions = view === 'wrong'
+    ? reviewNavigationGroups.flatMap(group => group.entries.map(entry => entry.question))
+    : showKeyPointNavigation
+      ? keyPointNavigationGroups.flatMap(group => group.entries.map(entry => entry.question))
+      : showFullPaperNavigation
+        ? currentPaperEntries.map(entry => entry.question)
+        : filteredQuestions
+  const questionNavigationLegendTagIds = new Set(questionNavigationLegendQuestions.flatMap(item => questionNavigationTags(item).map(tag => tag.id)))
+  const questionNavigationLegendTags = questionTags.filter(tag => questionNavigationLegendTagIds.has(tag.id))
+  const renderQuestionNavigationLegend = () => <div className="legend question-nav-legend">
+    <span><i className={questionNavigationMode === 'mastery' ? 'question-nav-legend-square proficient' : 'question-nav-mastery-dot proficient'}/>{binaryFilterMode ? '正确' : '熟练'}</span>{!binaryFilterMode && <span><i className={questionNavigationMode === 'mastery' ? 'question-nav-legend-square vague' : 'question-nav-mastery-dot vague'}/>模糊</span>}<span><i className={questionNavigationMode === 'mastery' ? 'question-nav-legend-square wrong' : 'question-nav-mastery-dot wrong'}/>{binaryFilterMode ? '错误' : '错题'}</span>
+    {questionNavigationLegendTags.map(tag => <span key={tag.id}><i className={questionNavigationMode === 'tags' ? 'question-nav-tag-legend-square' : 'question-nav-tag-legend-line'} style={{ backgroundColor: tag.color }}/>{tag.name}</span>)}
+  </div>
 
   const currentNavigationChapterId = currentQuestionNavigationEntry?.chapterId || currentChapter?.id
   const currentNavigationSectionId = view === 'wrong'
@@ -796,6 +884,30 @@ export default function App() {
     if (!answerLocked) setAnswerOpen(false)
   }
 
+  function updateQuestionTags(nextTags: QuestionTagDefinition[]) {
+    setUserSettings(previous => ({ ...previous, questionTags: validateQuestionTagDefinitions(nextTags) }))
+  }
+
+  function resetQuestionTags() {
+    setUserSettings(previous => ({ ...previous, questionTags: validateQuestionTagDefinitions(DEFAULT_QUESTION_TAGS) }))
+  }
+
+  function setQuestionTagIds(questionId: string, nextTagIds: string[]) {
+    const validTagIds = [...new Set(nextTagIds)].filter(tagId => questionTagById.has(tagId))
+    setBanks(previous => previous.map(item => ({
+      ...item,
+      chapters: item.chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.map(itemSection => ({
+          ...itemSection,
+          questions: itemSection.questions.map(itemQuestion => itemQuestion.id === questionId
+            ? { ...itemQuestion, tagIds: validTagIds.length ? validTagIds : undefined }
+            : itemQuestion)
+        }))
+      }))
+    })))
+  }
+
   function selectBank(next: QuestionBank) {
     if (bankSubject(next) === 'math') {
       const modules = bankMathModules(next)
@@ -811,7 +923,7 @@ export default function App() {
     setQuestionIndex(restored?.questionIndex || 0)
     collapseAnswerUnlessLocked()
     setExpandedPassageAnswers(new Set())
-    setFilter('all')
+    setAdvancedFilter(createEmptyAdvancedQuestionFilter())
     setQuery('')
     setView(restored?.view || 'section')
     setSidebar(false)
@@ -838,7 +950,7 @@ export default function App() {
       }
     }
     setBankId(restored.bankId); setSectionId(restored.sectionId); setExpandedChapterIds(new Set([restored.chapterId])); setQuestionIndex(restored.questionIndex); setView(restored.view)
-    collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setFilter('all'); setQuery('')
+    collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setQuery('')
     return true
   }
   function selectSubject(nextSubject: Subject) {
@@ -858,7 +970,7 @@ export default function App() {
         if (savedPosition) mathStudyPositions.current[restoredModule] = savedPosition
       }
       setBankId(restored.bankId); setSectionId(restored.sectionId); setExpandedChapterIds(new Set([restored.chapterId])); setQuestionIndex(restored.questionIndex); setView(restored.view)
-      collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setFilter('all'); setQuery(''); setActivePage('study'); setSidebar(false)
+      collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setQuery(''); setActivePage('study'); setSidebar(false)
       return
     }
     const nextBank = sortBanksForDisplay(banks.filter(item => bankSubject(item) === nextSubject))[0]
@@ -877,7 +989,7 @@ export default function App() {
       setMathModule(nextModule)
       if (restoredBank) setBankId(restoredBank.id)
       setSectionId(restored.sectionId); setExpandedChapterIds(new Set([restored.chapterId])); setQuestionIndex(restored.questionIndex); setView(restored.view)
-      collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setFilter('all'); setQuery(''); setActivePage('study'); setSidebar(false)
+      collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setQuery(''); setActivePage('study'); setSidebar(false)
       return
     }
     setMathModule(nextModule)
@@ -901,7 +1013,7 @@ export default function App() {
     const owner = bank.chapters.find(chapter => chapter.sections.some(item => item.id === id))
     if (owner) setExpandedChapterIds(previous => new Set(previous).add(owner.id))
     sectionScrollToTopPending.current = shouldScrollSectionChangeToTop(subject, sectionId, id)
-    setSectionId(id); setQuestionIndex(0); collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setFilter('all'); setView('section'); setSidebar(false)
+    setSectionId(id); setQuestionIndex(0); collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setView('section'); setSidebar(false)
   }
   function selectMathExamNavigationMode(nextMode: MathExamNavigationMode) {
     if (!isMathExamBank) return
@@ -913,7 +1025,7 @@ export default function App() {
     setQuestionIndex(0)
     collapseAnswerUnlessLocked()
     setExpandedPassageAnswers(new Set())
-    setFilter('all')
+    setAdvancedFilter(createEmptyAdvancedQuestionFilter())
     setQuery('')
     setView('section')
     setSidebar(false)
@@ -927,7 +1039,7 @@ export default function App() {
     setQuestionIndex(0)
     collapseAnswerUnlessLocked()
     setExpandedPassageAnswers(new Set())
-    setFilter('all')
+    setAdvancedFilter(createEmptyAdvancedQuestionFilter())
     setQuery('')
     setView('section')
     setSidebar(false)
@@ -949,11 +1061,11 @@ export default function App() {
       } else {
         setView('section'); setQuestionIndex(0)
       }
-      collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setFilter('all'); setQuery(''); setSidebar(false)
+      collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setQuery(''); setSidebar(false)
       return
     }
     reviewReturnPosition.current = { bankId: bank?.id || '', sectionId, questionId: question?.id || '', view }
-    setView('wrong'); setFilter('all'); setQuery(''); setQuestionIndex(0); collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setSidebar(false)
+    setView('wrong'); setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setQuery(''); setQuestionIndex(0); collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setSidebar(false)
   }
   function markQuestion(questionId: string, status: QuestionStatus, targetQuestion?: Question) {
     const questionEntry = bankQuestionEntries.find(entry => entry.question.id === questionId)
@@ -1081,7 +1193,7 @@ export default function App() {
     if (bankSubject(targetBank) === 'math') setMathModule(bankMathModule(targetBank))
     setActivePage('study'); setBankId(targetBank.id); setNotesOpen(false); setToolboxOpen(false)
     setExpandedChapterIds(previous => new Set(previous).add(entry.chapterId))
-    setSectionId(entry.sectionId); setQuestionIndex(Math.max(0, targetIndex)); collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setFilter('all'); setQuery(''); setView('section')
+    setSectionId(entry.sectionId); setQuestionIndex(Math.max(0, targetIndex)); collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setQuery(''); setView('section')
     window.requestAnimationFrame(() => document.getElementById(`question-${entry.question.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
   function openNoteQuestionPreview(bankId: string, questionId: string) {
@@ -1152,6 +1264,46 @@ export default function App() {
       return { ...previous, [questionId]: note }
     })
   }
+  function createPersonalNotebook(name: string): PersonalNotebook | null {
+    const trimmedName = name.trim()
+    if (!trimmedName) return null
+    const now = new Date().toISOString()
+    const notebook: PersonalNotebook = { id: `notebook-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: trimmedName, notes: [], createdAt: now, updatedAt: now }
+    personalNotebooksDirty.current = true
+    setPersonalNotebooks(previous => [...previous, notebook])
+    setToast(`已新建笔记本“${trimmedName}”`)
+    return notebook
+  }
+  function createPersonalNote(notebookId: string, title: string): PersonalNote | null {
+    const notebook = personalNotebooks.find(item => item.id === notebookId)
+    const trimmedTitle = title.trim()
+    if (!notebook || !trimmedTitle) return null
+    const now = new Date().toISOString()
+    const note: PersonalNote = { id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, title: trimmedTitle, text: '', drawing: { version: 1, aspectRatio: 5 / 3, strokes: [] }, updatedAt: now }
+    personalNotebooksDirty.current = true
+    setPersonalNotebooks(previous => previous.map(item => item.id === notebookId ? { ...item, notes: [...item.notes, note], updatedAt: now } : item))
+    setToast(`已新建笔记“${trimmedTitle}”`)
+    return note
+  }
+  function updatePersonalNote(notebookId: string, nextNote: PersonalNote) {
+    personalNotebooksDirty.current = true
+    const now = nextNote.updatedAt || new Date().toISOString()
+    setPersonalNotebooks(previous => previous.map(notebook => notebook.id === notebookId
+      ? { ...notebook, updatedAt: now, notes: notebook.notes.map(note => note.id === nextNote.id ? { ...note, ...nextNote } : note) }
+      : notebook))
+  }
+  function deletePersonalNote(notebookId: string, noteId: string) {
+    personalNotebooksDirty.current = true
+    setPersonalNotebooks(previous => previous.map(notebook => notebook.id === notebookId
+      ? { ...notebook, notes: notebook.notes.filter(note => note.id !== noteId), updatedAt: new Date().toISOString() }
+      : notebook))
+    setToast('已删除个人笔记')
+  }
+  function deletePersonalNotebook(notebookId: string) {
+    personalNotebooksDirty.current = true
+    setPersonalNotebooks(previous => previous.filter(notebook => notebook.id !== notebookId))
+    setToast('已删除笔记本')
+  }
   function switchStudyRound(nextRound: number) {
     if (nextRound === userSettings.activeRound) return
     const rounds = currentStudyRounds()
@@ -1174,7 +1326,7 @@ export default function App() {
     return round === userSettings.activeRound ? { statuses, activities } : getStudyRound(studyRounds, round)
   }
   function exportData() {
-    const blob = new Blob([JSON.stringify({ version: 5, banks, rounds: currentStudyRounds(), settings: userSettings, notes: questionNotes, errorRecords: questionErrorRecords }, null, 2)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify({ version: 6, banks, rounds: currentStudyRounds(), settings: userSettings, notes: questionNotes, personalNotebooks, errorRecords: questionErrorRecords }, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `考研学习空间备份-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url)
   }
   function exportSingleBank(targetBank: QuestionBank) {
@@ -1240,7 +1392,8 @@ export default function App() {
     await deleteAssets(removableBanks.flatMap(assetKeysForBank))
     const defaults = [...structuredClone(protectedBanks), ...structuredClone(builtInBanks).filter(item => !protectedBankIds.has(item.id))]
     bankStudyPositions.current = {}
-    setBanks(defaults); setStudyRounds({ '1': emptyStudyRound() }); setStatuses({}); setActivities([]); setQuestionNotes({}); setQuestionErrorRecords({}); setUserSettings({ ...DEFAULT_USER_SETTINGS }); setBankId(defaults[0].id); setSectionId(defaults[0].chapters[0]?.sections[0]?.id || ''); setQuestionIndex(0); setView('section'); setSettingsOpen(false); setToast('已恢复出厂设置，默认题库已保留')
+    personalNotebooksDirty.current = true
+    setBanks(defaults); setStudyRounds({ '1': emptyStudyRound() }); setStatuses({}); setActivities([]); setQuestionNotes({}); setPersonalNotebooks([]); setQuestionErrorRecords({}); setUserSettings({ ...DEFAULT_USER_SETTINGS }); setBankId(defaults[0].id); setSectionId(defaults[0].chapters[0]?.sections[0]?.id || ''); setQuestionIndex(0); setView('section'); setSettingsOpen(false); setToast('已恢复出厂设置，默认题库已保留')
   }
   function printExport(job: ExportJob) {
     if (!job.questions.length) { setToast(job.mode === 'notes' ? '当前条件下没有可导出的笔记' : '当前条件下没有可导出的题目'); return }
@@ -1265,6 +1418,8 @@ export default function App() {
         notesLoaded.current = true
         setNotesReady(true)
         setQuestionNotes(validateQuestionNotes(parsed.notes))
+        personalNotebooksDirty.current = true
+        setPersonalNotebooks(validatePersonalNotebooks(parsed.personalNotebooks))
         setErrorRecordsReady(true)
         setQuestionErrorRecords(validateQuestionErrorRecords(parsed.errorRecords))
       }
@@ -1377,11 +1532,12 @@ export default function App() {
       if (index.manifest && index.manifest.builtinEnglishVersion !== BUILTIN_ENGLISH_VERSION) {
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
-      const [savedNotes, savedErrorRecords] = await Promise.all([loadQuestionNotes(banks), loadQuestionErrorRecords()])
-      const resolvedUserData = resolveWorkspaceUserData(index.userData, index.manifest?.statuses, currentStudyRounds(), userSettings, { ...savedNotes, ...(index.notes || {}) }, savedErrorRecords)
+      const [savedNotes, savedPersonalNotebooks, savedErrorRecords] = await Promise.all([loadQuestionNotes(banks), loadPersonalNotebooks(), loadQuestionErrorRecords()])
+      const resolvedUserData = resolveWorkspaceUserData(index.userData, index.manifest?.statuses, currentStudyRounds(), userSettings, { ...savedNotes, ...(index.notes || {}) }, savedErrorRecords, savedPersonalNotebooks)
       const nextSettings = resolvedUserData.settings
       const nextRounds = resolvedUserData.rounds
       const nextNotes = resolvedUserData.notes
+      const nextPersonalNotebooks = resolvedUserData.personalNotebooks
       const nextRound = getStudyRound(nextRounds, nextSettings.activeRound)
       const nextStatuses = nextRound.statuses
       const nextActivities = nextRound.activities
@@ -1412,7 +1568,7 @@ export default function App() {
       })
       const result = await mergeImageEntries(nextBanks, entries, { replaceExistingAssets: true })
       await writeDefaultWorkspaceNoteBuckets(nextNotes, result.banks)
-      await writeDefaultWorkspaceUserData(nextRounds, nextSettings, {}, resolvedUserData.errorRecords)
+      await writeDefaultWorkspaceUserData(nextRounds, nextSettings, {}, resolvedUserData.errorRecords, nextPersonalNotebooks)
       markAllNoteBucketsDirty(nextNotes, result.banks, false)
       if (!restoreSavedNavigation(result.banks, nextStatuses)) {
         const activeBank = result.banks.find(item => item.id === bankId) || result.banks[0]
@@ -1425,7 +1581,7 @@ export default function App() {
       notesLoaded.current = true
       setNotesReady(true)
       setErrorRecordsReady(true)
-      setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(null); setDefaultWorkspaceConnected(true); setWorkspaceState('connected')
+      setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setPersonalNotebooks(nextPersonalNotebooks); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(null); setDefaultWorkspaceConnected(true); setWorkspaceState('connected')
       setQuestionErrorRecords(resolvedUserData.errorRecords)
       window.setTimeout(() => setWorkspaceReady(true), 0)
       setToast(`已自动连接“${index.name}”${result.imported ? `，识别 ${result.imported} 张图片` : ''}`)
@@ -1452,11 +1608,12 @@ export default function App() {
         seededEnglishCount = englishBanks.length
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
       }
-      const [savedNotes, savedErrorRecords, workspaceNotes] = await Promise.all([loadQuestionNotes(banks), loadQuestionErrorRecords(), readWorkspaceNoteBuckets(handle)])
-      const resolvedUserData = resolveWorkspaceUserData(userData, manifest?.statuses, currentStudyRounds(), userSettings, { ...savedNotes, ...workspaceNotes }, savedErrorRecords)
+      const [savedNotes, savedPersonalNotebooks, savedErrorRecords, workspaceNotes] = await Promise.all([loadQuestionNotes(banks), loadPersonalNotebooks(), loadQuestionErrorRecords(), readWorkspaceNoteBuckets(handle)])
+      const resolvedUserData = resolveWorkspaceUserData(userData, manifest?.statuses, currentStudyRounds(), userSettings, { ...savedNotes, ...workspaceNotes }, savedErrorRecords, savedPersonalNotebooks)
       const nextSettings = resolvedUserData.settings
       const nextRounds = resolvedUserData.rounds
       const nextNotes = resolvedUserData.notes
+      const nextPersonalNotebooks = resolvedUserData.personalNotebooks
       const nextRound = getStudyRound(nextRounds, nextSettings.activeRound)
       const nextStatuses = nextRound.statuses
       const nextActivities = nextRound.activities
@@ -1490,7 +1647,7 @@ export default function App() {
       })
       const result = await mergeImageEntries(nextBanks, entries, { replaceExistingAssets: true })
       await writeWorkspaceNoteBuckets(handle, nextNotes, result.banks)
-      await writeWorkspaceUserData(handle, nextRounds, nextSettings, {}, resolvedUserData.errorRecords)
+      await writeWorkspaceUserData(handle, nextRounds, nextSettings, {}, resolvedUserData.errorRecords, nextPersonalNotebooks)
       markAllNoteBucketsDirty(nextNotes, result.banks, false)
       if (!restoreSavedNavigation(result.banks, nextStatuses)) {
         const activeBank = result.banks.find(item => item.id === bankId) || result.banks[0]
@@ -1505,7 +1662,7 @@ export default function App() {
       notesLoaded.current = true
       setNotesReady(true)
       setErrorRecordsReady(true)
-      setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(handle); setDefaultWorkspaceConnected(false)
+      setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setPersonalNotebooks(nextPersonalNotebooks); setUserSettings(nextSettings); setWorkspaceFolders(folders); setWorkspaceHandle(handle); setDefaultWorkspaceConnected(false)
       setQuestionErrorRecords(resolvedUserData.errorRecords)
       setWorkspaceState('connected')
       window.setTimeout(() => setWorkspaceReady(true), 0)
@@ -1547,7 +1704,7 @@ export default function App() {
         void Promise.all([
           writeWorkspaceManifest(workspaceHandle, banks, workspaceFolders),
           writeWorkspaceNoteBuckets(workspaceHandle, questionNotes, banks),
-          writeWorkspaceUserData(workspaceHandle, currentStudyRounds(), userSettings, {}, questionErrorRecords),
+          writeWorkspaceUserData(workspaceHandle, currentStudyRounds(), userSettings, {}, questionErrorRecords, personalNotebooks),
         ]).catch(() => {})
       }
       const handle = await chooseWorkspace()
@@ -1688,11 +1845,12 @@ export default function App() {
           </div>)}
         </section>)}{examKeyPointCatalogTree.length === 0 && <div className="empty-chapters">还没有考点<br/><small>请先补充题目的考点信息</small></div>}</div> : <div className="chapter-tree">{bank.chapters.map(chapter => {
           const chapterProgress = navigationProgress(chapter.sections.flatMap(sectionItem => sectionItem.questions), statuses, binaryFilterMode)
+          const visibleSections = chapter.sections.filter(sectionItem => sectionItem.questions.length > 0)
           const sectionGroups: SidebarSectionGroup[] = bank.id === 'english-exams'
-            ? groupEnglishSections(chapter.sections)
-            : [{ key: 'all', label: '', sections: chapter.sections }]
+            ? groupEnglishSections(visibleSections)
+            : [{ key: 'all', label: '', sections: visibleSections }]
           return <div className={bank.chapters.length === 1 ? 'chapter single-chapter' : 'chapter'} data-chapter-id={chapter.id} key={chapter.id}>
-            {bank.chapters.length > 1 && <div className="chapter-title"><button className="chapter-toggle" aria-expanded={expandedChapterIds.has(chapter.id)} onClick={() => toggleChapter(chapter.id)}>{expandedChapterIds.has(chapter.id) ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}<span>{chapter.name}</span><em>{subject === 'english' ? sectionGroups.length : chapter.sections.length}</em><small className="nav-progress" title={`已标记 ${chapterProgress.marked}/${chapterProgress.total} 题`}>{chapterProgress.label}</small></button><button className="rename-button" aria-label={`重命名章节 ${chapter.name}`} onClick={() => openRename('chapter', chapter.id, chapter.name)}><Pencil size={12}/></button></div>}
+            {bank.chapters.length > 1 && <div className="chapter-title"><button className="chapter-toggle" aria-expanded={expandedChapterIds.has(chapter.id)} onClick={() => toggleChapter(chapter.id)}>{expandedChapterIds.has(chapter.id) ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}<span>{chapter.name}</span><em>{subject === 'english' ? sectionGroups.length : visibleSections.length}</em><small className="nav-progress" title={`已标记 ${chapterProgress.marked}/${chapterProgress.total} 题`}>{chapterProgress.label}</small></button><button className="rename-button" aria-label={`重命名章节 ${chapter.name}`} onClick={() => openRename('chapter', chapter.id, chapter.name)}><Pencil size={12}/></button></div>}
             {(bank.chapters.length === 1 || expandedChapterIds.has(chapter.id)) && sectionGroups.map(group => {
               const groupProgress = navigationProgress(group.sections.flatMap(sectionItem => sectionItem.questions), statuses, binaryFilterMode)
               return <div key={`${chapter.id}-${group.key}`} className={group.label ? 'english-section-group' : undefined}>
@@ -1711,17 +1869,17 @@ export default function App() {
       </aside></>}
 
       <main className={activePage === 'profile' ? 'profile-main' : ''}>
-        {activePage === 'profile' ? <LearningDashboard banks={banks} statuses={statuses} activities={activities} notes={questionNotes} selectedBankId={profileBankId} onSelectedBankIdChange={setProfileBankId} onQuestionStatusChange={markDashboardQuestion} onQuestionReviewStatusChange={markDashboardReview} onQuestionReviewReset={resetDashboardReview} onQuestionReviewDelete={deleteDashboardReview} onQuestionNoteChange={updateQuestionNote}/> : <>
+        {activePage === 'profile' ? <LearningDashboard banks={banks} statuses={statuses} activities={activities} notes={questionNotes} questionTags={questionTags} selectedBankId={profileBankId} onSelectedBankIdChange={setProfileBankId} onQuestionStatusChange={markDashboardQuestion} onQuestionReviewStatusChange={markDashboardReview} onQuestionReviewReset={resetDashboardReview} onQuestionReviewDelete={deleteDashboardReview} onQuestionNoteChange={updateQuestionNote} onQuestionTagChange={setQuestionTagIds}/> : <>
         <div className="page-head"><div><span className="breadcrumb">{bank.name} <ChevronRight size={13}/>{view === 'section' && currentChapter && !isMathExamKeyPointMode && <>{currentChapter.name} <ChevronRight size={13}/></>}{view === 'wrong' ? '本题库不熟练题' : currentStudyLabel}</span><div className="page-head-title-row"><h1>{view === 'wrong' ? '本题库不熟练题' : currentStudyLabel === '未选择' ? '请选择具体节题目' : currentStudyLabel}</h1><p>{view === 'wrong' ? `按章节和小节分组 · 共 ${reviewQuestions.length} 道不熟练题` : isMathExamKeyPointMode ? `按考点归类 · 共 ${sourceQuestions.length} 道题` : section ? `共 ${section.questions.length} 道题` : '从左侧选择一个章节开始学习'}</p></div></div>
-          <div className="page-head-tools">
-            <div className="filter-row"><Filter size={16}/><span>筛选</span>{filterOptions.map(s => <button key={s} className={filter === s ? 'chip active' : 'chip'} onClick={() => { setFilter(s); setQuestionIndex(0) }}>{s === 'all' ? '全部' : (binaryFilterMode ? binaryStatusMeta[s].label : statusMeta[s].label)}</button>)}</div>
-            <div className="search"><Search size={17}/><input value={query} onChange={e => { setQuery(e.target.value); setQuestionIndex(0) }} placeholder={view === 'wrong' ? '搜索不熟练题' : isMathExamKeyPointMode ? '搜索当前考点' : '搜索当前小节'}/></div>
+          <div className="page-head-tools" ref={filterToolsRef}>
+            <div className="filter-row"><Filter size={16}/><button type="button" className={advancedFilterOpen ? 'chip advanced-filter-trigger active' : 'chip advanced-filter-trigger'} aria-expanded={advancedFilterOpen} aria-controls="question-filter-panel" onClick={() => setAdvancedFilterOpen(value => !value)}><span>筛选</span>{activeQuestionFilterCount > 0 && <b>{activeQuestionFilterCount}</b>}</button><label className="search" aria-label="搜索当前题目范围"><Search size={17}/><input value={query} onChange={e => { setQuery(e.target.value); setQuestionIndex(0) }} placeholder={view === 'wrong' ? '搜索不熟练题' : isMathExamKeyPointMode ? '搜索当前考点' : '搜索当前小节'}/></label></div>
+            {advancedFilterOpen && <AdvancedQuestionFilter filter={advancedFilter} tags={questionTags} statusOptions={statusFilterOptions} typeOptions={availableQuestionTypes} onChange={nextFilter => { setAdvancedFilter(nextFilter); setQuestionIndex(0) }} onClear={() => { setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setQuestionIndex(0) }}/>}
           </div>
         </div>
 
         {question && view === 'section' && (section?.passage || section?.passageImageUrls?.length || isPartBSection) ? <div ref={studyContentTopRef} className="passage-study-shell"><div className="passage-study">
           <section className="passage-questions" aria-label="题目与选项">
-            <div className="passage-block-heading passage-block-heading-actions"><div><span>QUESTIONS & ANSWERS</span><h2>题目与选项</h2><p>答案与解析默认收起，原文置于题目之后。</p></div><button className="batch-answer-toggle" aria-expanded={allPassageAnswersOpen} onClick={toggleAllPassageAnswers}><CircleHelp size={16}/>{allPassageAnswersOpen ? '全部收起' : '全部展开'}<ChevronDown className={allPassageAnswersOpen ? 'rotated' : ''} size={15}/></button></div>
+            <div className="passage-block-heading passage-block-heading-actions"><div><span>QUESTIONS & ANSWERS</span><h2>题目与选项</h2></div><button className="batch-answer-toggle" aria-expanded={allPassageAnswersOpen} onClick={toggleAllPassageAnswers}><CircleHelp size={16}/>{allPassageAnswersOpen ? '全部收起' : '全部展开'}<ChevronDown className={allPassageAnswersOpen ? 'rotated' : ''} size={15}/></button></div>
             {isPartBSection && sharedPartBOptions.length > 0 && <section className="part-b-choice-bank" aria-label="Part B 备选项"><div><span>OPTION BANK</span><h3>{partBOptionBankMeta.title}</h3><p>{partBOptionBankMeta.description}</p>{section?.partBSequence && <p className="part-b-sequence"><strong>已知顺序框架</strong>{section.partBSequence}</p>}</div><div className={hasLongPartBOptions ? 'part-b-shared-options long-options' : 'part-b-shared-options'}>{sharedPartBOptions.map((option, index) => <div key={index}>{option}</div>)}</div></section>}
             {filteredQuestions.map(item => {
               const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode)
@@ -1734,9 +1892,9 @@ export default function App() {
               const withoutRepeatedNumber = item.text.trim().replace(new RegExp(`^${item.number}\\s*[.\\uFF0E、)]\\s*`), '')
               const itemQuestionText = /^Blank\s+\d+\.?$/i.test(withoutRepeatedNumber) ? '' : withoutRepeatedNumber
               return <article className="passage-question" id={`question-${item.id}`} key={item.id}>
-                <div className="passage-question-head"><span className="number">{String(item.number).padStart(2, '0')}</span><span className={`current-status ${itemStatus}`}>{itemStatusMeta.icon} {itemStatusMeta.label}</span></div>
+                <div className="passage-question-head"><div className="passage-question-number"><span className="number">{String(item.number).padStart(2, '0')}</span><QuestionTagPicker tags={questionTags} selectedTagIds={item.tagIds} compact onChange={tagIds => setQuestionTagIds(item.id, tagIds)}/></div><span className={`current-status ${itemStatus}`}>{itemStatusMeta.icon} {itemStatusMeta.label}</span></div>
                 {itemQuestionText && <p className="passage-question-text">{itemQuestionText}</p>}
-                <AssetGallery sources={itemQuestionSources} alt="题目配图"/>
+                <AssetGallery sources={itemQuestionSources} alt="题目配图" onImageZoom={imageSource => setQuestionZoomTarget({ question: item, imageSource })}/>
                 {item.options && !isPartBSection && <div className="passage-options">{item.options.map((option, index) => <div key={index}>{option}</div>)}</div>}
                 <button className="passage-answer-toggle" aria-expanded={itemAnswerOpen} onClick={() => togglePassageAnswer(item.id)}><CircleHelp size={16}/>{itemAnswerOpen ? '收起答案与解析' : '查看答案与解析'}<ChevronDown className={itemAnswerOpen ? 'rotated' : ''} size={15}/></button>
                 {itemAnswerOpen && <div className="passage-answer">{!itemUsesImageAnswer && <div className="answer-result"><span>参考答案</span><strong>{item.answer}</strong></div>}<div className={itemUsesImageAnswer ? 'answer-analysis combined-image-answer' : 'answer-analysis'}><span>{itemUsesImageAnswer ? '参考答案和解析' : '原版解析'}</span>{itemHasAnswerImages ? <AssetGallery sources={itemAnswerSources} alt={itemUsesImageAnswer ? '参考答案和解析' : '原版解析截图'} eager/> : <p className="analysis-missing">原版解析截图暂未收录</p>}</div></div>}
@@ -1746,15 +1904,15 @@ export default function App() {
             })}
           </section>
           {(section?.passage || section?.passageImageUrls?.length) && <article className="source-passage">
-            <div className="passage-block-heading"><span>ORIGINAL TEXT</span><h2>原文</h2><p>{section.passageImageUrls?.length ? '扫描版原卷无可靠文本层，按原页完整展示。' : '已清理 PDF 强制换行，按完整句子与阅读行宽重新排版。'}</p></div>
+            <div className="passage-block-heading"><span>ORIGINAL TEXT</span><h2>原文</h2></div>
             {section.passage && <div className="source-copy">{formatPassageParagraphs(section.passage).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>}
             {section.passageImageUrls?.length && <div className="source-scan"><AssetGallery urls={section.passageImageUrls} alt="Part B 原卷原文"/></div>}
           </article>}
-        </div><nav className="question-nav passage-question-nav" aria-label={showFullPaperNavigation ? '全卷导航' : '题号导航'}><div><strong>{showFullPaperNavigation ? '全卷导航' : '题号导航'}</strong><small>点击快速跳转</small></div><div className="number-grid">{showFullPaperNavigation ? currentPaperEntries.map(entry => { const item = entry.question; const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={item.id === question.id ? 'true' : undefined} title={`${entry.sectionName} · 第 ${item.number} 题`} className={`${item.id === question.id ? 'selected ' : ''}${itemStatus}`} onClick={() => navigateToBankQuestion(entry)}>{item.number}</button> }) : filteredQuestions.map((item, index) => { const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={index === questionIndex ? 'true' : undefined} title={`第 ${item.number} 题`} className={`${index === questionIndex ? 'selected ' : ''}${itemStatus}`} onClick={() => jumpToPassageQuestion(item.id, index)}>{item.number}</button> })}</div><div className="legend"><span><i/>未标记</span><span><i className="green"/>正确</span><span><i className="red"/>错误</span></div><div className="nav-accuracy"><span>本卷正确率</span><strong>{formatRate(currentNavigationStats.accuracy)}</strong><small>{currentNavigationStats.marked} 道题已标记</small></div></nav></div> : question ? <div ref={studyContentTopRef} className="study-layout">
+        </div><nav className="question-nav passage-question-nav" aria-label={showFullPaperNavigation ? '全卷导航' : '题号导航'}><div className="question-nav-heading"><div><strong>{showFullPaperNavigation ? '全卷导航' : '题号导航'}</strong><small>点击快速跳转</small></div>{renderQuestionNavigationModeSwitch()}</div><div className="number-grid">{showFullPaperNavigation ? currentPaperEntries.map(entry => { const item = entry.question; const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={item.id === question.id ? 'true' : undefined} title={questionNavigationTitle(entry.sectionName, item)} className={questionNavigationButtonClass(item.id === question.id, itemStatus)} style={questionNavigationButtonStyle(item)} onClick={() => navigateToBankQuestion(entry)}><span className="question-nav-number">{item.number}</span>{renderQuestionNavigationIndicator(item, itemStatus)}</button> }) : filteredQuestions.map((item, index) => { const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={index === questionIndex ? 'true' : undefined} title={questionNavigationTitle('题号导航', item)} className={questionNavigationButtonClass(index === questionIndex, itemStatus)} style={questionNavigationButtonStyle(item)} onClick={() => jumpToPassageQuestion(item.id, index)}><span className="question-nav-number">{item.number}</span>{renderQuestionNavigationIndicator(item, itemStatus)}</button> })}</div>{renderQuestionNavigationLegend()}<div className="nav-accuracy"><span>本卷正确率</span><strong>{formatRate(currentNavigationStats.accuracy)}</strong><small>{currentNavigationStats.marked} 道题已标记</small></div></nav></div> : question ? <div ref={studyContentTopRef} className="study-layout">
           <section ref={questionCardRef} className="question-card">
-            <div className="question-top"><div><span className="number">{String(question.number).padStart(2,'0')}</span>{currentQuestionEntry && <span className="wrong-context">{currentQuestionEntry.chapterName} · {currentQuestionEntry.sectionName}</span>}</div><nav className="question-top-pager" aria-label="顶部上下题切换"><button disabled={questionIndex === 0} onClick={() => moveQuestion(-1)}><span>←</span> 上一题</button><em>{questionIndex + 1} / {filteredQuestions.length}</em><button disabled={questionIndex >= filteredQuestions.length - 1} onClick={() => moveQuestion(1)}>下一题 <span>→</span></button></nav><div className="question-top-mastery" aria-label="顶部熟练度标记">{questionErrorRecordPicker(question, currentQuestionStatus)}{masteryChoices(question, binaryFilterMode).map(s => { const meta = questionStatusMeta(question, s, binaryFilterMode); return <button key={s} className={currentQuestionStatus === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => mark(currentQuestionStatus === s ? 'none' : s)}><b>{meta.icon}</b>{meta.label}</button> })}</div></div>
-            {((question.type && !(subject === 'professional' && question.type === '图片题')) || question.score !== undefined || question.keyPoint) && <div className="question-meta-row" aria-label="题目信息">{question.type && !(subject === 'professional' && question.type === '图片题') && <span>{question.type}</span>}{question.score !== undefined && <span>{question.score}分</span>}{question.keyPoint && <span className="question-key-point">{isMathExamBank ? mathExamKeyPointLabel(question.keyPoint) : question.keyPoint}</span>}</div>}
-            <div className="question-content">{questionText && <p>{questionText}</p>}<AssetGallery sources={questionSources} alt="题目配图"/>{question.options && <div className="options">{question.options.map((o, i) => <div key={i}>{o}</div>)}</div>}</div>
+            <div className="question-top"><div><span className="number">{String(question.number).padStart(2,'0')}</span><QuestionTagPicker tags={questionTags} selectedTagIds={question.tagIds} onChange={tagIds => setQuestionTagIds(question.id, tagIds)}/>{currentQuestionEntry && <span className="wrong-context">{currentQuestionEntry.chapterName} · {currentQuestionEntry.sectionName}</span>}</div><nav className="question-top-pager" aria-label="顶部上下题切换"><button disabled={questionIndex === 0} onClick={() => moveQuestion(-1)}><span>←</span> 上一题</button><em>{questionIndex + 1} / {filteredQuestions.length}</em><button disabled={questionIndex >= filteredQuestions.length - 1} onClick={() => moveQuestion(1)}>下一题 <span>→</span></button></nav><div className="question-top-mastery" aria-label="顶部熟练度标记">{questionErrorRecordPicker(question, currentQuestionStatus)}{masteryChoices(question, binaryFilterMode).map(s => { const meta = questionStatusMeta(question, s, binaryFilterMode); return <button key={s} className={currentQuestionStatus === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => mark(currentQuestionStatus === s ? 'none' : s)}><b>{meta.icon}</b>{meta.label}</button> })}</div></div>
+            {(questionTypeLabel || question.score !== undefined || question.keyPoint) && <div className="question-meta-row" aria-label="题目信息">{questionTypeLabel && <span>{questionTypeLabel}</span>}{question.score !== undefined && <span>{question.score}分</span>}{question.keyPoint && <span className="question-key-point">{isMathExamBank ? mathExamKeyPointLabel(question.keyPoint) : question.keyPoint}</span>}</div>}
+            <div className={questionSources.length && !questionText ? 'question-content image-only-question-content' : 'question-content'}>{questionText && <p>{questionText}</p>}<AssetGallery sources={questionSources} alt="题目配图" onImageZoom={imageSource => setQuestionZoomTarget({ question, imageSource })}/>{question.options && <div className="options">{question.options.map((o, i) => <div key={i}>{o}</div>)}</div>}</div>
             <div className="answer-toggle-shell standard-answer-toggle-shell">
               <button className={answerOpen ? 'answer-toggle passage-answer-toggle standard-answer-toggle has-answer-lock' : 'answer-toggle passage-answer-toggle standard-answer-toggle'} aria-expanded={answerOpen} onClick={() => setAnswerOpen(v => !v)}><CircleHelp size={19}/>{answerOpen ? '收起答案与解析' : '查看答案与解析'}<ChevronDown className={answerOpen ? 'rotated' : ''} size={18}/></button>
               {answerOpen && <button type="button" className={answerLocked ? 'answer-lock-toggle active' : 'answer-lock-toggle'} aria-label={answerLocked ? '取消锁定解析' : '锁定解析，切题时保持当前展开状态'} aria-pressed={answerLocked} title={answerLocked ? '已锁定，切题时解析保持展开' : '锁定后切题不再自动折叠'} onClick={() => setAnswerLocked(value => !value)}>
@@ -1767,30 +1925,31 @@ export default function App() {
             <nav className="question-bottom-pager" aria-label="底部上下题切换"><button disabled={questionIndex === 0} onClick={() => moveQuestion(-1)}><span>←</span> 上一题</button><em>{questionIndex + 1} / {filteredQuestions.length}</em><button disabled={questionIndex >= filteredQuestions.length - 1} onClick={() => moveQuestion(1)}>下一题 <span>→</span></button></nav>
           </section>
           <nav className={view === 'wrong' ? 'question-nav review-question-nav' : showKeyPointNavigation ? 'question-nav keypoint-question-nav' : 'question-nav'} aria-label={showFullPaperNavigation ? '全卷导航' : view === 'wrong' ? '不熟练题导航' : '题号导航'}>
-            <div><strong>{showFullPaperNavigation ? '全卷导航' : view === 'wrong' ? '不熟练题导航' : '题号导航'}</strong>{view === 'wrong' && <small>{reviewNavigationGroups.length} 个小节</small>}</div>
-            {view === 'wrong' ? <div className="review-nav-groups">{reviewNavigationGroups.map(group => <section key={group.id}><span>{group.label}</span><div className="number-grid">{group.entries.map(entry => { const index = filteredQuestions.findIndex(item => item.id === entry.question.id); const navStatus = effectiveQuestionStatus(entry.question, statuses[entry.question.id] || 'none', binaryFilterMode); return <button key={entry.question.id} title={`${group.label} · 第 ${entry.question.number} 题`} className={`${index === questionIndex ? 'selected ' : ''}${navStatus}`} onClick={() => { setQuestionIndex(index); collapseAnswerUnlessLocked() }}>{entry.question.number}</button> })}</div></section>)}</div> : showKeyPointNavigation ? <div className="keypoint-number-nav">{keyPointNavigationGroups.map(group => <section className="keypoint-year-row" key={group.year}><span className="keypoint-year-label">{group.year}年</span><div className="number-grid">{group.entries.map(entry => { const index = filteredQuestions.findIndex(item => item.id === entry.question.id); const navStatus = effectiveQuestionStatus(entry.question, statuses[entry.question.id] || 'none', binaryFilterMode); return <button key={entry.question.id} title={`${group.year}年 · 第 ${entry.question.number} 题`} className={`${index === questionIndex ? 'selected ' : ''}${navStatus}`} onClick={() => { setQuestionIndex(index); collapseAnswerUnlessLocked() }}>{entry.question.number}</button> })}</div></section>)}</div> : <div className="number-grid">{showFullPaperNavigation ? currentPaperEntries.map(entry => { const q = entry.question; const navStatus = effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode); return <button key={q.id} aria-current={q.id === question.id ? 'true' : undefined} title={`${entry.sectionName} · 第 ${q.number} 题`} className={`${q.id === question.id ? 'selected ' : ''}${navStatus}`} onClick={() => navigateToBankQuestion(entry)}>{q.number}</button> }) : filteredQuestions.map((q, i) => { const navStatus = effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode); return <button key={q.id} title={`第 ${q.number} 题`} className={`${i === questionIndex ? 'selected ' : ''}${navStatus}`} onClick={() => { setQuestionIndex(i); collapseAnswerUnlessLocked() }}>{q.number}</button> })}</div>}
-            <div className="legend">{view !== 'wrong' && <><span><i/>未标记</span><span><i className="green"/>{binaryFilterMode ? '正确' : '熟练'}</span></>}{!binaryFilterMode && <span><i className="yellow"/>模糊</span>}<span><i className="red"/>{binaryFilterMode ? '错误' : '错题'}</span></div>
+            <div className="question-nav-heading"><div><strong>{showFullPaperNavigation ? '全卷导航' : view === 'wrong' ? '不熟练题导航' : '题号导航'}</strong>{view === 'wrong' && <small>{reviewNavigationGroups.length} 个小节</small>}</div>{renderQuestionNavigationModeSwitch()}</div>
+            {view === 'wrong' ? <div className="review-nav-groups">{reviewNavigationGroups.map(group => <section key={group.id}><span>{group.label}</span><div className="number-grid">{group.entries.map(entry => { const index = filteredQuestions.findIndex(item => item.id === entry.question.id); const navStatus = effectiveQuestionStatus(entry.question, statuses[entry.question.id] || 'none', binaryFilterMode); return <button key={entry.question.id} title={questionNavigationTitle(group.label, entry.question)} className={questionNavigationButtonClass(index === questionIndex, navStatus)} style={questionNavigationButtonStyle(entry.question)} onClick={() => { setQuestionIndex(index); collapseAnswerUnlessLocked() }}><span className="question-nav-number">{entry.question.number}</span>{renderQuestionNavigationIndicator(entry.question, navStatus)}</button> })}</div></section>)}</div> : showKeyPointNavigation ? <div className="keypoint-number-nav">{keyPointNavigationGroups.map(group => <section className="keypoint-year-row" key={group.year}><span className="keypoint-year-label">{group.year}年</span><div className="number-grid">{group.entries.map(entry => { const index = filteredQuestions.findIndex(item => item.id === entry.question.id); const navStatus = effectiveQuestionStatus(entry.question, statuses[entry.question.id] || 'none', binaryFilterMode); return <button key={entry.question.id} title={questionNavigationTitle(`${group.year}年`, entry.question)} className={questionNavigationButtonClass(index === questionIndex, navStatus)} style={questionNavigationButtonStyle(entry.question)} onClick={() => { setQuestionIndex(index); collapseAnswerUnlessLocked() }}><span className="question-nav-number">{entry.question.number}</span>{renderQuestionNavigationIndicator(entry.question, navStatus)}</button> })}</div></section>)}</div> : <div className="number-grid">{showFullPaperNavigation ? currentPaperEntries.map(entry => { const q = entry.question; const navStatus = effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode); return <button key={q.id} aria-current={q.id === question.id ? 'true' : undefined} title={questionNavigationTitle(entry.sectionName, q)} className={questionNavigationButtonClass(q.id === question.id, navStatus)} style={questionNavigationButtonStyle(q)} onClick={() => navigateToBankQuestion(entry)}><span className="question-nav-number">{q.number}</span>{renderQuestionNavigationIndicator(q, navStatus)}</button> }) : filteredQuestions.map((q, i) => { const navStatus = effectiveQuestionStatus(q, statuses[q.id] || 'none', binaryFilterMode); return <button key={q.id} title={questionNavigationTitle('题号导航', q)} className={questionNavigationButtonClass(i === questionIndex, navStatus)} style={questionNavigationButtonStyle(q)} onClick={() => { setQuestionIndex(i); collapseAnswerUnlessLocked() }}><span className="question-nav-number">{q.number}</span>{renderQuestionNavigationIndicator(q, navStatus)}</button> })}</div>}
+            {renderQuestionNavigationLegend()}
             {view === 'wrong' ? <div className="review-nav-summary">{!binaryFilterMode && <span><i className="yellow"/>模糊 <strong>{counts.vague}</strong></span>}<span><i className="red"/>{binaryFilterMode ? '错误' : '错题'} <strong>{counts.wrong}</strong></span></div> : <div className="nav-accuracy"><span>{showFullPaperNavigation ? '本卷正确率' : '本节正确率'}</span><strong>{formatRate(currentNavigationStats.accuracy)}</strong><small>{currentNavigationStats.marked} 道题已标记</small></div>}
           </nav>
-        </div> : <div className="no-results"><Search size={32}/><h2>{view === 'wrong' && reviewQuestions.length === 0 ? '不熟练题已经清空' : '没有符合条件的题目'}</h2><p>{view === 'wrong' && reviewQuestions.length === 0 ? '很好，当前题库没有模糊或错误的题目。' : '尝试更换筛选条件或清空搜索词。'}</p><button onClick={() => view === 'wrong' && reviewQuestions.length === 0 ? setView('section') : (setFilter('all'), setQuery(''))}><RotateCcw size={16}/>{view === 'wrong' && reviewQuestions.length === 0 ? '返回当前小节' : '重置筛选'}</button></div>}
+        </div> : <div className="no-results"><Search size={32}/><h2>{view === 'wrong' && reviewQuestions.length === 0 ? '不熟练题已经清空' : '没有符合条件的题目'}</h2><p>{view === 'wrong' && reviewQuestions.length === 0 ? '很好，当前题库没有模糊或错误的题目。' : '尝试更换筛选条件或清空搜索词。'}</p><button onClick={() => view === 'wrong' && reviewQuestions.length === 0 ? setView('section') : (setAdvancedFilter(createEmptyAdvancedQuestionFilter()), setQuery(''))}><RotateCcw size={16}/>{view === 'wrong' && reviewQuestions.length === 0 ? '返回当前小节' : '重置筛选'}</button></div>}
 
+        </>}
         {printMode && printJob && <section className="print-sheet" aria-hidden="true" ref={printSheetRef}>
           <div className="print-title"><h1>{printJob.title}</h1><p>{printJob.subtitle}</p></div>
           {printJob.pages.map((pageQuestions, index) => <ExportPage key={index} questions={pageQuestions} statuses={printJob.statuses} questionContext={printJob.questionContext} notes={printJob.notes} pageNumber={index + 1} showType={false} mode={printJob.mode}/>)}
         </section>}
-        </>}
       </main>
     </div>
     {toast && <div className="toast">{toast}</div>}
     {newBankOpen && <div className="modal-backdrop" onClick={() => setNewBankOpen(false)}><section className="modal-card new-bank-dialog" role="dialog" aria-modal="true" aria-labelledby="new-bank-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setNewBankOpen(false)}><X/></button><div className="new-bank-heading"><span className="modal-icon"><BookOpen/></span><div><span>QUESTION BANK</span><h2 id="new-bank-title">新建题库</h2></div></div><p className="new-bank-description">连接工作区后会同步建立对应文件夹。</p><div className="new-bank-field"><div className="new-bank-field-heading"><strong>所属学科</strong><small>决定目录位置</small></div><div className="new-bank-subject-options">{([{ value: 'math', label: '数学', hint: '高数 / 线代' }, { value: 'english', label: '英语', hint: '英语一 / 英语二' }, { value: 'professional', label: '专业课', hint: '自定义课程' }] as Array<{ value: Subject; label: string; hint: string }>).map(option => <button key={option.value} type="button" className={newBankSubject === option.value ? 'active' : ''} onClick={() => setNewBankSubject(option.value)}><strong>{option.label}</strong><small>{option.hint}</small></button>)}</div></div>{newBankSubject === 'math' && <div className="new-bank-field"><div className="new-bank-field-heading"><strong>数学板块</strong></div><div className="new-bank-module-options">{mathModuleOrder.map(module => <button key={module} type="button" className={newBankMathModule === module ? 'active' : ''} onClick={() => setNewBankMathModule(module)}><strong>{mathModuleLabels[module]}</strong><small>{module === 'exams' ? '历年考研数学二真题' : module === 'calculus' ? '微积分与高数' : '矩阵与线性代数'}</small></button>)}</div></div>}<label className="new-bank-name-field"><span>题库名称</span><input autoFocus value={newBankName} onChange={event => setNewBankName(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') createBank() }} placeholder={newBankSubject === 'professional' ? '例如：机械原理强化题' : newBankSubject === 'english' ? '例如：英语一阅读专项' : '例如：线代强化题'}/></label><div className="new-bank-folder-preview"><span>目录预览</span><code>{newBankFolderPreview}</code></div><button className="primary-button" onClick={createBank} disabled={!newBankName.trim()}>创建题库</button></section></div>}
     {exportOpen && <ExportDialog banks={banks} statuses={statuses} notes={questionNotes} defaultBankId={bank.id} defaultSectionId={sectionId} mode={exportMode} onClose={() => setExportOpen(false)} onPdf={printExport} onNotice={setToast}/>}
-    {settingsPanelOpen && (LoadedSettingsPanel ? <LoadedSettingsPanel userSettings={userSettings} screenWakeLockSupported={screenWakeLockSupported} examDate={formatExamDateValue(examCountdown.target)} minExamDate={formatExamDateValue(countdownNow)} customExamDate={Boolean(customExamDate)} workspaceState={workspaceState} appVersion={appVersion} githubUrl={githubRepositoryUrl} roundMarkedCount={round => countMarkedQuestions(displayedStudyRound(round))} onClose={() => setSettingsPanelOpen(false)} onSwitchRound={switchStudyRound} onAddRound={addStudyRound} onUpdateExamDate={updateExamDate} onResetExamDate={resetExamDate} onToggleScreenAwake={toggleScreenAwake} onOpenNewBank={() => { setSettingsPanelOpen(false); openNewBank(newBankSubject) }} onOpenEditor={() => { setSettingsPanelOpen(false); setEditorOpen(true) }} onOpenStudyRecords={() => { setSettingsPanelOpen(false); setStudyRecordManagerOpen(true) }} onOpenDataManager={() => { setSettingsPanelOpen(false); setSettingsOpen(true) }} onConnectWorkspace={() => { setSettingsPanelOpen(false); void connectWorkspace() }} onSwitchWorkspace={() => { setSettingsPanelOpen(false); void switchWorkspace() }} onImportData={() => { setSettingsPanelOpen(false); importRef.current?.click() }} onImportImages={() => { setSettingsPanelOpen(false); imageImportRef.current?.click() }} onOpenExport={() => { setSettingsPanelOpen(false); setExportMode('questions'); setExportOpen(true) }} onOpenNotesExport={() => { setSettingsPanelOpen(false); setExportMode('notes'); setExportOpen(true) }} onExportData={() => { setSettingsPanelOpen(false); exportData() }}/> : <DeferredInterfaceFallback/>)}
+    {settingsPanelOpen && (LoadedSettingsPanel ? <LoadedSettingsPanel userSettings={userSettings} questionTags={questionTags} screenWakeLockSupported={screenWakeLockSupported} examDate={formatExamDateValue(examCountdown.target)} minExamDate={formatExamDateValue(countdownNow)} customExamDate={Boolean(customExamDate)} workspaceState={workspaceState} appVersion={appVersion} githubUrl={githubRepositoryUrl} roundMarkedCount={round => countMarkedQuestions(displayedStudyRound(round))} onClose={() => setSettingsPanelOpen(false)} onSwitchRound={switchStudyRound} onAddRound={addStudyRound} onUpdateExamDate={updateExamDate} onResetExamDate={resetExamDate} onToggleScreenAwake={toggleScreenAwake} onUpdateQuestionTags={updateQuestionTags} onResetQuestionTags={resetQuestionTags} onOpenNewBank={() => { setSettingsPanelOpen(false); openNewBank(newBankSubject) }} onOpenEditor={() => { setSettingsPanelOpen(false); setEditorOpen(true) }} onOpenStudyRecords={() => { setSettingsPanelOpen(false); setStudyRecordManagerOpen(true) }} onOpenDataManager={() => { setSettingsPanelOpen(false); setSettingsOpen(true) }} onConnectWorkspace={() => { setSettingsPanelOpen(false); void connectWorkspace() }} onSwitchWorkspace={() => { setSettingsPanelOpen(false); void switchWorkspace() }} onImportData={() => { setSettingsPanelOpen(false); importRef.current?.click() }} onImportImages={() => { setSettingsPanelOpen(false); imageImportRef.current?.click() }} onOpenExport={() => { setSettingsPanelOpen(false); setExportMode('questions'); setExportOpen(true) }} onOpenNotesExport={() => { setSettingsPanelOpen(false); setExportMode('notes'); setExportOpen(true) }} onExportData={() => { setSettingsPanelOpen(false); exportData() }}/> : <DeferredInterfaceFallback/>)}
     {studyRecordManagerOpen && <StudyRecordManagerDialog banks={banks} activities={activities} statuses={statuses} activeBankId={bank.id} activeSectionId={sectionId} onClose={() => setStudyRecordManagerOpen(false)} onSave={(result, changedCount) => { setActivities(result.activities); setStatuses(result.statuses); setToast(`已保存 ${changedCount} 条学习记录修改`) }}/>}
     {editorOpen && (LoadedQuestionBankEditor ? <LoadedQuestionBankEditor banks={banks} activeBankId={bank.id} activeQuestionId={question?.id} onClose={() => setEditorOpen(false)} onSave={saveQuestionEditorChange}/> : <DeferredInterfaceFallback/>)}
-    {notesOpen && (LoadedNotesDialog ? <LoadedNotesDialog banks={banks} notes={questionNotes} onClose={() => setNotesOpen(false)} onOpenQuestion={openNoteQuestionPreview}/> : <DeferredInterfaceFallback/>)}
+    {notesOpen && (LoadedNotesDialog ? <LoadedNotesDialog banks={banks} notes={questionNotes} personalNotebooks={personalNotebooks} onClose={() => setNotesOpen(false)} onOpenQuestion={openNoteQuestionPreview} onCreateNotebook={createPersonalNotebook} onCreateNote={createPersonalNote} onPersonalNoteChange={updatePersonalNote} onDeletePersonalNote={deletePersonalNote} onDeleteNotebook={deletePersonalNotebook}/> : <DeferredInterfaceFallback/>)}
     {timerView !== 'closed' && (LoadedTimerDialog ? <LoadedTimerDialog view={timerView} onViewChange={setTimerView} onClose={() => setTimerView('closed')}/> : <DeferredInterfaceFallback/>)}
     {renameTarget && <div className="modal-backdrop" onClick={() => setRenameTarget(null)}><section className="modal-card rename-card" role="dialog" aria-modal="true" aria-labelledby="rename-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setRenameTarget(null)}><X/></button><span className="modal-icon"><Pencil/></span><h2 id="rename-title">重命名{renameTarget.kind === 'bank' ? '题库' : '章节'}</h2><p>只修改显示名称，不会改变题目、图片或学习状态。</p><label>新名称<input autoFocus value={renameValue} onChange={event => setRenameValue(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') applyRename() }} placeholder={renameTarget.name}/></label><button className="primary-button" onClick={applyRename}>保存名称</button></section></div>}
+    {questionZoomTarget && <QuestionZoomDialog question={questionZoomTarget.question} imageSource={questionZoomTarget.imageSource} onClose={() => setQuestionZoomTarget(null)}/>}
     {settingsOpen && <SettingsDialog banks={banks} activeBankId={bank.id} builtInIds={new Set(builtInBanks.map(item => item.id))} protectedBankIds={protectedBankIds} onClose={() => setSettingsOpen(false)} onOpenNewBank={() => openNewBank(newBankSubject)} onOpenEditor={() => { setSettingsOpen(false); setEditorOpen(true) }} onClearMarks={clearMarks} onExportBank={exportSingleBank} onResetBank={resetManagedBank} onDeleteBank={deleteManagedBank} onRestoreBuiltIns={restoreBuiltIns} onFactoryReset={factoryReset}/>}
-    {notePreviewData && <DashboardQuestionDialog bankName={notePreviewData.bank.name} chapterName={notePreviewData.entry.chapterName} sectionName={notePreviewData.entry.sectionName} question={notePreviewData.entry.question} questions={notePreviewData.questions} questionStatuses={statuses} status={statuses[notePreviewData.entry.question.id] || 'none'} activities={activities} note={questionNotes[notePreviewData.entry.question.id]} binaryMode={bankSubject(notePreviewData.bank) === 'english'} onStatusChange={(status, answerRevealed) => markDashboardQuestion(notePreviewData.bank.id, notePreviewData.entry.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => markDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id, status, answerRevealed)} onResetReview={() => resetDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id)} onDeleteReview={attempt => deleteDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id, attempt)} onNoteChange={note => updateQuestionNote(notePreviewData.entry.question.id, note)} onQuestionSelect={item => setNoteQuestionPreview({ bankId: notePreviewData.bank.id, questionId: item.id })} onPreviousQuestion={() => { const previous = notePreviewData.questions[notePreviewQuestionIndex - 1]; if (previous) setNoteQuestionPreview({ bankId: notePreviewData.bank.id, questionId: previous.id }) }} onNextQuestion={() => { const next = notePreviewData.questions[notePreviewQuestionIndex + 1]; if (next) setNoteQuestionPreview({ bankId: notePreviewData.bank.id, questionId: next.id }) }} onClose={() => setNoteQuestionPreview(null)}/>}
+    {notePreviewData && <DashboardQuestionDialog bankName={notePreviewData.bank.name} chapterName={notePreviewData.entry.chapterName} sectionName={notePreviewData.entry.sectionName} question={notePreviewData.entry.question} questions={notePreviewData.questions} questionStatuses={statuses} questionTags={questionTags} status={statuses[notePreviewData.entry.question.id] || 'none'} activities={activities} note={questionNotes[notePreviewData.entry.question.id]} binaryMode={bankSubject(notePreviewData.bank) === 'english'} onStatusChange={(status, answerRevealed) => markDashboardQuestion(notePreviewData.bank.id, notePreviewData.entry.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => markDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id, status, answerRevealed)} onResetReview={() => resetDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id)} onDeleteReview={attempt => deleteDashboardReview(notePreviewData.bank.id, notePreviewData.entry.question.id, attempt)} onNoteChange={note => updateQuestionNote(notePreviewData.entry.question.id, note)} onQuestionTagChange={setQuestionTagIds} onQuestionSelect={item => setNoteQuestionPreview({ bankId: notePreviewData.bank.id, questionId: item.id })} onPreviousQuestion={() => { const previous = notePreviewData.questions[notePreviewQuestionIndex - 1]; if (previous) setNoteQuestionPreview({ bankId: notePreviewData.bank.id, questionId: previous.id }) }} onNextQuestion={() => { const next = notePreviewData.questions[notePreviewQuestionIndex + 1]; if (next) setNoteQuestionPreview({ bankId: notePreviewData.bank.id, questionId: next.id }) }} onClose={() => setNoteQuestionPreview(null)}/>}
   </div>
 }

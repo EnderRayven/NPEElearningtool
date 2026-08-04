@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import QuestionNotePanel, { autoExtendedCanvasHeight, canvasHeightForDrawing, canvasHeightForMovingSelection, canvasHeightForStrokes, clampSpaceAdjustment, createShapeStrokes, croppedCanvasHeightForDrawing, handwritingPointFromClientDelta, handwritingToolForShortcut, historyActionForShortcut, insertSpaceIntoStrokes, lineSnapAxisForPoints, pathsForStroke, shouldResetCanvasForDrawingChange, snapLineEndPoint, updateSelectedStrokeSize } from './QuestionNotePanel'
+import QuestionNotePanel, { autoExtendedCanvasHeight, canvasHeightForDrawing, canvasHeightForMovingSelection, canvasHeightForStrokes, clampSpaceAdjustment, createShapeStrokes, croppedCanvasHeightForDrawing, handwritingPointFromClientDelta, handwritingToolForShortcut, historyActionForShortcut, insertSpaceIntoStrokes, lineSnapAxisForPoints, pathsForStroke, selectionHandlePointsForBounds, shouldResetCanvasForDrawingChange, snapLineEndPoint, updateSelectedStrokeSize } from './QuestionNotePanel'
 
 describe('QuestionNotePanel', () => {
   it('uses an answer-style disclosure and marks saved content', () => {
@@ -175,6 +175,16 @@ describe('QuestionNotePanel', () => {
     const result = updateSelectedStrokeSize(strokes, ['selected'], 9)
     expect(result.map(stroke => stroke.size)).toEqual([9, 5])
     expect(strokes.map(stroke => stroke.size)).toEqual([2, 5])
+  })
+
+  it('places adjustment handles on selection corners and polygon edges', () => {
+    const handles = selectionHandlePointsForBounds({ minX: .2, minY: .3, maxX: .8, maxY: .9 })
+
+    expect(handles.map(handle => handle.handle)).toEqual(['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'])
+    expect(handles.find(handle => handle.handle === 'n')).toMatchObject({ x: .5, y: .3 })
+    expect(handles.find(handle => handle.handle === 'e')).toMatchObject({ x: .8, y: .6 })
+    expect(handles.find(handle => handle.handle === 's')).toMatchObject({ x: .5, y: .9 })
+    expect(handles.find(handle => handle.handle === 'w')).toMatchObject({ x: .2, y: .6 })
   })
 
   it('creates each shape as one editable handwriting object', () => {

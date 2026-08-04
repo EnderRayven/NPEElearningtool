@@ -2,7 +2,7 @@ import type { QuestionBank, QuestionStatus } from './types'
 import type { StudyActivity } from './studyActivity'
 import { migrateStudyRounds, validateStudyRounds, type StudyRounds } from './studyRounds'
 import { DEFAULT_USER_SETTINGS, validateUserSettings, type UserSettings } from './userSettings'
-import { mergeQuestionNoteBuckets, parseQuestionNoteBucketKey, questionNoteBucketsForKeys, splitQuestionNotes, validateQuestionErrorRecords, validateQuestionNotes, type QuestionErrorRecords, type QuestionNoteBucket, type QuestionNotes } from './questionNotes'
+import { mergeQuestionNoteBuckets, parseQuestionNoteBucketKey, questionNoteBucketsForKeys, splitQuestionNotes, validatePersonalNotebooks, validateQuestionErrorRecords, validateQuestionNotes, type PersonalNotebooks, type QuestionErrorRecords, type QuestionNoteBucket, type QuestionNotes } from './questionNotes'
 
 const DB_NAME = 'npee-workspace'
 const STORE_NAME = 'handles'
@@ -45,6 +45,7 @@ export interface WorkspaceUserData {
   activities?: StudyActivity[]
   settings?: UserSettings
   notes?: QuestionNotes
+  personalNotebooks?: PersonalNotebooks
   errorRecords?: QuestionErrorRecords
 }
 
@@ -111,23 +112,24 @@ export function createWorkspaceManifest(banks: QuestionBank[], folders: Record<s
   return { version: 2, builtinEnglishVersion: BUILTIN_ENGLISH_VERSION, updatedAt: new Date().toISOString(), banks, folders }
 }
 
-export function createWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}): WorkspaceUserData {
-  return { version: 4, updatedAt: new Date().toISOString(), rounds: validateStudyRounds(rounds), settings: validateUserSettings(settings), notes: validateQuestionNotes(notes), errorRecords: validateQuestionErrorRecords(errorRecords) }
+export function createWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}, personalNotebooks: PersonalNotebooks = []): WorkspaceUserData {
+  return { version: 5, updatedAt: new Date().toISOString(), rounds: validateStudyRounds(rounds), settings: validateUserSettings(settings), notes: validateQuestionNotes(notes), personalNotebooks: validatePersonalNotebooks(personalNotebooks), errorRecords: validateQuestionErrorRecords(errorRecords) }
 }
 
-export function createWorkspaceMetadata(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, errorRecords: QuestionErrorRecords = {}): WorkspaceUserData {
-  const { notes: _notes, ...metadata } = createWorkspaceUserData(rounds, settings, {}, errorRecords)
+export function createWorkspaceMetadata(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, errorRecords: QuestionErrorRecords = {}, personalNotebooks: PersonalNotebooks = []): WorkspaceUserData {
+  const { notes: _notes, ...metadata } = createWorkspaceUserData(rounds, settings, {}, errorRecords, personalNotebooks)
   return metadata
 }
 
-export function resolveWorkspaceUserData(userData: WorkspaceUserData | null | undefined, manifestStatuses: unknown, fallbackRounds: StudyRounds, fallbackSettings: UserSettings, fallbackNotes: QuestionNotes = {}, fallbackErrorRecords: QuestionErrorRecords = {}) {
+export function resolveWorkspaceUserData(userData: WorkspaceUserData | null | undefined, manifestStatuses: unknown, fallbackRounds: StudyRounds, fallbackSettings: UserSettings, fallbackNotes: QuestionNotes = {}, fallbackErrorRecords: QuestionErrorRecords = {}, fallbackPersonalNotebooks: PersonalNotebooks = []) {
   const settings = userData?.settings ? validateUserSettings(userData.settings) : fallbackSettings
   const rounds = userData || manifestStatuses
     ? migrateStudyRounds(userData?.rounds, userData?.statuses || manifestStatuses, userData?.activities)
     : fallbackRounds
   const notes = { ...validateQuestionNotes(fallbackNotes), ...validateQuestionNotes(userData?.notes) }
+  const personalNotebooks = userData?.personalNotebooks === undefined ? validatePersonalNotebooks(fallbackPersonalNotebooks) : validatePersonalNotebooks(userData.personalNotebooks)
   const errorRecords = { ...validateQuestionErrorRecords(fallbackErrorRecords), ...validateQuestionErrorRecords(userData?.errorRecords) }
-  return { rounds, settings, notes, errorRecords }
+  return { rounds, settings, notes, personalNotebooks, errorRecords }
 }
 
 export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], folders: Record<string, string> = {}) {
@@ -190,8 +192,8 @@ export async function addDefaultWorkspaceImage(file: File, bankFolder: string, a
   return await response.json() as { relativePath: string; modified: number }
 }
 
-export async function writeDefaultWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}) {
-  const userData = createWorkspaceMetadata(rounds, settings, errorRecords)
+export async function writeDefaultWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}, personalNotebooks: PersonalNotebooks = []) {
+  const userData = createWorkspaceMetadata(rounds, settings, errorRecords, personalNotebooks)
   const response = await fetch('/api/default-workspace/user-data', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(userData, null, 2) })
   if (!response.ok) throw new Error('用户数据写入失败')
 }
@@ -345,11 +347,11 @@ export async function writeWorkspaceManifest(handle: FileSystemDirectoryHandle, 
   })
 }
 
-export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}) {
+export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}, personalNotebooks: PersonalNotebooks = []) {
   await queueWorkspaceWrite(handle, WORKSPACE_USER_DATA, async () => {
     const fileHandle = await handle.getFileHandle(WORKSPACE_USER_DATA, { create: true })
     const writable = await fileHandle.createWritable()
-    await writable.write(JSON.stringify(createWorkspaceMetadata(rounds, settings, errorRecords), null, 2))
+    await writable.write(JSON.stringify(createWorkspaceMetadata(rounds, settings, errorRecords, personalNotebooks), null, 2))
     await writable.close()
   })
 }

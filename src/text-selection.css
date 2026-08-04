@@ -1,0 +1,66 @@
+/* The app is primarily a pointer-driven study surface. Only copyable text
+   and editable controls should participate in native text selection. */
+*,
+*::before,
+*::after {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+select,
+[contenteditable='true'] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+:is(
+  .question-content,
+  .answer,
+  .passage-answer,
+  .passage-question-text,
+  .passage-options,
+  .part-b-choice-bank,
+  .source-copy,
+  .dashboard-question-content,
+  .dashboard-question-answer,
+  .question-zoom-content,
+  .notes-stream-question,
+  .notes-stream-text
+),
+:is(
+  .question-content,
+  .answer,
+  .passage-answer,
+  .passage-question-text,
+  .passage-options,
+  .part-b-choice-bank,
+  .source-copy,
+  .dashboard-question-content,
+  .dashboard-question-answer,
+  .question-zoom-content,
+  .notes-stream-question,
+  .notes-stream-text
+) * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+:is(
+  .question-content,
+  .answer,
+  .passage-answer,
+  .passage-question-text,
+  .passage-options,
+  .part-b-choice-bank,
+  .source-copy,
+  .dashboard-question-content,
+  .dashboard-question-answer,
+  .question-zoom-content,
+  .notes-stream-question,
+  .notes-stream-text
+) :is(button, img, svg, input, textarea, select, a) {
+  -webkit-user-select: none;
+  user-select: none;
+}

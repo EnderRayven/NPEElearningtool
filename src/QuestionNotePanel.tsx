@@ -10,6 +10,7 @@ interface QuestionNotePanelProps {
   questionId: string
   note?: QuestionNote
   onChange: (note: QuestionNote) => void
+  initialOpen?: boolean
 }
 
 type CanvasTrimIntent = 'defer'
@@ -34,7 +35,7 @@ interface HandwritingCanvasProps {
 
 type HandwritingTool = 'pen' | 'eraser' | 'lasso' | 'space' | 'shape'
 export type { HandwritingShape } from './questionNotes'
-type SelectionHandle = 'nw' | 'ne' | 'sw' | 'se'
+type SelectionHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w'
 type HandwritingInteraction = HandwritingTool | 'move' | 'scale'
 
 const newStrokeId = () => typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `stroke-${Date.now()}-${Math.random().toString(36).slice(2)}`
@@ -269,11 +270,26 @@ export const clampSpaceAdjustment = (strokes: HandwritingStroke[], y: number, re
   return clamp(requestedAmount, minimumAmount, maximumAmount)
 }
 
-interface SelectionBounds {
+export interface SelectionBounds {
   minX: number
   minY: number
   maxX: number
   maxY: number
+}
+
+export function selectionHandlePointsForBounds(bounds: SelectionBounds): Array<{ handle: SelectionHandle; x: number; y: number }> {
+  const centerX = (bounds.minX + bounds.maxX) / 2
+  const centerY = (bounds.minY + bounds.maxY) / 2
+  return [
+    { handle: 'nw', x: bounds.minX, y: bounds.minY },
+    { handle: 'n', x: centerX, y: bounds.minY },
+    { handle: 'ne', x: bounds.maxX, y: bounds.minY },
+    { handle: 'e', x: bounds.maxX, y: centerY },
+    { handle: 'se', x: bounds.maxX, y: bounds.maxY },
+    { handle: 's', x: centerX, y: bounds.maxY },
+    { handle: 'sw', x: bounds.minX, y: bounds.maxY },
+    { handle: 'w', x: bounds.minX, y: centerY },
+  ]
 }
 
 const selectionBoundsForStrokes = (strokes: HandwritingStroke[]): SelectionBounds | null => {
@@ -761,6 +777,9 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
     const input = event.pointerType === 'pen' || event.pointerType === 'touch' ? event.pointerType : 'mouse'
     if (eventTool === 'shape') {
       clearLineSnap()
+      // A new shape starts a fresh edit gesture. The previous shape stays in
+      // the drawing, but its handles should not cover the new blank area.
+      onSelectionChange([])
       activeInteractionRef.current = 'shape'
       shapeStartRef.current = point
       shapeEndRef.current = point
@@ -821,22 +840,34 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
         const dy = clamp(requestedDy, -transform.startBounds.minY, canvasMaxY - transform.startBounds.maxY)
         next = fitSelectedStrokesToCanvas(translateStrokes(transform.baseStrokes, transform.selectedIds, dx, dy), transform.selectedIds, canvasMaxY)
       } else if (transform.handle) {
-        const isWest = transform.handle === 'nw' || transform.handle === 'sw'
-        const isNorth = transform.handle === 'nw' || transform.handle === 'ne'
+        const isWest = transform.handle === 'nw' || transform.handle === 'sw' || transform.handle === 'w'
+        const isEast = transform.handle === 'ne' || transform.handle === 'se' || transform.handle === 'e'
+        const isNorth = transform.handle === 'nw' || transform.handle === 'ne' || transform.handle === 'n'
+        const isSouth = transform.handle === 'sw' || transform.handle === 'se' || transform.handle === 's'
+        const verticalOnly = transform.handle === 'n' || transform.handle === 's'
+        const horizontalOnly = transform.handle === 'e' || transform.handle === 'w'
         const anchor = {
-          x: isWest ? transform.startBounds.maxX : transform.startBounds.minX,
-          y: isNorth ? transform.startBounds.maxY : transform.startBounds.minY,
+          x: isWest
+            ? transform.startBounds.maxX
+            : isEast
+              ? transform.startBounds.minX
+              : (transform.startBounds.minX + transform.startBounds.maxX) / 2,
+          y: isNorth
+            ? transform.startBounds.maxY
+            : isSouth
+              ? transform.startBounds.minY
+              : (transform.startBounds.minY + transform.startBounds.maxY) / 2,
         }
-        const edgeX = isWest ? Math.min(point.x, anchor.x - .01) : Math.max(point.x, anchor.x + .01)
-        const edgeY = isNorth ? Math.min(point.y, anchor.y - .01) : Math.max(point.y, anchor.y + .01)
+        const edgeX = isWest ? Math.min(point.x, anchor.x - .01) : isEast ? Math.max(point.x, anchor.x + .01) : anchor.x
+        const edgeY = isNorth ? Math.min(point.y, anchor.y - .01) : isSouth ? Math.max(point.y, anchor.y + .01) : anchor.y
         const startWidth = Math.max(.02, Math.abs(transform.startPoint.x - anchor.x))
         const startHeight = Math.max(.02, Math.abs(transform.startPoint.y - anchor.y))
         const rawWidth = Math.max(.02, transform.startBounds.maxX - transform.startBounds.minX)
         const rawHeight = Math.max(.02, transform.startBounds.maxY - transform.startBounds.minY)
         const maxScaleX = isWest ? anchor.x / rawWidth : (1 - anchor.x) / rawWidth
         const maxScaleY = isNorth ? anchor.y / rawHeight : (canvasHeightRef.current / DRAWING_BASE_HEIGHT - anchor.y) / rawHeight
-        const scaleX = clamp(Math.abs(edgeX - anchor.x) / startWidth, .1, Math.max(.1, maxScaleX))
-        const scaleY = clamp(Math.abs(edgeY - anchor.y) / startHeight, .1, Math.max(.1, maxScaleY))
+        const scaleX = verticalOnly ? 1 : clamp(Math.abs(edgeX - anchor.x) / startWidth, .1, Math.max(.1, maxScaleX))
+        const scaleY = horizontalOnly ? 1 : clamp(Math.abs(edgeY - anchor.y) / startHeight, .1, Math.max(.1, maxScaleY))
         next = scaleStrokes(transform.baseStrokes, transform.selectedIds, anchor, scaleX, scaleY, canvasHeightRef.current / DRAWING_BASE_HEIGHT)
       }
       transformPreviewRef.current = next
@@ -1003,10 +1034,19 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
       const strokes = shapePreviewRef.current
       clearLineSnap()
       if (startPoint && endPoint && strokes.length && pointDistance(canvasPoint(startPoint), canvasPoint(endPoint)) >= MIN_SHAPE_DRAG_DISTANCE) {
+        const nextDrawing = {
+          ...drawing,
+          aspectRatio: aspectRatioForCanvasHeight(canvasHeightRef.current),
+          strokes: [...drawing.strokes, ...strokes],
+        }
         onCommit(
-          { ...drawing, aspectRatio: aspectRatioForCanvasHeight(canvasHeightRef.current), strokes: [...drawing.strokes, ...strokes] },
+          nextDrawing,
           autoExtendedDuringInteraction ? 'defer' : undefined,
         )
+        // Keep the shape tool active and select only the newly created object.
+        // The selection overlay is limited to the object bounds, so blank
+        // canvas remains available for the next shape.
+        onSelectionChange(strokes.map(stroke => stroke.id))
       }
       shapePreviewRef.current = []
       shapeStartRef.current = null
@@ -1055,12 +1095,7 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
     top: `${spaceRangeTop / previewCanvasHeightUnits * 100}%`,
     height: `${Math.max(.8, spaceRangeHeight / previewCanvasHeightUnits * 100)}%`,
   } : undefined
-  const handlePoints: Array<{ handle: SelectionHandle; x: number; y: number }> = selectionBox ? [
-    { handle: 'nw', x: selectionBox.minX, y: selectionBox.minY },
-    { handle: 'ne', x: selectionBox.maxX, y: selectionBox.minY },
-    { handle: 'sw', x: selectionBox.minX, y: selectionBox.maxY },
-    { handle: 'se', x: selectionBox.maxX, y: selectionBox.maxY },
-  ] : []
+  const handlePoints = selectionBox ? selectionHandlePointsForBounds(selectionBox) : []
   const canvasStyle = { '--handwriting-aspect-ratio': String(DRAWING_WIDTH / previewCanvasHeightUnits) } as CSSProperties
   return <div className={expanded ? 'handwriting-canvas expanded' : 'handwriting-canvas'} style={canvasStyle}>
     <div className="handwriting-sheet">
@@ -1119,7 +1154,7 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
           <line x1="0" x2={DRAWING_WIDTH} y1={spaceRangeTop + spaceRangeHeight} y2={spaceRangeTop + spaceRangeHeight} strokeDasharray="12 8"/>
         </g>}
         {lassoPoints.length > 1 && <polyline className="handwriting-lasso-preview" points={lassoPath} fill="rgba(143, 48, 40, .08)" stroke="#8f3028" strokeWidth="2" strokeDasharray="8 6" vectorEffect="non-scaling-stroke"/>}
-        {selectionBox && tool === 'lasso' && <g className="handwriting-selection-overlay">
+        {selectionBox && (tool === 'lasso' || tool === 'shape') && <g className="handwriting-selection-overlay">
           <rect className="handwriting-selection-box" x={selectionBox.minX * DRAWING_WIDTH} y={selectionBox.minY * DRAWING_BASE_HEIGHT} width={(selectionBox.maxX - selectionBox.minX) * DRAWING_WIDTH} height={(selectionBox.maxY - selectionBox.minY) * DRAWING_BASE_HEIGHT}/>
           <rect className="handwriting-selection-hitbox" x={selectionBox.minX * DRAWING_WIDTH} y={selectionBox.minY * DRAWING_BASE_HEIGHT} width={(selectionBox.maxX - selectionBox.minX) * DRAWING_WIDTH} height={(selectionBox.maxY - selectionBox.minY) * DRAWING_BASE_HEIGHT} onPointerDown={event => beginTransform(event, undefined)}/>
           {handlePoints.map(({ handle, x, y }) => <rect
@@ -1129,7 +1164,7 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
             y={y * DRAWING_BASE_HEIGHT - selectionHandleSize / 2}
             width={selectionHandleSize}
             height={selectionHandleSize}
-            aria-label={`从${handle}角缩放选中笔迹`}
+            aria-label={`${handle === 'n' ? '从上边' : handle === 'e' ? '从右边' : handle === 's' ? '从下边' : handle === 'w' ? '从左边' : `从${handle}角`}缩放选中笔迹`}
             onPointerDown={event => beginTransform(event, handle)}
           />)}
         </g>}
@@ -1481,7 +1516,7 @@ function ExpandedHandwritingDialog({ editor, onClose }: { editor: ReactNode; onC
   </div>
 }
 
-export default function QuestionNotePanel({ questionId, note, onChange }: QuestionNotePanelProps) {
+export default function QuestionNotePanel({ questionId, note, onChange, initialOpen = false }: QuestionNotePanelProps) {
   const value = note || EMPTY_NOTE
   const drawing = value.drawing || emptyHandwritingDrawing()
   const notePanelRef = useRef<HTMLElement | null>(null)
@@ -1501,10 +1536,11 @@ export default function QuestionNotePanel({ questionId, note, onChange }: Questi
   useEffect(() => {
     setMode('handwriting')
     setExpanded(false)
+    setOpen(initialOpen)
     setPast([])
     setFuture([])
     setCanvasTrimPending(false)
-  }, [questionId])
+  }, [initialOpen, questionId])
 
   useEffect(() => {
     saveHandwritingPreferences(shapePreferences)

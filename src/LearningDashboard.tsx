@@ -7,12 +7,14 @@ import { calculateDailyActivity, localDateKey, type ActivityOutcomeStats, type S
 import DashboardQuestionDialog from './DashboardQuestionDialog'
 import { bankSubject, subjectOrder } from './subjects'
 import type { QuestionNote, QuestionNotes } from './questionNotes'
+import type { QuestionTagDefinition } from './questionTags'
 
 interface LearningDashboardProps {
   banks: QuestionBank[]
   statuses: Record<string, QuestionStatus>
   activities: StudyActivity[]
   notes: QuestionNotes
+  questionTags: QuestionTagDefinition[]
   selectedBankId: string
   onSelectedBankIdChange: (bankId: string) => void
   onQuestionStatusChange: (bankId: string, questionId: string, status: QuestionStatus, answerRevealed: boolean) => void
@@ -20,6 +22,7 @@ interface LearningDashboardProps {
   onQuestionReviewReset: (bankId: string, questionId: string) => void
   onQuestionReviewDelete: (bankId: string, questionId: string, attempt: number) => void
   onQuestionNoteChange: (questionId: string, note: QuestionNote) => void
+  onQuestionTagChange: (questionId: string, tagIds: string[]) => void
 }
 
 interface DashboardQuestionPreview {
@@ -59,7 +62,7 @@ function ActivityTypeSummary({ label, stats, tone }: { label: string; stats: Act
   return <div className={`selected-day-type-card ${tone}`}><div className="selected-day-type-heading"><strong>{label}</strong><span>{stats.total}<small>题</small></span><em>正确率 {formatRate(stats.accuracy)}</em></div><div className="selected-day-type-outcomes"><span className="green-text">{stats.proficient} 正确</span><span className="yellow-text">{stats.vague} 模糊</span><span className="red-text">{stats.wrong} 错误</span></div></div>
 }
 
-export default function LearningDashboard({ banks, statuses, activities, notes, selectedBankId, onSelectedBankIdChange, onQuestionStatusChange, onQuestionReviewStatusChange, onQuestionReviewReset, onQuestionReviewDelete, onQuestionNoteChange }: LearningDashboardProps) {
+export default function LearningDashboard({ banks, statuses, activities, notes, questionTags, selectedBankId, onSelectedBankIdChange, onQuestionStatusChange, onQuestionReviewStatusChange, onQuestionReviewReset, onQuestionReviewDelete, onQuestionNoteChange, onQuestionTagChange }: LearningDashboardProps) {
   const orderedBanks = subjectOrder.flatMap(subject => sortBanksForDisplay(banks.filter(bank => bankSubject(bank) === subject)))
   const [expandedSectionIds, setExpandedSectionIds] = useState<Set<string>>(() => new Set())
   const [questionPreview, setQuestionPreview] = useState<DashboardQuestionPreview | null>(null)
@@ -98,6 +101,12 @@ export default function LearningDashboard({ banks, statuses, activities, notes, 
   const weekStats = calculateDailyActivity(weekActivities, markedActivities)
   const weekActiveDays = new Set(weekActivities.map(item => item.date)).size
   const selectedBankGroups = orderedBanks.map(bank => ({ bank, activities: selectedActivities.filter(item => item.bankId === bank.id) })).filter(item => item.activities.length)
+  const handleQuestionTagChange = (questionId: string, tagIds: string[]) => {
+    onQuestionTagChange(questionId, tagIds)
+    setQuestionPreview(current => current && current.question.id === questionId
+      ? { ...current, question: { ...current.question, tagIds: tagIds.length ? tagIds : undefined }, questions: current.questions.map(item => item.id === questionId ? { ...item, tagIds: tagIds.length ? tagIds : undefined } : item) }
+      : current)
+  }
 
   function changeCalendarMonth(offset: number) {
     const next = new Date(calendarYear, calendarMonthNumber - 1 + offset, 1)
@@ -175,6 +184,6 @@ export default function LearningDashboard({ banks, statuses, activities, notes, 
         </article>
       })}{selectedBank.chapters.length === 0 && <div className="section-progress-empty">该题库还没有章节数据</div>}</div>
     </section>}
-    {questionPreview && <DashboardQuestionDialog bankName={questionPreview.bank.name} chapterName={questionPreview.chapterName} sectionName={questionPreview.sectionName} question={questionPreview.question} questions={questionPreview.questions} questionStatuses={statuses} status={statuses[questionPreview.question.id] || 'none'} activities={activities} note={notes[questionPreview.question.id]} binaryMode={bankSubject(questionPreview.bank) === 'english'} onQuestionSelect={question => setQuestionPreview(current => current ? { ...current, question } : current)} onPreviousQuestion={() => setQuestionPreview(current => { if (!current) return current; const index = current.questions.findIndex(item => item.id === current.question.id); return { ...current, question: current.questions[Math.max(0, index - 1)] } })} onNextQuestion={() => setQuestionPreview(current => { if (!current) return current; const index = current.questions.findIndex(item => item.id === current.question.id); return { ...current, question: current.questions[Math.min(current.questions.length - 1, index + 1)] } })} onStatusChange={(status, answerRevealed) => onQuestionStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => onQuestionReviewStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onResetReview={() => onQuestionReviewReset(questionPreview.bank.id, questionPreview.question.id)} onDeleteReview={attempt => onQuestionReviewDelete(questionPreview.bank.id, questionPreview.question.id, attempt)} onNoteChange={note => onQuestionNoteChange(questionPreview.question.id, note)} onClose={() => setQuestionPreview(null)}/>}
+    {questionPreview && <DashboardQuestionDialog bankName={questionPreview.bank.name} chapterName={questionPreview.chapterName} sectionName={questionPreview.sectionName} question={questionPreview.question} questions={questionPreview.questions} questionStatuses={statuses} questionTags={questionTags} status={statuses[questionPreview.question.id] || 'none'} activities={activities} note={notes[questionPreview.question.id]} binaryMode={bankSubject(questionPreview.bank) === 'english'} onQuestionSelect={question => setQuestionPreview(current => current ? { ...current, question } : current)} onPreviousQuestion={() => setQuestionPreview(current => { if (!current) return current; const index = current.questions.findIndex(item => item.id === current.question.id); return { ...current, question: current.questions[Math.max(0, index - 1)] } })} onNextQuestion={() => setQuestionPreview(current => { if (!current) return current; const index = current.questions.findIndex(item => item.id === current.question.id); return { ...current, question: current.questions[Math.min(current.questions.length - 1, index + 1)] } })} onStatusChange={(status, answerRevealed) => onQuestionStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onReviewStatusChange={(status, answerRevealed) => onQuestionReviewStatusChange(questionPreview.bank.id, questionPreview.question.id, status, answerRevealed)} onResetReview={() => onQuestionReviewReset(questionPreview.bank.id, questionPreview.question.id)} onDeleteReview={attempt => onQuestionReviewDelete(questionPreview.bank.id, questionPreview.question.id, attempt)} onNoteChange={note => onQuestionNoteChange(questionPreview.question.id, note)} onQuestionTagChange={handleQuestionTagChange} onClose={() => setQuestionPreview(null)}/>}
   </section>
 }

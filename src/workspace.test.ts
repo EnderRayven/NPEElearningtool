@@ -57,7 +57,7 @@ describe('workspace data separation', () => {
       { 'question-1': { text: '复盘笔记', drawing: { version: 1, aspectRatio: 1.5, strokes: [] }, updatedAt: '2026-07-16T08:00:00.000Z' } },
       { 'question-1': { wrongOption: 'B', updatedAt: '2026-07-16T08:00:00.000Z' } },
     )
-    expect(userData.version).toBe(4)
+    expect(userData.version).toBe(5)
     expect(userData.rounds?.['1'].statuses).toEqual({ 'question-1': 'wrong' })
     expect(userData.rounds?.['1'].activities).toEqual(activities)
     expect(userData.settings).toEqual({ examDate: '2026-12-19', activeRound: 1, roundCount: 5 })
@@ -73,6 +73,19 @@ describe('workspace data separation', () => {
     const metadata = createWorkspaceMetadata({ '1': { statuses: {}, activities: [] } }, { examDate: '', activeRound: 1, roundCount: 5 }, {})
     expect(metadata).not.toHaveProperty('notes')
     expect(metadata).toHaveProperty('rounds')
+  })
+
+  it('stores independent notebooks in workspace user data', () => {
+    const userData = createWorkspaceUserData(
+      { '1': { statuses: {}, activities: [] } },
+      { examDate: '', activeRound: 1, roundCount: 5 },
+      {},
+      {},
+      [{ id: 'notebook-1', name: '公式整理', notes: [{ id: 'note-1', title: '待补充', text: '', drawing: { version: 1, aspectRatio: 5 / 3, strokes: [] }, updatedAt: '' }], createdAt: '', updatedAt: '' }],
+    )
+    expect(userData.personalNotebooks?.[0].name).toBe('公式整理')
+    expect(userData.personalNotebooks?.[0].notes[0].title).toBe('待补充')
+    expect(resolveWorkspaceUserData(null, undefined, { '1': { statuses: {}, activities: [] } }, { activeRound: 1, roundCount: 5 }, {}, {}, userData.personalNotebooks).personalNotebooks).toEqual(userData.personalNotebooks)
   })
 
   it('serializes repeated writes to the same workspace file', async () => {

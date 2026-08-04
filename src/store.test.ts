@@ -53,6 +53,12 @@ describe('validateBanks', () => {
     expect(question.answerImageKeys).toHaveLength(3)
   })
 
+  it('保留题目标记 ID', () => {
+    const tagged = structuredClone(validBank)
+    Object.assign(tagged.chapters[0].sections[0].questions[0], { tagIds: ['red', 'blue', 'red'] })
+    expect(validateBanks([tagged])[0].chapters[0].sections[0].questions[0].tagIds).toEqual(['red', 'blue'])
+  })
+
   it('允许纯图片题不显示重复的占位正文', () => {
     const imageOnly = structuredClone(validBank)
     Object.assign(imageOnly.chapters[0].sections[0].questions[0], { type: '图片题', text: '', imageKeys: ['q/1'] })

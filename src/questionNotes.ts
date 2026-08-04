@@ -37,6 +37,21 @@ export interface QuestionNote {
 
 export type QuestionNotes = Record<string, QuestionNote>
 
+export interface PersonalNote extends QuestionNote {
+  id: string
+  title: string
+}
+
+export interface PersonalNotebook {
+  id: string
+  name: string
+  notes: PersonalNote[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type PersonalNotebooks = PersonalNotebook[]
+
 export interface QuestionNoteBucket {
   bankId: string
   chapterId: string
@@ -54,11 +69,14 @@ const DB_NAME = 'npee-question-notes'
 const STORE_NAME = 'notes'
 const CHAPTER_NOTES_STORE_NAME = 'chapter-notes'
 const ERROR_RECORDS_STORE_NAME = 'error-records'
+const PERSONAL_NOTEBOOKS_STORE_NAME = 'personal-notebooks'
 const NOTES_KEY = 'all'
 const ERROR_RECORDS_KEY = 'all'
+const PERSONAL_NOTEBOOKS_KEY = 'all'
 const FALLBACK_KEY = 'npee:question-notes:v1'
 const CHAPTER_FALLBACK_PREFIX = 'npee:question-notes:v2:'
 const ERROR_RECORDS_FALLBACK_KEY = 'npee:question-error-records:v1'
+const PERSONAL_NOTEBOOKS_FALLBACK_KEY = 'npee:personal-notebooks:v1'
 const DEFAULT_ASPECT_RATIO = 5 / 3
 export const DRAWING_WIDTH = 1000
 export const DRAWING_BASE_HEIGHT = 600
@@ -66,6 +84,10 @@ export const MAX_DRAWING_HEIGHT_MULTIPLIER = 32
 export const MAX_DRAWING_HEIGHT = DRAWING_BASE_HEIGHT * MAX_DRAWING_HEIGHT_MULTIPLIER
 export const MIN_DRAWING_ASPECT_RATIO = DRAWING_WIDTH / MAX_DRAWING_HEIGHT
 const MAX_TEXT_LENGTH = 100_000
+const MAX_NOTE_TITLE_LENGTH = 500
+const MAX_NOTEBOOK_NAME_LENGTH = 200
+const MAX_PERSONAL_NOTEBOOKS = 200
+const MAX_PERSONAL_NOTES_PER_NOTEBOOK = 2_000
 const MAX_STROKES = 2_000
 const MAX_POINTS_PER_STROKE = 20_000
 
@@ -284,21 +306,49 @@ export function validateHandwritingDrawing(value: unknown): HandwritingDrawing {
   }
 }
 
+export function validateQuestionNote(value: unknown, keepEmpty = false): QuestionNote | null {
+  if (!isRecord(value)) return null
+  const text = typeof value.text === 'string' ? value.text.slice(0, MAX_TEXT_LENGTH) : ''
+  const drawing = validateHandwritingDrawing(value.drawing)
+  if (!keepEmpty && !text.trim() && !drawing.strokes.length && drawing.aspectRatio >= DEFAULT_ASPECT_RATIO) return null
+  return {
+    text,
+    drawing,
+    updatedAt: typeof value.updatedAt === 'string' ? value.updatedAt : '',
+  }
+}
+
 export function validateQuestionNotes(value: unknown): QuestionNotes {
   if (!isRecord(value)) return {}
   const notes: QuestionNotes = {}
   for (const [questionId, rawNote] of Object.entries(value)) {
-    if (!questionId || !isRecord(rawNote)) continue
-    const text = typeof rawNote.text === 'string' ? rawNote.text.slice(0, MAX_TEXT_LENGTH) : ''
-    const drawing = validateHandwritingDrawing(rawNote.drawing)
-    if (!text.trim() && !drawing.strokes.length && drawing.aspectRatio >= DEFAULT_ASPECT_RATIO) continue
-    notes[questionId] = {
-      text,
-      drawing,
-      updatedAt: typeof rawNote.updatedAt === 'string' ? rawNote.updatedAt : '',
-    }
+    if (!questionId) continue
+    const note = validateQuestionNote(rawNote)
+    if (note) notes[questionId] = note
   }
   return migrateZhangyuQuestionNotes(notes)
+}
+
+export function validatePersonalNotebooks(value: unknown): PersonalNotebooks {
+  if (!Array.isArray(value)) return []
+  return value.slice(0, MAX_PERSONAL_NOTEBOOKS).flatMap(rawNotebook => {
+    if (!isRecord(rawNotebook)) return []
+    const id = typeof rawNotebook.id === 'string' ? rawNotebook.id.trim() : ''
+    const name = typeof rawNotebook.name === 'string' ? rawNotebook.name.trim().slice(0, MAX_NOTEBOOK_NAME_LENGTH) : ''
+    if (!id || !name) return []
+    const notes = Array.isArray(rawNotebook.notes) ? rawNotebook.notes.slice(0, MAX_PERSONAL_NOTES_PER_NOTEBOOK).flatMap(rawNote => {
+      if (!isRecord(rawNote)) return []
+      const noteId = typeof rawNote.id === 'string' ? rawNote.id.trim() : ''
+      const title = typeof rawNote.title === 'string' ? rawNote.title.trim().slice(0, MAX_NOTE_TITLE_LENGTH) : ''
+      if (!noteId || !title) return []
+      const note = validateQuestionNote(rawNote, true)
+      if (!note) return []
+      return [{ id: noteId, title, ...note }]
+    }) : []
+    const createdAt = typeof rawNotebook.createdAt === 'string' ? rawNotebook.createdAt : ''
+    const updatedAt = typeof rawNotebook.updatedAt === 'string' ? rawNotebook.updatedAt : createdAt
+    return [{ id, name, notes, createdAt, updatedAt }]
+  })
 }
 
 export function validateQuestionErrorRecords(value: unknown): QuestionErrorRecords {
@@ -322,6 +372,10 @@ export function hasQuestionNote(note: QuestionNote | undefined) {
     || note.drawing.strokes.length
     || note.drawing.aspectRatio < DEFAULT_ASPECT_RATIO
   ))
+}
+
+export function hasPersonalNote(note: PersonalNote | undefined) {
+  return Boolean(note && (note.title.trim() || hasQuestionNote(note)))
 }
 
 function pointToSegmentDistance(point: HandwritingPoint, start: HandwritingPoint, end: HandwritingPoint) {
@@ -403,13 +457,30 @@ function writeFallbackErrorRecords(records: QuestionErrorRecords) {
   }
 }
 
+function readFallbackPersonalNotebooks() {
+  try {
+    return validatePersonalNotebooks(JSON.parse(localStorage.getItem(PERSONAL_NOTEBOOKS_FALLBACK_KEY) || '[]'))
+  } catch {
+    return []
+  }
+}
+
+function writeFallbackPersonalNotebooks(notebooks: PersonalNotebooks) {
+  try {
+    localStorage.setItem(PERSONAL_NOTEBOOKS_FALLBACK_KEY, JSON.stringify(validatePersonalNotebooks(notebooks)))
+  } catch {
+    throw new Error('个人笔记保存失败，请导出完整备份后检查浏览器存储空间')
+  }
+}
+
 function openNotesDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 3)
+    const request = indexedDB.open(DB_NAME, 4)
     request.onupgradeneeded = () => {
       if (!request.result.objectStoreNames.contains(STORE_NAME)) request.result.createObjectStore(STORE_NAME)
       if (!request.result.objectStoreNames.contains(CHAPTER_NOTES_STORE_NAME)) request.result.createObjectStore(CHAPTER_NOTES_STORE_NAME)
       if (!request.result.objectStoreNames.contains(ERROR_RECORDS_STORE_NAME)) request.result.createObjectStore(ERROR_RECORDS_STORE_NAME)
+      if (!request.result.objectStoreNames.contains(PERSONAL_NOTEBOOKS_STORE_NAME)) request.result.createObjectStore(PERSONAL_NOTEBOOKS_STORE_NAME)
     }
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error || new Error('无法打开笔记存储'))
@@ -599,5 +670,41 @@ export async function saveQuestionErrorRecords(records: QuestionErrorRecords) {
     database.close()
   } catch {
     writeFallbackErrorRecords(validated)
+  }
+}
+
+export async function loadPersonalNotebooks(): Promise<PersonalNotebooks> {
+  if (typeof indexedDB === 'undefined') return readFallbackPersonalNotebooks()
+  try {
+    const database = await openNotesDatabase()
+    const notebooks = await new Promise<PersonalNotebooks>((resolve, reject) => {
+      const request = database.transaction(PERSONAL_NOTEBOOKS_STORE_NAME, 'readonly').objectStore(PERSONAL_NOTEBOOKS_STORE_NAME).get(PERSONAL_NOTEBOOKS_KEY)
+      request.onsuccess = () => resolve(validatePersonalNotebooks(request.result))
+      request.onerror = () => reject(request.error)
+    })
+    database.close()
+    return notebooks
+  } catch {
+    return readFallbackPersonalNotebooks()
+  }
+}
+
+export async function savePersonalNotebooks(notebooks: PersonalNotebooks) {
+  const validated = validatePersonalNotebooks(notebooks)
+  if (typeof indexedDB === 'undefined') {
+    writeFallbackPersonalNotebooks(validated)
+    return
+  }
+  try {
+    const database = await openNotesDatabase()
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(PERSONAL_NOTEBOOKS_STORE_NAME, 'readwrite')
+      transaction.objectStore(PERSONAL_NOTEBOOKS_STORE_NAME).put(validated, PERSONAL_NOTEBOOKS_KEY)
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+    })
+    database.close()
+  } catch {
+    writeFallbackPersonalNotebooks(validated)
   }
 }

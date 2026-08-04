@@ -12,6 +12,7 @@ import './question-notes.css'
 import './notes.css'
 import './timer.css'
 import './draftbook.css'
+import './text-selection.css'
 
 const root = ReactDOM.createRoot(document.getElementById('root')!)
 

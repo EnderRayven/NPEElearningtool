@@ -8,6 +8,8 @@ import { localDateKey, type StudyActivity } from './studyActivity'
 import type { Question, QuestionStatus } from './types'
 import QuestionNotePanel from './QuestionNotePanel'
 import type { QuestionNote } from './questionNotes'
+import QuestionTagPicker from './QuestionTagPicker'
+import type { QuestionTagDefinition } from './questionTags'
 import ConfirmDialog from './ConfirmDialog'
 import { useDialogFocus } from './useDialogFocus'
 import { useModalScrollLock } from './useModalScrollLock'
@@ -19,6 +21,7 @@ interface DashboardQuestionDialogProps {
   question: Question
   questions?: Question[]
   questionStatuses?: Record<string, QuestionStatus>
+  questionTags: QuestionTagDefinition[]
   status: QuestionStatus
   activities: StudyActivity[]
   note?: QuestionNote
@@ -28,6 +31,7 @@ interface DashboardQuestionDialogProps {
   onResetReview: () => void
   onDeleteReview: (attempt: number) => void
   onNoteChange: (note: QuestionNote) => void
+  onQuestionTagChange: (questionId: string, tagIds: string[]) => void
   onClose: () => void
   onQuestionSelect?: (question: Question) => void
   onPreviousQuestion?: () => void
@@ -55,7 +59,7 @@ const calendarDaysSince = (date: string) => {
   return Math.max(0, Math.round(elapsed))
 }
 
-export default function DashboardQuestionDialog({ bankName, chapterName, sectionName, question, questions = [], questionStatuses = {}, status, activities, note, binaryMode, onStatusChange, onReviewStatusChange, onResetReview, onDeleteReview, onNoteChange, onClose, onQuestionSelect, onPreviousQuestion, onNextQuestion }: DashboardQuestionDialogProps) {
+export default function DashboardQuestionDialog({ bankName, chapterName, sectionName, question, questions = [], questionStatuses = {}, questionTags, status, activities, note, binaryMode, onStatusChange, onReviewStatusChange, onResetReview, onDeleteReview, onNoteChange, onQuestionTagChange, onClose, onQuestionSelect, onPreviousQuestion, onNextQuestion }: DashboardQuestionDialogProps) {
   const [answerOpen, setAnswerOpen] = useState(false)
   const [answerLocked, setAnswerLocked] = useState(false)
   const questionScrollRef = useRef<HTMLDivElement>(null)
@@ -134,9 +138,9 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
         {!hasQuestionNavigation && <header className="dashboard-question-dialog-head">
           <div><span>{bankName}</span><small>{chapterName} · {sectionName}</small></div>
         </header>}
-      <div ref={questionScrollRef} className="dashboard-question-dialog-scroll">
+        <div ref={questionScrollRef} className="dashboard-question-dialog-scroll">
         <div className="dashboard-question-title-row">
-          <div><span className="number">{String(question.number).padStart(2, '0')}</span></div>
+          <div><span className="number">{String(question.number).padStart(2, '0')}</span><QuestionTagPicker tags={questionTags} selectedTagIds={question.tagIds} onChange={tagIds => onQuestionTagChange(question.id, tagIds)}/></div>
           <span className={`current-status ${effectiveStatus}`}>{statusMeta[effectiveStatus].icon} {labelFor(effectiveStatus)}</span>
         </div>
         <div className="dashboard-question-content" id="dashboard-question-title">

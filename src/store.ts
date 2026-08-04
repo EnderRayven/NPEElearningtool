@@ -260,6 +260,7 @@ export function validateBanks(value: unknown): QuestionBank[] {
                 const answerImageUrl = optionalString(rawQuestion.answerImageUrl, `${questionPath}.answerImageUrl`)
                 const answerImageUrls = optionalNullableStringArray(rawQuestion.answerImageUrls, `${questionPath}.answerImageUrls`)
                 const answerImageKeys = optionalImageKeyArray(rawQuestion.answerImageKeys, `${questionPath}.answerImageKeys`)
+                const tagIds = optionalStringArray(rawQuestion.tagIds, `${questionPath}.tagIds`)
                 const text = typeof rawQuestion.text === 'string' && rawQuestion.text.trim() === '' && (type === '图片题' || imageUrl || imageKeys?.length || answerImageUrl || answerImageKeys?.length)
                   ? ''
                   : requiredString(rawQuestion.text, `${questionPath}.text`)
@@ -280,6 +281,7 @@ export function validateBanks(value: unknown): QuestionBank[] {
                 if (answerImageUrls !== undefined) question.answerImageUrls = answerImageUrls
                 if (imageKeys !== undefined) question.imageKeys = imageKeys
                 if (answerImageKeys !== undefined) question.answerImageKeys = answerImageKeys
+                if (tagIds !== undefined) question.tagIds = [...new Set(tagIds)]
                 const videoUrl = optionalString(rawQuestion.videoUrl, `${questionPath}.videoUrl`)
                 if (videoUrl !== undefined) question.videoUrl = videoUrl
                 if (VALID_READING_TYPES.has(rawQuestion.readingType as ReadingQuestionType)) question.readingType = rawQuestion.readingType as ReadingQuestionType

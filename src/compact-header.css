@@ -11,6 +11,14 @@
 
   .page-head > div:first-child {
     display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .page-head-tools {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 0;
   }
 
   .page-head-title-row {
@@ -26,6 +34,7 @@
 
   .page-head h1 {
     font-size: 27px;
+    white-space: nowrap;
   }
 
   .page-head p {
@@ -61,6 +70,10 @@
 
   .page-head-title-row {
     display: block;
+  }
+
+  .page-head h1 {
+    white-space: normal;
   }
 
   .breadcrumb {
@@ -645,23 +658,66 @@
 }
 
 /* Keep the study controls in the heading row on wide screens. */
+.page-head-tools {
+  position: relative;
+}
+
+.page-head-tools .advanced-filter-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(560px, calc(100vh - 120px));
+  margin: 0;
+  overflow: auto;
+  box-shadow: 0 16px 38px rgba(71, 57, 44, .16);
+}
+
 @media screen and (min-width: 1051px) {
+  /* The unified filter panel lives inside the tools column, so it needs a real
+     flexible width instead of the old intrinsic-width toolbar behavior. */
+  .page-head {
+    align-items: flex-start;
+  }
+
   .page-head-tools {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 0 0 auto;
+    display: block;
+    align-self: flex-start;
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
   }
 
   .page-head-tools .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: 100%;
     max-width: none;
-    margin: 0;
+    margin: 0 0 10px;
     flex: 0 0 auto;
-    white-space: nowrap;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    white-space: normal;
+  }
+
+  .page-head-tools .advanced-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-head-tools .advanced-filter-tags-group {
+    grid-column: 1 / -1;
   }
 
   .page-head-tools .search {
-    flex: 0 0 220px;
+    flex: 0 1 220px;
+    margin: 0;
+  }
+
+  .page-head-tools .filter-row .search {
+    flex: 0 1 220px;
+    margin: 0;
   }
 }
 

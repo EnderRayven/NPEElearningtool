@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptyQuestionNote, eraseHandwritingStrokes, hasQuestionNote, mergeQuestionNoteBuckets, questionNoteBucketKey, splitQuestionNotes, validateHandwritingDrawing, validateQuestionErrorRecords, validateQuestionNotes } from './questionNotes'
+import { emptyQuestionNote, eraseHandwritingStrokes, hasPersonalNote, hasQuestionNote, mergeQuestionNoteBuckets, questionNoteBucketKey, splitQuestionNotes, validateHandwritingDrawing, validatePersonalNotebooks, validateQuestionErrorRecords, validateQuestionNotes } from './questionNotes'
 import type { QuestionBank } from './types'
 
 describe('questionNotes', () => {
@@ -110,6 +110,19 @@ describe('questionNotes', () => {
     expect(hasQuestionNote(emptyQuestionNote())).toBe(false)
     expect(hasQuestionNote({ ...emptyQuestionNote(), text: '笔记' })).toBe(true)
     expect(hasQuestionNote({ ...emptyQuestionNote(), drawing: { version: 1, aspectRatio: 1.5, strokes: [{ id: 's', color: '#000000', size: 2, input: 'pen', points: [{ x: .2, y: .3 }] }] } })).toBe(true)
+  })
+
+  it('validates independent notebooks while retaining an empty titled note', () => {
+    const notebooks = validatePersonalNotebooks([{
+      id: 'notebook-1',
+      name: '公式整理',
+      createdAt: '2026-08-03T00:00:00.000Z',
+      updatedAt: '2026-08-03T00:00:00.000Z',
+      notes: [{ id: 'note-1', title: '待补充', text: '', drawing: emptyQuestionNote().drawing, updatedAt: '' }],
+    }])
+    expect(notebooks).toHaveLength(1)
+    expect(notebooks[0].notes[0].title).toBe('待补充')
+    expect(hasPersonalNote(notebooks[0].notes[0])).toBe(true)
   })
 
   it('erases only strokes touched by the editable eraser', () => {

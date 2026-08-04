@@ -201,7 +201,6 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
     setFillSelection(null)
     setEditorTool('crop')
     setCropZoom(MIN_CROP_ZOOM)
-    setCropSurfaceSize({ width: 0, height: 0 })
     window.requestAnimationFrame(() => cropAreaRef.current?.scrollTo({ left: 0, top: 0 }))
   }
 
@@ -334,7 +333,6 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
 
   function setSource(file: File) {
     if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-      if (sourceUrl) URL.revokeObjectURL(sourceUrl)
       setSourceUrl('')
       setSourceFile(null)
       setPdfUrl(current => { if (current) URL.revokeObjectURL(current); return URL.createObjectURL(file) })
@@ -344,7 +342,6 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
     }
     if (!file.type.startsWith('image/')) { setMessage('请选择 PNG、JPG、WEBP 图片或 PDF 文件'); return }
     if (pdfUrl) { URL.revokeObjectURL(pdfUrl); setPdfUrl('') }
-    if (sourceUrl) URL.revokeObjectURL(sourceUrl)
     setSourceFile(file)
     setSourceUrl(URL.createObjectURL(file))
     resetEditorSelections()
@@ -377,7 +374,6 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
     setImageApplyMode('replace')
     resetEditorSelections()
     setPdfUrl(current => { if (current) URL.revokeObjectURL(current); return '' })
-    if (sourceUrl) URL.revokeObjectURL(sourceUrl)
     if (source.url) {
       setSourceFile(null)
       setSourceUrl(source.url)
@@ -389,7 +385,6 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
       if (!blobs[0]) { setMessage('找不到这张图片，请重新导入原图'); return }
       const blob = blobs[0]
       setSourceFile(new File([blob], `${kind}-${Date.now()}.png`, { type: blob.type || 'image/png' }))
-      if (sourceUrl) URL.revokeObjectURL(sourceUrl)
       setSourceUrl(URL.createObjectURL(blob))
       setCropSelection({ x: 0, y: 0, width: 1, height: 1 })
       setMessage('已载入现有图片。裁剪后保存即可替换。')
@@ -403,7 +398,6 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
     setEditingImageIndex(questionImageSources(draft, kind).length)
     resetEditorSelections()
     setPdfUrl(current => { if (current) URL.revokeObjectURL(current); return '' })
-    if (sourceUrl) URL.revokeObjectURL(sourceUrl)
     setSourceFile(null)
     setSourceUrl('')
     setMessage(`请导入图片、PDF 或粘贴截图，完成后将添加到${kind === 'question' ? '题目图片' : '解析图片'}末尾`)

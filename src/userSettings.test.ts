@@ -39,4 +39,11 @@ describe('用户设置', () => {
     expect(saveUserSettings({ activeRound: 1, roundCount: 5, keepScreenAwake: true })).toBe(true)
     expect(loadUserSettings().keepScreenAwake).toBe(true)
   })
+
+  it('可保存题目标记名称和颜色', () => {
+    const settings = validateUserSettings({ activeRound: 1, roundCount: 5, questionTags: [{ id: 'red', name: '核心题', color: '#123456' }] })
+    expect(settings.questionTags?.find(tag => tag.id === 'red')).toEqual({ id: 'red', name: '核心题', color: '#123456' })
+    expect(saveUserSettings(settings)).toBe(true)
+    expect(loadUserSettings().questionTags?.find(tag => tag.id === 'red')?.name).toBe('核心题')
+  })
 })
