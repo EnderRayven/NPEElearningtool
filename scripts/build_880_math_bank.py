@@ -21,6 +21,7 @@ WORKSPACE = ROOT / "默认题库"
 BANK_NAME = "880高数"
 BANK_ID = "default-880-calculus"
 BANK_FOLDER = Path("数学/高数") / BANK_NAME
+QUESTION_RENDER_SCALE = 3.108
 
 CHAPTERS = {
     1: "函数、极限、连续",
@@ -346,9 +347,13 @@ def question_events() -> dict[tuple[int, int], list[dict]]:
     return grouped
 
 
-def trim_ink(
-    image: Image.Image, threshold: int = 245, *, prune_sparse_edges: bool = True
-) -> Image.Image | None:
+def ink_bounds(
+    image: Image.Image,
+    threshold: int = 245,
+    *,
+    prune_sparse_edges: bool = True,
+    anchor_y: float | None = None,
+) -> tuple[int, int, int, int] | None:
     array = np.asarray(image.convert("RGB"))
     dark = array.mean(axis=2) < threshold
     rows = np.where(dark.sum(axis=1) >= 4)[0]
@@ -364,6 +369,12 @@ def trim_ink(
             group_start = row
         previous = row
     row_groups.append((group_start, previous))
+    if anchor_y is not None and row_groups:
+        anchor_group = next(
+            (index for index, (start, end) in enumerate(row_groups) if start <= anchor_y <= end),
+            next((index for index, (start, _) in enumerate(row_groups) if start > anchor_y), len(row_groups) - 1),
+        )
+        row_groups = row_groups[anchor_group:]
     if prune_sparse_edges:
         while len(row_groups) > 1:
             first = row_groups[0]
@@ -384,23 +395,53 @@ def trim_ink(
     left, right = max(0, int(cols[0]) - 10), min(image.width, int(cols[-1]) + 11)
     if bottom - top < 18 or right - left < 40:
         return None
-    return image.crop((left, top, right, bottom))
+    return left, top, right, bottom
+
+
+def trim_ink(
+    image: Image.Image,
+    threshold: int = 245,
+    *,
+    prune_sparse_edges: bool = True,
+    anchor_y: float | None = None,
+) -> Image.Image | None:
+    bounds = ink_bounds(
+        image,
+        threshold,
+        prune_sparse_edges=prune_sparse_edges,
+        anchor_y=anchor_y,
+    )
+    return image.crop(bounds) if bounds is not None else None
 
 
 def crop_question(document: pdfium.PdfDocument, start: tuple[int, float], end: tuple[int, float]) -> list[Image.Image]:
     parts = []
-    scale = 2.25
+    # Keep the complete source-page width.  Question images are height-cropped
+    # from the PDF, but their horizontal canvas must remain consistent with it
+    # so answer blanks and right-column figures cannot be clipped.
+    scale = QUESTION_RENDER_SCALE
+    leading_margin = 20
     for page_number in range(start[0], end[0] + 1):
         page = document[page_number - 1]
         rendered = page.render(scale=scale).to_pil().convert("RGB")
-        top = start[1] + 1 if page_number == start[0] else 22
+        top = start[1] - leading_margin if page_number == start[0] else 22
         bottom = end[1] - 12 if page_number == end[0] else 775
         if bottom - top < 8:
             continue
-        crop = rendered.crop((0, int(max(0, top) * scale), rendered.width, int(min(822, bottom) * scale)))
-        trimmed = trim_ink(crop, 248)
-        if trimmed is not None:
-            parts.append(trimmed)
+        crop_top = int(max(0, top) * scale)
+        crop = rendered.crop((0, crop_top, rendered.width, int(min(822, bottom) * scale)))
+        current_bounds = ink_bounds(
+            crop,
+            248,
+            prune_sparse_edges=False,
+            anchor_y=leading_margin * scale if page_number == start[0] else None,
+        )
+        if current_bounds is None:
+            continue
+        _, current_top, _, current_bottom = current_bounds
+        if current_bottom - current_top < 18:
+            continue
+        parts.append(rendered.crop((0, crop_top + current_top, rendered.width, crop_top + current_bottom)))
     return parts
 
 

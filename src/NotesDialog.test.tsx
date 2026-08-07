@@ -29,6 +29,7 @@ describe('NotesDialog', () => {
       personalNotebooks: [],
       onClose: () => {},
       onOpenQuestion: () => {},
+      onEditQuestion: () => {},
       onCreateNotebook: () => null,
       onCreateNote: () => null,
       onPersonalNoteChange: () => {},
@@ -36,6 +37,7 @@ describe('NotesDialog', () => {
       onDeleteNotebook: () => {},
     }))
     expect(markup).toContain('aria-label="完整手写笔记"')
+    expect(markup).toContain('编辑第 1 题笔记')
     expect(markup).toContain('viewBox="0 0 1000 206"')
     expect(markup).not.toContain('viewBox="0 0 1000 600"')
   })

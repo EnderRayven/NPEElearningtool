@@ -220,6 +220,14 @@ describe('navigation recovery', () => {
     expect(loadNavigation()?.bankStudyPositions).toEqual({ 'bank-1': first, 'bank-2': second })
   })
 
+  it('分别保存英语整卷和专题的最后学习位置', () => {
+    const paper = { bankId: 'english-exams', sectionId: 'english-2005-paper', questionId: 'english-2005-paper-q2', view: 'section' as const, englishNavigationMode: 'paper' as const, englishTopic: 'reading' as const }
+    const topic = { bankId: 'english-exams', sectionId: 'english-2005-reading-text-2', questionId: 'english-2005-reading-q2', view: 'section' as const, englishNavigationMode: 'topic' as const, englishTopic: 'reading' as const }
+    saveNavigation({ ...topic, page: 'study', profileBankId: '', studyPositions: { english: topic }, bankStudyPositions: { 'english-exams': topic }, englishPaperPositions: { 'english-exams': paper }, englishTopicPositions: { 'english-exams:reading': topic } })
+    expect(loadNavigation()?.englishPaperPositions).toEqual({ 'english-exams': paper })
+    expect(loadNavigation()?.englishTopicPositions).toEqual({ 'english-exams:reading': topic })
+  })
+
   it('忽略损坏的题库位置并保留有效位置', () => {
     localStorage.setItem('npee:navigation:v1', JSON.stringify({
       bankId: 'bank-1',

@@ -13,6 +13,7 @@ import './notes.css'
 import './timer.css'
 import './draftbook.css'
 import './text-selection.css'
+import 'katex/dist/katex.min.css'
 
 const root = ReactDOM.createRoot(document.getElementById('root')!)
 

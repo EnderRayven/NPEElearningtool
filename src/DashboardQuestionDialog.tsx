@@ -13,6 +13,7 @@ import type { QuestionTagDefinition } from './questionTags'
 import ConfirmDialog from './ConfirmDialog'
 import { useDialogFocus } from './useDialogFocus'
 import { useModalScrollLock } from './useModalScrollLock'
+import type { MarkdownShortcutSettings } from './shortcutSettings'
 
 interface DashboardQuestionDialogProps {
   bankName: string
@@ -25,6 +26,7 @@ interface DashboardQuestionDialogProps {
   status: QuestionStatus
   activities: StudyActivity[]
   note?: QuestionNote
+  markdownShortcuts?: MarkdownShortcutSettings
   binaryMode: boolean
   onStatusChange: (status: QuestionStatus, answerRevealed: boolean) => void
   onReviewStatusChange: (status: QuestionStatus, answerRevealed: boolean) => void
@@ -59,9 +61,11 @@ const calendarDaysSince = (date: string) => {
   return Math.max(0, Math.round(elapsed))
 }
 
-export default function DashboardQuestionDialog({ bankName, chapterName, sectionName, question, questions = [], questionStatuses = {}, questionTags, status, activities, note, binaryMode, onStatusChange, onReviewStatusChange, onResetReview, onDeleteReview, onNoteChange, onQuestionTagChange, onClose, onQuestionSelect, onPreviousQuestion, onNextQuestion }: DashboardQuestionDialogProps) {
+export default function DashboardQuestionDialog({ bankName, chapterName, sectionName, question, questions = [], questionStatuses = {}, questionTags, status, activities, note, markdownShortcuts, binaryMode, onStatusChange, onReviewStatusChange, onResetReview, onDeleteReview, onNoteChange, onQuestionTagChange, onClose, onQuestionSelect, onPreviousQuestion, onNextQuestion }: DashboardQuestionDialogProps) {
   const [answerOpen, setAnswerOpen] = useState(false)
   const [answerLocked, setAnswerLocked] = useState(false)
+  const [questionNoteOpen, setQuestionNoteOpen] = useState(false)
+  const [questionNoteLocked, setQuestionNoteLocked] = useState(false)
   const questionScrollRef = useRef<HTMLDivElement>(null)
   const timeline = buildQuestionReviewTimeline(activities, question.id)
   const effectiveStatus = binaryMode && status === 'vague' ? 'none' : status
@@ -97,6 +101,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
   useModalScrollLock(true, 'dashboard-question-modal-open')
   useEffect(() => {
     if (!answerLocked) setAnswerOpen(false)
+    if (!questionNoteLocked) setQuestionNoteOpen(false)
     setManualReviewSlots([])
     setDeleteReviewAttempt(null)
     const frame = window.requestAnimationFrame(() => questionScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }))
@@ -166,7 +171,7 @@ export default function DashboardQuestionDialog({ bankName, chapterName, section
           </div>
           {question.videoUrl && <a href={question.videoUrl} target="_blank" rel="noreferrer">观看视频解析 →</a>}
         </div>}
-        <QuestionNotePanel questionId={question.id} note={note} onChange={onNoteChange}/>
+        <QuestionNotePanel questionId={question.id} note={note} markdownShortcuts={markdownShortcuts} open={questionNoteOpen} locked={questionNoteLocked} onOpenChange={setQuestionNoteOpen} onLockedChange={setQuestionNoteLocked} onChange={onNoteChange}/>
       </div>
       {hasQuestionNavigation
         ? <footer className="dashboard-question-status dashboard-question-navigated-footer question-bottom-pager" aria-label="题目切换">

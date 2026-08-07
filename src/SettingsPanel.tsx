@@ -1,11 +1,12 @@
-import { useState, type ComponentType } from 'react'
-import { CalendarDays, ChevronRight, CircleHelp, Download, ExternalLink, FileImage, FileText, FileUp, FolderOpen, FolderSync, GripVertical, HardDrive, History, Info, NotebookPen, Pencil, Plus, RotateCcw, Settings as SettingsIcon, SunMedium, Tag, X } from 'lucide-react'
+import { useState, type ComponentType, type KeyboardEvent } from 'react'
+import { CalendarDays, ChevronRight, CircleHelp, Download, ExternalLink, FileImage, FileText, FileUp, FolderOpen, FolderSync, GripVertical, HardDrive, History, Info, Keyboard, NotebookPen, Pencil, Plus, RotateCcw, Settings as SettingsIcon, SunMedium, Tag, X } from 'lucide-react'
 import type { UserSettings } from './userSettings'
 import type { QuestionTagDefinition } from './questionTags'
+import { DEFAULT_MARKDOWN_SHORTCUTS, formatShortcut, MARKDOWN_SHORTCUT_ACTIONS, sameShortcut, shortcutFromKeyboardEvent, type MarkdownShortcutAction, type MarkdownShortcutSettings } from './shortcutSettings'
 import { useDialogFocus } from './useDialogFocus'
 import { useModalScrollLock } from './useModalScrollLock'
 
-type SettingsSection = 'study' | 'tags' | 'focus' | 'data' | 'about'
+type SettingsSection = 'study' | 'tags' | 'focus' | 'shortcuts' | 'data' | 'about'
 type WorkspaceState = 'none' | 'available' | 'syncing' | 'connected' | 'error'
 type PanelIcon = ComponentType<{ size?: number; strokeWidth?: number }>
 
@@ -39,6 +40,9 @@ interface Props {
   onOpenExport: () => void
   onOpenNotesExport: () => void
   onExportData: () => void
+  shortcutSettings: MarkdownShortcutSettings
+  onUpdateShortcutSettings: (settings: MarkdownShortcutSettings) => void
+  onResetShortcutSettings: () => void
 }
 
 const sectionItems: Array<{ id: SettingsSection; label: string; description: string; icon: PanelIcon }> = [
@@ -46,6 +50,7 @@ const sectionItems: Array<{ id: SettingsSection; label: string; description: str
   { id: 'study', label: '学习设置', description: '轮次与考试日期', icon: RotateCcw },
   { id: 'tags', label: '题目标记', description: '标签名称与颜色', icon: Tag },
   { id: 'focus', label: '专注模式', description: '不熄屏与学习状态', icon: SunMedium },
+  { id: 'shortcuts', label: '快捷键', description: '汇总与自定义操作', icon: Keyboard },
   { id: 'about', label: '关于', description: '版本与项目链接', icon: Info },
 ]
 
@@ -53,6 +58,7 @@ const sectionTitles: Record<SettingsSection, { eyebrow: string; title: string; d
   study: { eyebrow: 'LEARNING', title: '学习设置', description: '管理学习轮次和考试倒计时。' },
   tags: { eyebrow: 'QUESTION TAGS', title: '题目标记', description: '自定义题目标记的名称与颜色。' },
   focus: { eyebrow: 'FOCUS', title: '专注模式', description: '让学习页面更适合长时间使用。' },
+  shortcuts: { eyebrow: 'SHORTCUTS', title: '快捷键', description: '集中查看并自定义常用操作。' },
   data: { eyebrow: 'QUESTION BANKS & DATA', title: '题库与数据', description: '集中管理题库、导入导出、备份与重置。' },
   about: { eyebrow: 'ABOUT', title: '关于', description: '查看当前版本、项目地址和数据说明。' },
 }
@@ -82,6 +88,7 @@ function GitHubMark({ size = 19 }: { size?: number }) {
 export default function SettingsPanel(props: Props) {
   const [activeSection, setActiveSection] = useState<SettingsSection>('data')
   const [draggedTagId, setDraggedTagId] = useState<string | null>(null)
+  const [shortcutError, setShortcutError] = useState('')
   const heading = sectionTitles[activeSection]
   const dialogRef = useDialogFocus<HTMLElement>(props.onClose)
   useModalScrollLock()
@@ -111,6 +118,33 @@ export default function SettingsPanel(props: Props) {
         <button className={enabled ? 'settings-panel-switch on' : 'settings-panel-switch'} type="button" role="switch" aria-checked={enabled} aria-label="不熄屏" disabled={!props.screenWakeLockSupported} onClick={props.onToggleScreenAwake}><span/></button>
       </section>
       <section className="settings-panel-info-card"><strong>使用提示</strong><span>开启后浏览器会阻止设备自动熄屏；关闭页面或关闭开关后会释放屏幕唤醒锁。</span></section>
+    </div>
+  }
+
+  function renderShortcutSettings() {
+    function updateShortcut(action: MarkdownShortcutAction, event: KeyboardEvent<HTMLInputElement>) {
+      const next = shortcutFromKeyboardEvent(event.nativeEvent)
+      if (!next) return
+      event.preventDefault()
+      const conflict = MARKDOWN_SHORTCUT_ACTIONS.some(item => item.id !== action && sameShortcut(props.shortcutSettings[item.id], next))
+      if (conflict) {
+        setShortcutError('这个组合键已经分配给其他文字笔记操作。')
+        return
+      }
+      setShortcutError('')
+      props.onUpdateShortcutSettings({ ...props.shortcutSettings, [action]: next })
+    }
+
+    return <div className="settings-panel-stack">
+      <section className="settings-panel-card settings-panel-shortcuts-card">
+        <div className="settings-panel-card-heading"><span className="settings-panel-card-icon"><Keyboard size={18}/></span><div><strong>文字笔记快捷键</strong><small>点击输入框后直接按新的组合键</small></div></div>
+        <div className="settings-panel-shortcut-list" aria-label="文字笔记快捷键列表">
+          {MARKDOWN_SHORTCUT_ACTIONS.map(item => <label className="settings-panel-shortcut-row" key={item.id}><span><strong>{item.label}</strong><small>Markdown 编辑</small></span><input aria-label={`${item.label}快捷键`} value={formatShortcut(props.shortcutSettings[item.id])} readOnly onKeyDown={event => updateShortcut(item.id, event)}/></label>)}
+        </div>
+        {shortcutError && <p className="settings-panel-shortcut-error" role="alert">{shortcutError}</p>}
+        <div className="settings-panel-tag-actions"><button type="button" onClick={() => { setShortcutError(''); props.onResetShortcutSettings() }}><RotateCcw size={13}/>恢复默认快捷键</button><span>默认：{formatShortcut(DEFAULT_MARKDOWN_SHORTCUTS.bold)}、{formatShortcut(DEFAULT_MARKDOWN_SHORTCUTS.italic)}、{formatShortcut(DEFAULT_MARKDOWN_SHORTCUTS.inlineCode)}；列表为 {formatShortcut(DEFAULT_MARKDOWN_SHORTCUTS.orderedList)}、{formatShortcut(DEFAULT_MARKDOWN_SHORTCUTS.bulletList)}。</span></div>
+      </section>
+      <section className="settings-panel-info-card"><strong>其他固定快捷键</strong><span>Tab / Shift+Tab 调整列表层级；Enter 创建下一项；手写工具 1–5 切换工具；Ctrl/⌘+Z 撤销，Ctrl/⌘+Shift+Z 或 Ctrl+Y 重做。</span></section>
     </div>
   }
 
@@ -229,6 +263,7 @@ export default function SettingsPanel(props: Props) {
     if (activeSection === 'study') return renderStudySettings()
     if (activeSection === 'tags') return renderTagSettings()
     if (activeSection === 'focus') return renderFocusSettings()
+    if (activeSection === 'shortcuts') return renderShortcutSettings()
     if (activeSection === 'data') return renderDataSettings()
     return renderAboutSettings()
   }

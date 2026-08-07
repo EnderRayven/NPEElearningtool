@@ -1,4 +1,5 @@
 import type { PartBKind, Question, QuestionBank, QuestionStatus, ReadingQuestionType, Section, Subject } from './types'
+import type { EnglishTopicKey } from './englishNavigation'
 import { builtInBanks } from './data'
 import { isRetiredBankId, migrateZhangyuBankId, migrateZhangyuReference, RETIRED_1000_BASIC_BANK_ID, RETIRED_1000_INTENSIVE_BANK_ID, RETIRED_ZHANGYU_COMBINED_BANK_ID } from './bankMigration'
 
@@ -135,26 +136,54 @@ export interface NavigationState {
   page: 'study' | 'profile'
   profileBankId: string
   studyPositions: {
-    math?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
-    english?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
-    professional?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
+    math?: StoredNavigationPosition
+    english?: StoredNavigationPosition
+    professional?: StoredNavigationPosition
   }
   mathStudyPositions?: {
-    calculus?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
-    linear?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
-    exams?: Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>
+    calculus?: StoredNavigationPosition
+    linear?: StoredNavigationPosition
+    exams?: StoredNavigationPosition
   }
-  bankStudyPositions?: Record<string, Pick<NavigationState, 'bankId' | 'sectionId' | 'questionId' | 'view'>>
+  bankStudyPositions?: Record<string, StoredNavigationPosition>
+  englishPaperPositions?: Record<string, StoredNavigationPosition>
+  englishTopicPositions?: Record<string, StoredNavigationPosition>
+  englishNavigationMode?: 'paper' | 'topic'
+  englishTopic?: EnglishTopicKey
 }
+
+export interface StoredNavigationPosition {
+  bankId: string
+  sectionId: string
+  questionId: string
+  view: 'section' | 'wrong'
+  englishNavigationMode?: 'paper' | 'topic'
+  englishTopic?: EnglishTopicKey
+}
+
+const VALID_ENGLISH_TOPICS = new Set<EnglishTopicKey>(['cloze', 'reading', 'new-type', 'translation', 'writing'])
 
 function parseStudyPosition(value: unknown) {
   if (!isRecord(value) || typeof value.bankId !== 'string' || typeof value.sectionId !== 'string' || typeof value.questionId !== 'string') return undefined
-  return {
+  const position: StoredNavigationPosition = {
     bankId: migrateZhangyuBankId(value.bankId, value.sectionId, value.questionId),
     sectionId: migrateZhangyuReference(value.sectionId),
     questionId: migrateZhangyuReference(value.questionId),
     view: value.view === 'wrong' ? 'wrong' as const : 'section' as const,
   }
+  if (value.englishNavigationMode === 'paper' || value.englishNavigationMode === 'topic') position.englishNavigationMode = value.englishNavigationMode
+  if (typeof value.englishTopic === 'string' && VALID_ENGLISH_TOPICS.has(value.englishTopic as EnglishTopicKey)) position.englishTopic = value.englishTopic as EnglishTopicKey
+  return position
+}
+
+function parsePositionMap(value: unknown, preserveKeys = false) {
+  if (!isRecord(value)) return {}
+  return Object.fromEntries(Object.entries(value)
+    .map(([key, item]) => {
+      const position = parseStudyPosition(item)
+      return position ? [preserveKeys ? key : position.bankId, position] : undefined
+    })
+    .filter((entry): entry is [string, StoredNavigationPosition] => Boolean(entry)))
 }
 
 export function loadNavigation(): NavigationState | null {
@@ -176,6 +205,8 @@ export function loadNavigation(): NavigationState | null {
         professional: parseStudyPosition(value.studyPositions.professional),
       } : {},
     }
+    if (value.englishNavigationMode === 'paper' || value.englishNavigationMode === 'topic') migrated.englishNavigationMode = value.englishNavigationMode
+    if (typeof value.englishTopic === 'string' && VALID_ENGLISH_TOPICS.has(value.englishTopic as EnglishTopicKey)) migrated.englishTopic = value.englishTopic as EnglishTopicKey
     if (isRecord(value.mathStudyPositions)) {
       const mathStudyPositions = {
         calculus: parseStudyPosition(value.mathStudyPositions.calculus),
@@ -186,10 +217,13 @@ export function loadNavigation(): NavigationState | null {
       migrated.mathStudyPositions = mathStudyPositions
     }
     if (isRecord(value.bankStudyPositions)) {
-      migrated.bankStudyPositions = Object.fromEntries(Object.values(value.bankStudyPositions)
-        .map(parseStudyPosition)
-        .filter(position => position !== undefined)
-        .map(position => [position.bankId, position]))
+      migrated.bankStudyPositions = parsePositionMap(value.bankStudyPositions)
+    }
+    if (isRecord(value.englishPaperPositions)) {
+      migrated.englishPaperPositions = parsePositionMap(value.englishPaperPositions)
+    }
+    if (isRecord(value.englishTopicPositions)) {
+      migrated.englishTopicPositions = parsePositionMap(value.englishTopicPositions, true)
     }
     if (raw !== JSON.stringify(migrated)) trySetItem(NAVIGATION_KEY, JSON.stringify(migrated))
     return migrated

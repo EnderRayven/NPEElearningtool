@@ -1,16 +1,26 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type MutableRefObject, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
-import { ChevronDown, Circle, Eraser, Lasso, Maximize2, Minus, MoveUpRight, NotebookPen, Pencil, Redo2, Shapes, Square, Trash2, Triangle, Undo2, X } from 'lucide-react'
-import { DRAWING_BASE_HEIGHT, DRAWING_WIDTH, MAX_DRAWING_HEIGHT, emptyHandwritingDrawing, emptyQuestionNote, eraseHandwritingStrokes, hasQuestionNote, type HandwritingDrawing, type HandwritingPoint, type HandwritingShape, type HandwritingShapeLineStyle, type HandwritingStroke, type QuestionNote } from './questionNotes'
+import { ChevronDown, Circle, Eraser, Lasso, Lock, Maximize2, Minus, MoveUpRight, NotebookPen, Pencil, Redo2, Shapes, Square, Trash2, Triangle, Undo2, Unlock, X } from 'lucide-react'
+import { DRAWING_BASE_HEIGHT, DRAWING_WIDTH, MAX_DRAWING_HEIGHT, emptyHandwritingDrawing, emptyQuestionNote, eraseHandwritingStrokes, hasQuestionNote, preferredQuestionNoteDisplayMode, type HandwritingDrawing, type HandwritingPoint, type HandwritingShape, type HandwritingShapeLineStyle, type HandwritingStroke, type QuestionNote } from './questionNotes'
 import ConfirmDialog from './ConfirmDialog'
 import LassoDeleteIcon from './LassoDeleteIcon'
 import { copyHandwritingStrokes, readHandwritingStrokes } from './handwritingClipboard'
 import { loadHandwritingPreferences, saveHandwritingPreferences, type HandwritingPreferences } from './handwritingPreferences'
+import { MarkdownNoteEditor } from './MarkdownNote'
+import type { MarkdownShortcutSettings } from './shortcutSettings'
 
 interface QuestionNotePanelProps {
   questionId: string
   note?: QuestionNote
   onChange: (note: QuestionNote) => void
   initialOpen?: boolean
+  initialExpanded?: boolean
+  expandedOnly?: boolean
+  onExpandedClose?: () => void
+  open?: boolean
+  locked?: boolean
+  onOpenChange?: (open: boolean) => void
+  onLockedChange?: (locked: boolean) => void
+  markdownShortcuts?: MarkdownShortcutSettings
 }
 
 type CanvasTrimIntent = 'defer'
@@ -356,6 +366,55 @@ const translateStrokes = (strokes: HandwritingStroke[], selectedIds: Set<string>
 export const updateSelectedStrokeSize = (strokes: HandwritingStroke[], selectedIds: string[], size: number) => {
   const selected = new Set(selectedIds)
   return strokes.map(stroke => selected.has(stroke.id) ? { ...stroke, size } : stroke)
+}
+
+export const updateSelectedShapeLineStyle = (strokes: HandwritingStroke[], selectedIds: string[], lineStyle: HandwritingShapeLineStyle): HandwritingStroke[] => {
+  const selected = new Set(selectedIds)
+  return strokes.map(stroke => {
+    if (!selected.has(stroke.id) || !stroke.shape) return stroke
+    if (lineStyle === 'solid') {
+      const { shapeLineStyle: _shapeLineStyle, ...withoutLineStyle } = stroke
+      return withoutLineStyle
+    }
+    return { ...stroke, shapeLineStyle: lineStyle }
+  })
+}
+
+export const updateSelectedShapeFill = (
+  strokes: HandwritingStroke[],
+  selectedIds: string[],
+  fill: boolean,
+  fillColor: string,
+  fillOpacity: number,
+): HandwritingStroke[] => {
+  const selected = new Set(selectedIds)
+  return strokes.map(stroke => {
+    if (!selected.has(stroke.id) || !stroke.shape || stroke.shape === 'line' || stroke.shape === 'arrow') return stroke
+    if (!fill) {
+      const { shapeFill: _shapeFill, shapeFillColor: _shapeFillColor, shapeFillOpacity: _shapeFillOpacity, ...withoutFill } = stroke
+      return withoutFill
+    }
+    return {
+      ...stroke,
+      shapeFill: true,
+      shapeFillColor: fillColor,
+      shapeFillOpacity: clamp(fillOpacity, 0, 1),
+    }
+  })
+}
+
+export const updateSelectedShapeFillColor = (strokes: HandwritingStroke[], selectedIds: string[], fillColor: string) => {
+  const selected = new Set(selectedIds)
+  return strokes.map(stroke => selected.has(stroke.id) && stroke.shape && stroke.shape !== 'line' && stroke.shape !== 'arrow' && stroke.shapeFill
+    ? { ...stroke, shapeFillColor: fillColor }
+    : stroke)
+}
+
+export const updateSelectedShapeFillOpacity = (strokes: HandwritingStroke[], selectedIds: string[], fillOpacity: number) => {
+  const selected = new Set(selectedIds)
+  return strokes.map(stroke => selected.has(stroke.id) && stroke.shape && stroke.shape !== 'line' && stroke.shape !== 'arrow' && stroke.shapeFill
+    ? { ...stroke, shapeFillOpacity: clamp(fillOpacity, 0, 1) }
+    : stroke)
 }
 
 const fitSelectedStrokesToCanvas = (strokes: HandwritingStroke[], selectedIds: Set<string>, maxY: number) => {
@@ -1244,6 +1303,29 @@ function HandwritingEditor(props: HandwritingEditorProps) {
   const [selectedStrokeIds, setSelectedStrokeIds] = useState<string[]>([])
   const [sizePickerOpen, setSizePickerOpen] = useState(false)
   const [shapePickerOpen, setShapePickerOpen] = useState(false)
+  const preserveShapePickerRef = useRef(false)
+  const selectedShapes = props.drawing.strokes.filter(stroke => selectedStrokeIds.includes(stroke.id) && stroke.shape)
+  const selectedShapeIds = selectedShapes.map(stroke => stroke.id)
+  const selectedLineStyles = selectedShapes.map(stroke => stroke.shapeLineStyle || 'solid')
+  const selectedShapeLineStyle = selectedLineStyles.length && selectedLineStyles.every(lineStyle => lineStyle === selectedLineStyles[0])
+    ? selectedLineStyles[0]
+    : props.shapeLineStyle
+  const selectedFillValues = selectedShapes.map(stroke => stroke.shapeFill === true)
+  const selectedShapeFill = selectedFillValues.length && selectedFillValues.every(fill => fill === selectedFillValues[0])
+    ? selectedFillValues[0]
+    : props.shapeFill
+  const selectedFilledShapes = selectedShapes.filter(stroke => stroke.shapeFill === true)
+  const selectedFillColors = selectedFilledShapes.map(stroke => stroke.shapeFillColor || props.shapeFillColor)
+  const selectedShapeFillColor = selectedFillColors.length && selectedFillColors.every(fillColor => fillColor === selectedFillColors[0])
+    ? selectedFillColors[0]
+    : props.shapeFillColor
+  const selectedFillOpacities = selectedFilledShapes.map(stroke => stroke.shapeFillOpacity ?? props.shapeFillOpacity)
+  const selectedShapeFillOpacity = selectedFillOpacities.length && selectedFillOpacities.every(fillOpacity => fillOpacity === selectedFillOpacities[0])
+    ? selectedFillOpacities[0]
+    : props.shapeFillOpacity
+  const shapeFillDisabled = selectedStrokeIds.length > 0
+    ? !selectedShapes.some(stroke => stroke.shape !== 'line' && stroke.shape !== 'arrow')
+    : props.shape === 'line' || props.shape === 'arrow'
 
   useEffect(() => {
     editorRef.current?.focus({ preventScroll: true })
@@ -1253,7 +1335,9 @@ function HandwritingEditor(props: HandwritingEditorProps) {
     const drawingIds = new Set(props.drawing.strokes.map(stroke => stroke.id))
     setSelectedStrokeIds(previous => previous.filter(id => drawingIds.has(id)))
     setSizePickerOpen(false)
-    setShapePickerOpen(false)
+    const preserveShapePicker = preserveShapePickerRef.current
+    preserveShapePickerRef.current = false
+    if (!preserveShapePicker) setShapePickerOpen(false)
   }, [props.drawing])
 
   useEffect(() => {
@@ -1277,7 +1361,7 @@ function HandwritingEditor(props: HandwritingEditorProps) {
 
   const selectTool = (tool: HandwritingTool) => {
     props.onToolChange(tool)
-    if (tool !== 'lasso') setSelectedStrokeIds(previous => previous.length ? [] : previous)
+    if (tool !== 'lasso' && !(tool === 'shape' && selectedShapeIds.length)) setSelectedStrokeIds(previous => previous.length ? [] : previous)
     if (tool !== 'shape') setShapePickerOpen(false)
   }
 
@@ -1299,6 +1383,40 @@ function HandwritingEditor(props: HandwritingEditorProps) {
     if (!selectedStrokeIds.length) return
     const nextStrokes = updateSelectedStrokeSize(props.drawing.strokes, selectedStrokeIds, nextSize)
     if (nextStrokes.some((stroke, index) => stroke.size !== props.drawing.strokes[index]?.size)) props.onCommit({ ...props.drawing, strokes: nextStrokes })
+  }
+
+  const commitSelectedShapeAppearance = (nextStrokes: HandwritingStroke[]) => {
+    if (!nextStrokes.some((stroke, index) => stroke !== props.drawing.strokes[index])) return
+    preserveShapePickerRef.current = true
+    props.onCommit({ ...props.drawing, strokes: nextStrokes })
+  }
+
+  const applyShapeLineStyle = (nextLineStyle: HandwritingShapeLineStyle) => {
+    props.onShapeLineStyleChange(nextLineStyle)
+    if (!selectedShapeIds.length) return
+    const nextStrokes = updateSelectedShapeLineStyle(props.drawing.strokes, selectedShapeIds, nextLineStyle)
+    commitSelectedShapeAppearance(nextStrokes)
+  }
+
+  const applyShapeFill = (nextFill: boolean) => {
+    props.onShapeFillChange(nextFill)
+    if (!selectedShapeIds.length) return
+    const nextStrokes = updateSelectedShapeFill(props.drawing.strokes, selectedShapeIds, nextFill, selectedShapeFillColor, selectedShapeFillOpacity)
+    commitSelectedShapeAppearance(nextStrokes)
+  }
+
+  const applyShapeFillColor = (nextFillColor: string) => {
+    props.onShapeFillColorChange(nextFillColor)
+    if (!selectedShapeIds.length) return
+    const nextStrokes = updateSelectedShapeFillColor(props.drawing.strokes, selectedShapeIds, nextFillColor)
+    commitSelectedShapeAppearance(nextStrokes)
+  }
+
+  const applyShapeFillOpacity = (nextFillOpacity: number) => {
+    props.onShapeFillOpacityChange(nextFillOpacity)
+    if (!selectedShapeIds.length) return
+    const nextStrokes = updateSelectedShapeFillOpacity(props.drawing.strokes, selectedShapeIds, nextFillOpacity)
+    commitSelectedShapeAppearance(nextStrokes)
   }
 
   const copySelection = () => {
@@ -1412,12 +1530,12 @@ function HandwritingEditor(props: HandwritingEditorProps) {
             <div className="handwriting-shape-line-options" role="group" aria-label="边框线形">
               {(['solid', 'dashed', 'dotted'] as HandwritingShapeLineStyle[]).map(lineStyle => {
                 const label = lineStyle === 'solid' ? '实线' : lineStyle === 'dashed' ? '虚线' : '点线'
-                return <button key={lineStyle} type="button" aria-label={label} title={label} aria-pressed={props.shapeLineStyle === lineStyle} className={props.shapeLineStyle === lineStyle ? 'selected' : ''} onClick={() => props.onShapeLineStyleChange(lineStyle)}><ShapeLineStyleIcon lineStyle={lineStyle}/></button>
+                return <button key={lineStyle} type="button" aria-label={label} title={label} aria-pressed={selectedShapeLineStyle === lineStyle} className={selectedShapeLineStyle === lineStyle ? 'selected' : ''} onClick={() => applyShapeLineStyle(lineStyle)}><ShapeLineStyleIcon lineStyle={lineStyle}/></button>
               })}
             </div>
             <div className="handwriting-shape-fill-options" role="group" aria-label="图形填充">
-              <button type="button" aria-label="无填充" title="无填充" aria-pressed={!props.shapeFill} className={!props.shapeFill ? 'selected' : ''} disabled={props.shape === 'line' || props.shape === 'arrow'} onClick={() => props.onShapeFillChange(false)}><ShapeFillIcon filled={false}/></button>
-              <button type="button" aria-label="半透明填充" title="半透明填充" aria-pressed={props.shapeFill} className={props.shapeFill ? 'selected' : ''} disabled={props.shape === 'line' || props.shape === 'arrow'} onClick={() => props.onShapeFillChange(true)}><ShapeFillIcon filled/></button>
+              <button type="button" aria-label="无填充" title="无填充" aria-pressed={!selectedShapeFill} className={!selectedShapeFill ? 'selected' : ''} disabled={shapeFillDisabled} onClick={() => applyShapeFill(false)}><ShapeFillIcon filled={false}/></button>
+              <button type="button" aria-label="半透明填充" title="半透明填充" aria-pressed={selectedShapeFill} className={selectedShapeFill ? 'selected' : ''} disabled={shapeFillDisabled} onClick={() => applyShapeFill(true)}><ShapeFillIcon filled/></button>
             </div>
           </div>
           <div className="handwriting-shape-fill-controls">
@@ -1428,21 +1546,21 @@ function HandwritingEditor(props: HandwritingEditorProps) {
                   type="button"
                   aria-label={`填充${item.label}`}
                   title={item.label}
-                  aria-pressed={props.shapeFillColor.toLowerCase() === item.value}
-                  className={props.shapeFillColor.toLowerCase() === item.value ? 'selected' : ''}
+                  aria-pressed={selectedShapeFillColor.toLowerCase() === item.value}
+                  className={selectedShapeFillColor.toLowerCase() === item.value ? 'selected' : ''}
                   style={{ '--shape-fill-color': item.value } as CSSProperties}
-                  disabled={props.shape === 'line' || props.shape === 'arrow' || !props.shapeFill}
-                  onClick={() => props.onShapeFillColorChange(item.value)}
+                  disabled={shapeFillDisabled || !selectedShapeFill}
+                  onClick={() => applyShapeFillColor(item.value)}
                 />)}
               </div>
-              <label className={`handwriting-shape-fill-color ${COMMON_INK_COLORS.some(item => item.value === props.shapeFillColor.toLowerCase()) ? '' : 'selected'}`} title="自定义填充颜色">
-                <input aria-label="自定义填充颜色" type="color" value={props.shapeFillColor} disabled={props.shape === 'line' || props.shape === 'arrow' || !props.shapeFill} onChange={event => props.onShapeFillColorChange(event.target.value)}/>
+              <label className={`handwriting-shape-fill-color ${COMMON_INK_COLORS.some(item => item.value === selectedShapeFillColor.toLowerCase()) ? '' : 'selected'}`} title="自定义填充颜色">
+                <input aria-label="自定义填充颜色" type="color" value={selectedShapeFillColor} disabled={shapeFillDisabled || !selectedShapeFill} onChange={event => applyShapeFillColor(event.target.value)}/>
               </label>
             </div>
             <div className="handwriting-shape-opacity-controls">
               <ShapeOpacityIcon/>
-              <input aria-label="填充透明度" title="填充透明度" type="range" min="0" max="100" value={Math.round(props.shapeFillOpacity * 100)} disabled={props.shape === 'line' || props.shape === 'arrow' || !props.shapeFill} onChange={event => props.onShapeFillOpacityChange(Number(event.target.value) / 100)}/>
-              <output aria-label={`当前填充透明度 ${Math.round(props.shapeFillOpacity * 100)}%`}>{Math.round(props.shapeFillOpacity * 100)}%</output>
+              <input aria-label="填充透明度" title="填充透明度" type="range" min="0" max="100" value={Math.round(selectedShapeFillOpacity * 100)} disabled={shapeFillDisabled || !selectedShapeFill} onChange={event => applyShapeFillOpacity(Number(event.target.value) / 100)}/>
+              <output aria-label={`当前填充透明度 ${Math.round(selectedShapeFillOpacity * 100)}%`}>{Math.round(selectedShapeFillOpacity * 100)}%</output>
             </div>
           </div>
         </div>}
@@ -1490,7 +1608,7 @@ function HandwritingEditor(props: HandwritingEditorProps) {
   </div>
 }
 
-function ExpandedHandwritingDialog({ editor, onClose }: { editor: ReactNode; onClose: () => void }) {
+function ExpandedHandwritingDialog({ title, editor, onClose }: { title: string; editor: ReactNode; onClose: () => void }) {
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -1510,19 +1628,20 @@ function ExpandedHandwritingDialog({ editor, onClose }: { editor: ReactNode; onC
 
   return <div className="handwriting-dialog-backdrop" role="presentation" onPointerDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <section className="handwriting-dialog" role="dialog" aria-modal="true" aria-labelledby="handwriting-dialog-title">
-      <header><div><span>HANDWRITING NOTE</span><h2 id="handwriting-dialog-title">手写笔记</h2></div><button aria-label="完成并关闭" onClick={onClose}><X size={19}/><span>完成</span></button></header>
+      <header><div><span>{title === '手写笔记' ? 'HANDWRITING NOTE' : 'MARKDOWN NOTE'}</span><h2 id="handwriting-dialog-title">{title}</h2></div><button aria-label="完成并关闭" onClick={onClose}><X size={19}/><span>完成</span></button></header>
       {editor}
     </section>
   </div>
 }
 
-export default function QuestionNotePanel({ questionId, note, onChange, initialOpen = false }: QuestionNotePanelProps) {
+export default function QuestionNotePanel({ questionId, note, onChange, initialOpen = false, initialExpanded = false, expandedOnly = false, onExpandedClose, open, locked, onOpenChange, onLockedChange, markdownShortcuts }: QuestionNotePanelProps) {
   const value = note || EMPTY_NOTE
   const drawing = value.drawing || emptyHandwritingDrawing()
   const notePanelRef = useRef<HTMLElement | null>(null)
-  const [open, setOpen] = useState(false)
-  const [mode, setMode] = useState<'text' | 'handwriting'>('handwriting')
-  const [expanded, setExpanded] = useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(initialOpen)
+  const [uncontrolledLocked, setUncontrolledLocked] = useState(false)
+  const [mode, setMode] = useState<'text' | 'handwriting'>(() => preferredQuestionNoteDisplayMode(note))
+  const [expanded, setExpanded] = useState(initialExpanded)
   const [tool, setTool] = useState<HandwritingTool>('pen')
   const [shapePreferences, setShapePreferences] = useState(loadHandwritingPreferences)
   const { shape, shapeLineStyle, shapeFill, shapeFillColor, shapeFillOpacity } = shapePreferences
@@ -1532,15 +1651,18 @@ export default function QuestionNotePanel({ questionId, note, onChange, initialO
   const [future, setFuture] = useState<HandwritingDrawing[]>([])
   const [clearPending, setClearPending] = useState(false)
   const [canvasTrimPending, setCanvasTrimPending] = useState(false)
+  const isOpen = open ?? uncontrolledOpen
+  const isLocked = locked ?? uncontrolledLocked
 
   useEffect(() => {
-    setMode('handwriting')
-    setExpanded(false)
-    setOpen(initialOpen)
+    setMode(preferredQuestionNoteDisplayMode(note))
+    setExpanded(initialExpanded)
+    setUncontrolledOpen(initialOpen)
+    setUncontrolledLocked(false)
     setPast([])
     setFuture([])
     setCanvasTrimPending(false)
-  }, [initialOpen, questionId])
+  }, [initialExpanded, initialOpen, questionId])
 
   useEffect(() => {
     saveHandwritingPreferences(shapePreferences)
@@ -1609,6 +1731,19 @@ export default function QuestionNotePanel({ questionId, note, onChange, initialO
     setCanvasTrimPending(false)
     setClearPending(false)
   }
+  const setPanelOpen = (next: boolean) => {
+    if (open === undefined) setUncontrolledOpen(next)
+    onOpenChange?.(next)
+    if (next) setMode(preferredQuestionNoteDisplayMode(note))
+  }
+  const setPanelLocked = (next: boolean) => {
+    if (locked === undefined) setUncontrolledLocked(next)
+    onLockedChange?.(next)
+  }
+  const closeExpanded = () => {
+    setExpanded(false)
+    onExpandedClose?.()
+  }
   const editorProps = {
     drawing,
     tool,
@@ -1641,24 +1776,28 @@ export default function QuestionNotePanel({ questionId, note, onChange, initialO
   }
 
   return <section ref={notePanelRef} className="question-note-section">
-    <button className="passage-answer-toggle question-note-toggle" aria-expanded={open} onClick={() => setOpen(previous => {
-      const next = !previous
-      if (next) setMode('handwriting')
-      return next
-    })}>
-      <NotebookPen size={17}/>{open ? '收起笔记' : '查看与编辑笔记'}{hasQuestionNote(note) && <em>已保存</em>}<ChevronDown className={open ? 'rotated' : ''} size={16}/>
-    </button>
-    {open && <div className="question-note-panel">
+    {!expandedOnly && <div className="answer-toggle-shell question-note-toggle-shell">
+      <button className={isOpen ? 'passage-answer-toggle question-note-toggle has-note-lock' : 'passage-answer-toggle question-note-toggle'} aria-expanded={isOpen} onClick={() => setPanelOpen(!isOpen)}>
+        <span className="question-note-toggle-content"><NotebookPen size={17}/><span>{isOpen ? '收起笔记' : '查看与编辑笔记'}</span><ChevronDown className={isOpen ? 'rotated' : ''} size={16}/></span>
+        {hasQuestionNote(note) && <em>已保存</em>}
+      </button>
+      {isOpen && <button type="button" className={isLocked ? 'answer-lock-toggle active' : 'answer-lock-toggle'} aria-label={isLocked ? '取消锁定笔记' : '锁定笔记，切题时保持当前展开状态'} aria-pressed={isLocked} title={isLocked ? '已锁定，切题时笔记保持展开' : '锁定后切题不再自动折叠'} onClick={() => setPanelLocked(!isLocked)}>
+        {isLocked ? <Lock size={14}/> : <Unlock size={14}/>}<span>{isLocked ? '已锁定' : '锁定'}</span>
+      </button>}
+    </div>}
+    {!expandedOnly && isOpen && <div className="question-note-panel">
       <div className="question-note-tabs" role="tablist" aria-label="笔记类型">
         <button role="tab" aria-selected={mode === 'handwriting'} className={mode === 'handwriting' ? 'active' : ''} onClick={() => setMode('handwriting')}>手写笔记</button>
         <button role="tab" aria-selected={mode === 'text'} className={mode === 'text' ? 'active' : ''} onClick={() => setMode('text')}>文字笔记</button>
         <small>{value.updatedAt ? '已保存' : '自动保存'}</small>
       </div>
       {mode === 'text'
-        ? <textarea aria-label="文字笔记" value={value.text} onChange={event => change({ text: event.target.value })} placeholder="记录思路、易错点、公式或复习提醒……"/>
+        ? <MarkdownNoteEditor key={`text-${questionId}`} value={value.text} shortcuts={markdownShortcuts} onChange={text => change({ text })}/>
         : <HandwritingEditor {...editorProps} onExpand={() => setExpanded(true)}/>}
     </div>}
-    {expanded && <ExpandedHandwritingDialog onClose={() => setExpanded(false)} editor={<HandwritingEditor {...editorProps} expanded/>}/>}
+    {expanded && <ExpandedHandwritingDialog title={mode === 'text' ? '文字笔记' : '手写笔记'} onClose={closeExpanded} editor={mode === 'text'
+      ? <MarkdownNoteEditor key={`expanded-text-${questionId}`} value={value.text} shortcuts={markdownShortcuts} onChange={text => change({ text })} expanded/>
+      : <HandwritingEditor {...editorProps} expanded/>}/>}
     {clearPending && <ConfirmDialog title="清空这道题的手写笔记？" description="本题的全部手写笔迹将被删除，但可以使用撤销恢复。" onConfirm={confirmClear} onCancel={() => setClearPending(false)}/>}
   </section>
 }

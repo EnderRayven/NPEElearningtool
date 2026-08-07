@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import payload from '../默认题库/题库数据.json'
 import type { QuestionBank } from './types'
-import { resolveNavigation, resolveProfileBankId } from './navigationRestore'
+import { resolveEnglishTopicNavigation, resolveNavigation, resolveProfileBankId } from './navigationRestore'
 
 const bank: QuestionBank = { id: 'math', name: '数学', source: 'local', chapters: [{ id: 'chapter', name: '章', sections: [
   { id: 'first-section', name: '第一节', questions: [{ id: 'q1', number: 1, text: '1', answer: '1', analysis: '1' }] },
@@ -27,6 +28,20 @@ describe('navigation restore', () => {
 
   it('falls back to the first question if the saved question no longer exists', () => {
     expect(resolveNavigation([bank], {}, { bankId: 'math', sectionId: 'saved-section', questionId: 'missing', view: 'section' })?.questionIndex).toBe(0)
+  })
+
+  it('restores an English topic question using the topic-relative index', () => {
+    const english = (payload.banks as unknown as QuestionBank[]).find(item => item.id === 'english-exams')!
+    const text2 = english.chapters.find(chapter => chapter.id === 'english-exams-2005')!.sections.find(section => section.name.includes('Text 2'))!
+    const question = text2.questions[0]
+    expect(resolveEnglishTopicNavigation(english, {
+      bankId: english.id,
+      sectionId: text2.id,
+      questionId: question.id,
+      view: 'section',
+      englishNavigationMode: 'topic',
+      englishTopic: 'reading',
+    })).toEqual({ chapterId: 'english-exams-2005', sectionId: text2.id, questionIndex: 5 })
   })
 
   it('restores the selected profile bank and migrates old English ids', () => {

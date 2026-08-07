@@ -1,7 +1,7 @@
 {
   "version": 2,
   "builtinEnglishVersion": 7,
-  "updatedAt": "2026-08-04T13:40:45.304Z",
+  "updatedAt": "2026-08-07T10:38:26.326Z",
   "banks": [
     {
       "id": "workspace-1783924545931-2",
@@ -87857,6 +87857,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-01/answer/1-A-01-1-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -87870,6 +87873,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-02/answer/1-A-01-1-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -87883,6 +87889,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-03/answer/1-A-01-1-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -87897,6 +87906,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-04/answer/1-A-01-1-04.1.png",
                     "default-math-1000a-calculus-01-1-04/answer/2-A-01-1-04.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -87911,6 +87923,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-05/answer/1-A-01-1-05.1.png",
                     "default-math-1000a-calculus-01-1-05/answer/2-A-01-1-05.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -87925,6 +87940,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-06/answer/1-A-01-1-06.1.png",
                     "default-math-1000a-calculus-01-1-06/answer/2-A-01-1-06.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -87938,6 +87956,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-07/answer/1-A-01-1-07.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -87951,6 +87972,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-08/answer/1-A-01-1-08.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -87964,6 +87988,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-09/answer/1-A-01-1-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -87977,6 +88004,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-10/answer/1-A-01-1-10.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -87991,6 +88021,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-11/answer/1-A-01-1-11.1.png",
                     "default-math-1000a-calculus-01-1-11/answer/2-A-01-1-11.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88004,6 +88037,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-12/answer/1-A-01-1-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88017,6 +88053,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-13/answer/1-A-01-1-13.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88031,6 +88070,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-14/answer/1-A-01-1-14.1.png",
                     "default-math-1000a-calculus-01-1-14/answer/2-A-01-1-14.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88044,6 +88086,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-15/answer/1-A-01-1-15.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88057,6 +88102,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-1-16/answer/1-A-01-1-16.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -88092,6 +88140,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-02/answer/1-A-01-2-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88105,6 +88156,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-03/answer/1-A-01-2-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88134,6 +88188,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-05/answer/1-A-01-2-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88148,6 +88205,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-06/answer/1-A-01-2-06.1.png",
                     "default-math-1000a-calculus-01-2-06/answer/2-A-01-2-06.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88161,6 +88221,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-07/answer/1-A-01-2-07.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88174,6 +88237,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-08/answer/1-A-01-2-08.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88187,6 +88253,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-09/answer/1-A-01-2-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88200,6 +88269,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-10/answer/1-A-01-2-10.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88214,6 +88286,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-11/answer/1-A-01-2-11.1.png",
                     "default-math-1000a-calculus-01-2-11/answer/2-A-01-2-11.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88227,6 +88302,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-12/answer/1-A-01-2-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88240,6 +88318,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-13/answer/1-A-01-2-13.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88253,6 +88334,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-14/answer/1-A-01-2-14.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88266,6 +88350,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-15/answer/1-A-01-2-15.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88279,6 +88366,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-16/answer/1-A-01-2-16.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88292,6 +88382,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-17/answer/1-A-01-2-17.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88306,6 +88399,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-18/answer/1-A-01-2-18.1.png",
                     "default-math-1000a-calculus-01-2-18/answer/2-A-01-2-18.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88319,6 +88415,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-19/answer/1-A-01-2-19.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88332,6 +88431,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-20/answer/1-A-01-2-20.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88346,6 +88448,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-21/answer/1-A-01-2-21.1.png",
                     "default-math-1000a-calculus-01-2-21/answer/2-A-01-2-21.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88359,6 +88464,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-22/answer/1-A-01-2-22.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88372,6 +88480,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-2-23/answer/1-A-01-2-23.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -88391,6 +88502,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-01/answer/1-A-01-3-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88404,6 +88518,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-02/answer/1-A-01-3-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88417,6 +88534,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-03/answer/1-A-01-3-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88431,6 +88551,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-04/answer/1-A-01-3-04.1.png",
                     "default-math-1000a-calculus-01-3-04/answer/2-A-01-3-04.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88444,6 +88567,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-05/answer/1-A-01-3-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88457,6 +88583,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-06/answer/1-A-01-3-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88470,6 +88599,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-07/answer/1-A-01-3-07.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88484,6 +88616,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-08/answer/1-A-01-3-08.1.png",
                     "default-math-1000a-calculus-01-3-08/answer/2-A-01-3-08.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88497,6 +88632,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-09/answer/1-A-01-3-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88510,6 +88648,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-10/answer/1-A-01-3-10.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88539,6 +88680,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-3-12/answer/1-A-01-3-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -88558,6 +88702,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-01/answer/1-A-01-4-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88571,6 +88718,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-02/answer/1-A-01-4-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88585,6 +88735,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-03/answer/1-A-01-4-03.1.png",
                     "default-math-1000a-calculus-01-4-03/answer/2-A-01-4-03.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88598,6 +88751,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-04/answer/1-A-01-4-04.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88611,6 +88767,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-05/answer/1-A-01-4-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88624,6 +88783,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-06/answer/1-A-01-4-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88638,6 +88800,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-07/answer/1-A-01-4-07.1.png",
                     "default-math-1000a-calculus-01-4-07/answer/2-A-01-4-07.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88651,6 +88816,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-08/answer/1-A-01-4-08.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88664,6 +88832,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-09/answer/1-A-01-4-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88677,6 +88848,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-10/answer/1-A-01-4-10.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88691,6 +88865,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-11/answer/1-A-01-4-11.1.png",
                     "default-math-1000a-calculus-01-4-11/answer/2-A-01-4-11.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88704,6 +88881,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-12/answer/1-A-01-4-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88734,6 +88914,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-14/answer/1-A-01-4-14.1.png",
                     "default-math-1000a-calculus-01-4-14/answer/2-A-01-4-14.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88748,6 +88931,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-4-15/answer/1-A-01-4-15.1.png",
                     "default-math-1000a-calculus-01-4-15/answer/2-A-01-4-15.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -88767,6 +88953,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-01/answer/1-A-01-5-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88780,6 +88969,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-02/answer/1-A-01-5-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88793,6 +88985,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-03/answer/1-A-01-5-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88807,6 +89002,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-04/answer/1-A-01-5-04.1.png",
                     "default-math-1000a-calculus-01-5-04/answer/2-A-01-5-04.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88820,6 +89018,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-05/answer/1-A-01-5-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88833,6 +89034,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-06/answer/1-A-01-5-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88846,6 +89050,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-07/answer/1-A-01-5-07.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88876,6 +89083,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-09/answer/1-A-01-5-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88906,6 +89116,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-11/answer/1-A-01-5-11.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88935,6 +89148,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-13/answer/1-A-01-5-13.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88949,6 +89165,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-14/answer/1-A-01-5-14.1.png",
                     "default-math-1000a-calculus-01-5-14/answer/2-A-01-5-14.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88962,6 +89181,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-15/answer/1-A-01-5-15.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88975,6 +89197,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-16/answer/1-A-01-5-16.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -88988,6 +89213,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-17/answer/1-A-01-5-17.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89001,6 +89229,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-5-18/answer/1-A-01-5-18.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -89020,6 +89251,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-01/answer/1-A-01-6-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89033,6 +89267,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-02/answer/1-A-01-6-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89046,6 +89283,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-03/answer/1-A-01-6-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89059,6 +89299,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-04/answer/1-A-01-6-04.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89072,6 +89315,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-05/answer/1-A-01-6-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89085,6 +89331,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-06/answer/1-A-01-6-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89098,6 +89347,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-07/answer/1-A-01-6-07.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89111,6 +89363,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-08/answer/1-A-01-6-08.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89124,6 +89379,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-09/answer/1-A-01-6-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89138,6 +89396,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-10/answer/1-A-01-6-10.1.png",
                     "default-math-1000a-calculus-01-6-10/answer/2-A-01-6-10.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89151,6 +89412,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-11/answer/1-A-01-6-11.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89164,6 +89428,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-12/answer/1-A-01-6-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89177,6 +89444,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-13/answer/1-A-01-6-13.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89190,6 +89460,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-14/answer/1-A-01-6-14.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89219,6 +89492,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-16/answer/1-A-01-6-16.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89232,6 +89508,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-17/answer/1-A-01-6-17.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89262,6 +89541,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-19/answer/1-A-01-6-19.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89275,6 +89557,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-20/answer/1-A-01-6-20.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89304,6 +89589,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-22/answer/1-A-01-6-22.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89319,6 +89607,9 @@
                     "default-math-1000a-calculus-01-6-23/answer/1-A-01-6-23.1.png",
                     "default-math-1000a-calculus-01-6-23/answer/2-A-01-6-23.2.png",
                     "default-math-1000a-calculus-01-6-23/answer/3-A-01-6-23.3.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89332,6 +89623,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-6-24/answer/1-A-01-6-24.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -89351,6 +89645,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-01/answer/1-A-01-7-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89364,6 +89661,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-02/answer/1-A-01-7-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89378,6 +89678,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-03/answer/1-A-01-7-03.1.png",
                     "default-math-1000a-calculus-01-7-03/answer/2-A-01-7-03.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89391,6 +89694,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-04/answer/1-A-01-7-04.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89404,6 +89710,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-05/answer/1-A-01-7-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89417,6 +89726,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-06/answer/1-A-01-7-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89447,6 +89759,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-08/answer/1-A-01-7-08.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89460,6 +89775,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-09/answer/1-A-01-7-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89474,6 +89792,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-10/answer/1-A-01-7-10.1.png",
                     "default-math-1000a-calculus-01-7-10/answer/2-A-01-7-10.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89487,6 +89808,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-11/answer/1-A-01-7-11.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89500,6 +89824,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-12/answer/1-A-01-7-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89513,6 +89840,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-13/answer/1-A-01-7-13.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89527,6 +89857,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-14/answer/1-A-01-7-14.1.png",
                     "default-math-1000a-calculus-01-7-14/answer/2-A-01-7-14.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89573,6 +89906,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-17/answer/1-A-01-7-17.1.png",
                     "default-math-1000a-calculus-01-7-17/answer/2-A-01-7-17.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89586,6 +89922,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-18/answer/1-A-01-7-18.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89616,6 +89955,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-20/answer/1-A-01-7-20.1.png",
                     "default-math-1000a-calculus-01-7-20/answer/2-A-01-7-20.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89629,6 +89971,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-21/answer/1-A-01-7-21.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89642,6 +89987,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-7-22/answer/1-A-01-7-22.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -89661,6 +90009,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-8-01/answer/1-A-01-8-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89690,6 +90041,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-8-03/answer/1-A-01-8-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89703,6 +90057,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-8-04/answer/1-A-01-8-04.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89716,6 +90073,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-8-05/answer/1-A-01-8-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -89738,6 +90098,9 @@
                     "default-math-1000a-calculus-01-9-01/answer/2-A-01-9-01.2.png",
                     "default-math-1000a-calculus-01-9-01/answer/3-A-01-9-01.3.png",
                     "default-math-1000a-calculus-01-9-01/answer/4-A-01-9-01.4.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89751,6 +90114,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-02/answer/1-A-01-9-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89780,6 +90146,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-04/answer/1-A-01-9-04.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89794,6 +90163,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-05/answer/1-A-01-9-05.1.png",
                     "default-math-1000a-calculus-01-9-05/answer/2-A-01-9-05.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89807,6 +90179,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-06/answer/1-A-01-9-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89820,6 +90195,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-07/answer/1-A-01-9-07.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89833,6 +90211,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-08/answer/1-A-01-9-08.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89846,6 +90227,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-09/answer/1-A-01-9-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89859,6 +90243,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-10/answer/1-A-01-9-10.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89874,6 +90261,9 @@
                     "default-math-1000a-calculus-01-9-11/answer/1-A-01-9-11.1.png",
                     "default-math-1000a-calculus-01-9-11/answer/2-A-01-9-11.2.png",
                     "default-math-1000a-calculus-01-9-11/answer/3-A-01-9-11.3.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89888,6 +90278,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-12/answer/1-A-01-9-12.1.png",
                     "default-math-1000a-calculus-01-9-12/answer/2-A-01-9-12.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89901,6 +90294,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-13/answer/1-A-01-9-13.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89915,6 +90311,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-14/answer/1-A-01-9-14.1.png",
                     "default-math-1000a-calculus-01-9-14/answer/2-A-01-9-14.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89928,6 +90327,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-15/answer/1-A-01-9-15.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89941,6 +90343,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-16/answer/1-A-01-9-16.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89970,6 +90375,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-18/answer/1-A-01-9-18.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -89983,6 +90391,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-19/answer/1-A-01-9-19.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90013,6 +90424,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-21/answer/1-A-01-9-21.1.png",
                     "default-math-1000a-calculus-01-9-21/answer/2-A-01-9-21.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90026,6 +90440,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-22/answer/1-A-01-9-22.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90040,6 +90457,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-23/answer/1-A-01-9-23.1.png",
                     "default-math-1000a-calculus-01-9-23/answer/2-A-01-9-23.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90053,6 +90473,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-24/answer/1-A-01-9-24.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90066,6 +90489,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-9-25/answer/1-A-01-9-25.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -90138,6 +90564,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-02/answer/1-A-01-10-02.1.png",
                     "default-math-1000a-calculus-01-10-02/answer/2-A-01-10-02.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90151,6 +90580,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-03/answer/1-A-01-10-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90164,6 +90596,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-04/answer/1-A-01-10-04.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90177,6 +90612,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-05/answer/1-A-01-10-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90190,6 +90628,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-06/answer/1-A-01-10-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90203,6 +90644,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-07/answer/1-A-01-10-07.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90233,6 +90677,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-09/answer/1-A-01-10-09.1.png",
                     "default-math-1000a-calculus-01-10-09/answer/2-A-01-10-09.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90246,6 +90693,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-10/answer/1-A-01-10-10.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90259,6 +90709,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-11/answer/1-A-01-10-11.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90272,6 +90725,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-12/answer/1-A-01-10-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90286,6 +90742,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-13/answer/1-A-01-10-13.1.png",
                     "default-math-1000a-calculus-01-10-13/answer/2-A-01-10-13.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90299,6 +90758,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-14/answer/1-A-01-10-14.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90313,6 +90775,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-15/answer/1-A-01-10-15.1.png",
                     "default-math-1000a-calculus-01-10-15/answer/2-A-01-10-15.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90326,6 +90791,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-16/answer/1-A-01-10-16.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90339,6 +90807,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-17/answer/1-A-01-10-17.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90353,6 +90824,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-18/answer/1-A-01-10-18.1.png",
                     "default-math-1000a-calculus-01-10-18/answer/2-A-01-10-18.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90366,6 +90840,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-19/answer/1-A-01-10-19.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90379,6 +90856,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-20/answer/1-A-01-10-20.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90393,6 +90873,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-21/answer/1-A-01-10-21.1.png",
                     "default-math-1000a-calculus-01-10-21/answer/2-A-01-10-21.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90406,6 +90889,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-22/answer/1-A-01-10-22.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90419,6 +90905,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-23/answer/1-A-01-10-23.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90432,6 +90921,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-24/answer/1-A-01-10-24.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90445,6 +90937,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-25/answer/1-A-01-10-25.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90458,6 +90953,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-26/answer/1-A-01-10-26.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90471,6 +90969,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-27/answer/1-A-01-10-27.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90484,6 +90985,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-28/answer/1-A-01-10-28.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90498,6 +91002,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-29/answer/1-A-01-10-29.1.png",
                     "default-math-1000a-calculus-01-10-29/answer/2-A-01-10-29.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90511,6 +91018,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-30/answer/1-A-01-10-30.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90524,6 +91034,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-31/answer/1-A-01-10-31.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90537,6 +91050,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-32/answer/1-A-01-10-32.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90551,6 +91067,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-33/answer/1-A-01-10-33.1.png",
                     "default-math-1000a-calculus-01-10-33/answer/2-A-01-10-33.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90564,6 +91083,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-34/answer/1-A-01-10-34.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90577,6 +91099,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-35/answer/1-A-01-10-35.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90590,6 +91115,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-10-36/answer/1-A-01-10-36.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -90609,6 +91137,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-01/answer/1-A-01-11-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90622,6 +91153,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-02/answer/1-A-01-11-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90635,6 +91169,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-03/answer/1-A-01-11-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90649,6 +91186,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-04/answer/1-A-01-11-04.1.png",
                     "default-math-1000a-calculus-01-11-04/answer/2-A-01-11-04.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90678,6 +91218,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-06/answer/1-A-01-11-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90692,6 +91235,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-07/answer/1-A-01-11-07.1.png",
                     "default-math-1000a-calculus-01-11-07/answer/2-A-01-11-07.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90705,6 +91251,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-08/answer/1-A-01-11-08.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90718,6 +91267,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-09/answer/1-A-01-11-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90747,6 +91299,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-11/answer/1-A-01-11-11.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90760,6 +91315,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-12/answer/1-A-01-11-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90773,6 +91331,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-13/answer/1-A-01-11-13.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90786,6 +91347,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-14/answer/1-A-01-11-14.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90800,6 +91364,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-15/answer/1-A-01-11-15.1.png",
                     "default-math-1000a-calculus-01-11-15/answer/2-A-01-11-15.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90813,6 +91380,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-16/answer/1-A-01-11-16.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90826,6 +91396,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-17/answer/1-A-01-11-17.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90840,6 +91413,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-18/answer/1-A-01-11-18.1.png",
                     "default-math-1000a-calculus-01-11-18/answer/2-A-01-11-18.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90853,6 +91429,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-11-19/answer/1-A-01-11-19.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -90872,6 +91451,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-12-01/answer/1-A-01-12-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90886,6 +91468,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-12-02/answer/1-A-01-12-02.1.png",
                     "default-math-1000a-calculus-01-12-02/answer/2-A-01-12-02.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90899,6 +91484,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-12-03/answer/1-A-01-12-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90912,6 +91500,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-12-04/answer/1-A-01-12-04.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90926,6 +91517,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-12-05/answer/1-A-01-12-05.1.png",
                     "default-math-1000a-calculus-01-12-05/answer/2-A-01-12-05.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90940,6 +91534,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-12-06/answer/1-A-01-12-06.1.png",
                     "default-math-1000a-calculus-01-12-06/answer/2-A-01-12-06.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90954,6 +91551,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-12-07/answer/1-A-01-12-07.1.png",
                     "default-math-1000a-calculus-01-12-07/answer/2-A-01-12-07.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90984,6 +91584,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-12-09/answer/1-A-01-12-09.1.png",
                     "default-math-1000a-calculus-01-12-09/answer/2-A-01-12-09.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -90997,6 +91600,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-12-10/answer/1-A-01-12-10.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91032,6 +91638,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-13-01/answer/1-A-01-13-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91045,6 +91654,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-13-02/answer/1-A-01-13-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91075,6 +91687,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-13-04/answer/1-A-01-13-04.1.png",
                     "default-math-1000a-calculus-01-13-04/answer/2-A-01-13-04.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91089,6 +91704,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-13-05/answer/1-A-01-13-05.1.png",
                     "default-math-1000a-calculus-01-13-05/answer/2-A-01-13-05.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91102,6 +91720,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-13-06/answer/1-A-01-13-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91115,6 +91736,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-13-07/answer/1-A-01-13-07.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -91134,6 +91758,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-01/answer/1-A-01-14-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91163,6 +91790,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-03/answer/1-A-01-14-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91176,6 +91806,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-04/answer/1-A-01-14-04.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91189,6 +91822,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-05/answer/1-A-01-14-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91202,6 +91838,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-06/answer/1-A-01-14-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91215,6 +91854,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-07/answer/1-A-01-14-07.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91228,6 +91870,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-08/answer/1-A-01-14-08.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91258,6 +91903,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-10/answer/1-A-01-14-10.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91272,6 +91920,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-11/answer/1-A-01-14-11.1.png",
                     "default-math-1000a-calculus-01-14-11/answer/2-A-01-14-11.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91285,6 +91936,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-12/answer/1-A-01-14-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91299,6 +91953,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-13/answer/1-A-01-14-13.1.png",
                     "default-math-1000a-calculus-01-14-13/answer/2-A-01-14-13.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91313,6 +91970,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-14/answer/1-A-01-14-14.1.png",
                     "default-math-1000a-calculus-01-14-14/answer/2-A-01-14-14.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91327,6 +91987,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-15/answer/1-A-01-14-15.1.png",
                     "default-math-1000a-calculus-01-14-15/answer/2-A-01-14-15.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91340,6 +92003,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-16/answer/1-A-01-14-16.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91353,6 +92019,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-17/answer/1-A-01-14-17.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91366,6 +92035,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-18/answer/1-A-01-14-18.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91379,6 +92051,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-19/answer/1-A-01-14-19.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91408,6 +92083,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-21/answer/1-A-01-14-21.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91422,6 +92100,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-22/answer/1-A-01-14-22.1.png",
                     "default-math-1000a-calculus-01-14-22/answer/2-A-01-14-22.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91435,6 +92116,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-23/answer/1-A-01-14-23.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91448,6 +92132,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-14-24/answer/1-A-01-14-24.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -91467,6 +92154,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-01/answer/1-A-01-15-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91480,6 +92170,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-02/answer/1-A-01-15-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91493,6 +92186,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-03/answer/1-A-01-15-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91522,6 +92218,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-05/answer/1-A-01-15-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91567,6 +92266,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-08/answer/1-A-01-15-08.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91580,6 +92282,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-09/answer/1-A-01-15-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91594,6 +92299,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-10/answer/1-A-01-15-10.1.png",
                     "default-math-1000a-calculus-01-15-10/answer/2-A-01-15-10.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91607,6 +92315,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-11/answer/1-A-01-15-11.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91620,6 +92331,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-12/answer/1-A-01-15-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91633,6 +92347,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-13/answer/1-A-01-15-13.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91646,6 +92363,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-14/answer/1-A-01-15-14.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91659,6 +92379,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-15/answer/1-A-01-15-15.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91672,6 +92395,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-16/answer/1-A-01-15-16.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91685,6 +92411,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-17/answer/1-A-01-15-17.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91698,6 +92427,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-18/answer/1-A-01-15-18.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91711,6 +92443,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-19/answer/1-A-01-15-19.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91725,6 +92460,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-20/answer/1-A-01-15-20.1.png",
                     "default-math-1000a-calculus-01-15-20/answer/2-A-01-15-20.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91740,6 +92478,9 @@
                     "default-math-1000a-calculus-01-15-21/answer/1-A-01-15-21.1.png",
                     "default-math-1000a-calculus-01-15-21/answer/2-A-01-15-21.2.png",
                     "default-math-1000a-calculus-01-15-21/answer/3-A-01-15-21.3.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91754,6 +92495,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-22/answer/1-A-01-15-22.1.png",
                     "default-math-1000a-calculus-01-15-22/answer/2-A-01-15-22.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91768,6 +92512,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-23/answer/1-A-01-15-23.1.png",
                     "default-math-1000a-calculus-01-15-23/answer/2-A-01-15-23.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91781,6 +92528,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-15-24/answer/1-A-01-15-24.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -91800,6 +92550,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-01/answer/1-A-01-16-01.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91813,6 +92566,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-02/answer/1-A-01-16-02.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91826,6 +92582,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-03/answer/1-A-01-16-03.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91839,6 +92598,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-04/answer/1-A-01-16-04.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91852,6 +92614,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-05/answer/1-A-01-16-05.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91865,6 +92630,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-06/answer/1-A-01-16-06.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91879,6 +92647,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-07/answer/1-A-01-16-07.1.png",
                     "default-math-1000a-calculus-01-16-07/answer/2-A-01-16-07.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91892,6 +92663,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-08/answer/1-A-01-16-08.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91905,6 +92679,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-09/answer/1-A-01-16-09.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91919,6 +92696,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-10/answer/1-A-01-16-10.1.png",
                     "default-math-1000a-calculus-01-16-10/answer/2-A-01-16-10.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91948,6 +92728,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-12/answer/1-A-01-16-12.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91977,6 +92760,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-14/answer/1-A-01-16-14.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -91990,6 +92776,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-15/answer/1-A-01-16-15.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -92003,6 +92792,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-16/answer/1-A-01-16-16.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -92016,6 +92808,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-17/answer/1-A-01-16-17.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -92029,6 +92824,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-18/answer/1-A-01-16-18.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -92043,6 +92841,9 @@
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-19/answer/1-A-01-16-19.1.png",
                     "default-math-1000a-calculus-01-16-19/answer/2-A-01-16-19.2.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 },
                 {
@@ -92056,6 +92857,9 @@
                   ],
                   "answerImageKeys": [
                     "default-math-1000a-calculus-01-16-20/answer/1-A-01-16-20.1.png"
+                  ],
+                  "tagIds": [
+                    "red"
                   ]
                 }
               ]
@@ -92158,7 +92962,7 @@
                     "default-math-1000a-linear-02-1-05/answer/2-A-02-1-05.2.png"
                   ],
                   "tagIds": [
-                    "red"
+                    "black"
                   ]
                 },
                 {
@@ -92190,7 +92994,7 @@
                     "default-math-1000a-linear-02-1-07/answer/1-A-02-1-07.1.png"
                   ],
                   "tagIds": [
-                    "red"
+                    "black"
                   ]
                 },
                 {
@@ -92207,7 +93011,7 @@
                     "default-math-1000a-linear-02-1-08/answer/2-A-02-1-08.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92223,7 +93027,7 @@
                     "default-math-1000a-linear-02-1-09/answer/1-A-02-1-09.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92240,7 +93044,7 @@
                     "default-math-1000a-linear-02-1-10/answer/2-A-02-1-10.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92257,7 +93061,7 @@
                     "default-math-1000a-linear-02-1-11/answer/2-A-02-1-11.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 }
               ]
@@ -92279,7 +93083,7 @@
                     "default-math-1000a-linear-02-2-01/answer/1-A-02-2-01.1.png"
                   ],
                   "tagIds": [
-                    "red"
+                    "black"
                   ]
                 },
                 {
@@ -92360,7 +93164,7 @@
                     "default-math-1000a-linear-02-2-06/answer/1-A-02-2-06.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92376,7 +93180,7 @@
                     "default-math-1000a-linear-02-2-07/answer/1-A-02-2-07.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92393,7 +93197,7 @@
                     "default-math-1000a-linear-02-2-08/answer/2-A-02-2-08.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92425,7 +93229,7 @@
                     "default-math-1000a-linear-02-2-10/answer/1-A-02-2-10.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92458,7 +93262,7 @@
                     "default-math-1000a-linear-02-2-12/answer/1-A-02-2-12.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92490,7 +93294,7 @@
                     "default-math-1000a-linear-02-2-14/answer/1-A-02-2-14.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92507,7 +93311,7 @@
                     "default-math-1000a-linear-02-2-15/answer/2-A-02-2-15.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92539,7 +93343,7 @@
                     "default-math-1000a-linear-02-2-17/answer/1-A-02-2-17.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92555,7 +93359,7 @@
                     "default-math-1000a-linear-02-2-18/answer/1-A-02-2-18.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92571,7 +93375,7 @@
                     "default-math-1000a-linear-02-2-19/answer/1-A-02-2-19.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 }
               ]
@@ -92659,7 +93463,7 @@
                     "default-math-1000a-linear-02-3-05/answer/1-A-02-3-05.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92692,7 +93496,7 @@
                     "default-math-1000a-linear-02-3-07/answer/1-A-02-3-07.1.png"
                   ],
                   "tagIds": [
-                    "red"
+                    "black"
                   ]
                 },
                 {
@@ -92741,7 +93545,7 @@
                     "default-math-1000a-linear-02-3-10/answer/1-A-02-3-10.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92773,7 +93577,7 @@
                     "default-math-1000a-linear-02-3-12/answer/1-A-02-3-12.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92806,7 +93610,7 @@
                     "default-math-1000a-linear-02-3-14/answer/1-A-02-3-14.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 }
               ]
@@ -92828,7 +93632,7 @@
                     "default-math-1000a-linear-02-4-01/answer/1-A-02-4-01.1.png"
                   ],
                   "tagIds": [
-                    "red"
+                    "black"
                   ]
                 },
                 {
@@ -92908,7 +93712,7 @@
                     "default-math-1000a-linear-02-4-06/answer/1-A-02-4-06.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92926,7 +93730,7 @@
                     "default-math-1000a-linear-02-4-07/answer/3-A-02-4-07.3.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92943,7 +93747,7 @@
                     "default-math-1000a-linear-02-4-08/answer/2-A-02-4-08.2.png"
                   ],
                   "tagIds": [
-                    "red"
+                    "black"
                   ]
                 },
                 {
@@ -92975,7 +93779,7 @@
                     "default-math-1000a-linear-02-4-10/answer/1-A-02-4-10.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -92994,7 +93798,7 @@
                     "default-math-1000a-linear-02-4-11/answer/4-A-02-4-11.4.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93011,7 +93815,7 @@
                     "default-math-1000a-linear-02-4-12/answer/2-A-02-4-12.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93044,7 +93848,7 @@
                     "default-math-1000a-linear-02-4-14/answer/2-A-02-4-14.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 }
               ]
@@ -93098,7 +93902,7 @@
                     "default-math-1000a-linear-02-5-03/answer/1-A-02-5-03.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93114,7 +93918,7 @@
                     "default-math-1000a-linear-02-5-04/answer/1-A-02-5-04.1.png"
                   ],
                   "tagIds": [
-                    "red"
+                    "black"
                   ]
                 },
                 {
@@ -93146,7 +93950,7 @@
                     "default-math-1000a-linear-02-5-06/answer/1-A-02-5-06.1.png"
                   ],
                   "tagIds": [
-                    "red"
+                    "black"
                   ]
                 },
                 {
@@ -93162,7 +93966,7 @@
                     "default-math-1000a-linear-02-5-07/answer/1-A-02-5-07.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93179,7 +93983,7 @@
                     "default-math-1000a-linear-02-5-08/answer/2-A-02-5-08.2.png"
                   ],
                   "tagIds": [
-                    "red"
+                    "black"
                   ]
                 },
                 {
@@ -93195,7 +93999,7 @@
                     "default-math-1000a-linear-02-5-09/answer/1-A-02-5-09.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93298,7 +94102,7 @@
                     "default-math-1000a-linear-02-5-15/answer/2-A-02-5-15.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93315,7 +94119,7 @@
                     "default-math-1000a-linear-02-5-16/answer/2-A-02-5-16.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93348,7 +94152,7 @@
                     "default-math-1000a-linear-02-5-18/answer/2-A-02-5-18.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93365,7 +94169,7 @@
                     "default-math-1000a-linear-02-5-19/answer/2-A-02-5-19.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93381,7 +94185,7 @@
                     "default-math-1000a-linear-02-5-20/answer/1-A-02-5-20.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93398,7 +94202,7 @@
                     "default-math-1000a-linear-02-5-21/answer/2-A-02-5-21.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93417,7 +94221,7 @@
                     "default-math-1000a-linear-02-5-22/answer/4-A-02-5-22.4.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93435,7 +94239,7 @@
                     "default-math-1000a-linear-02-5-23/answer/3-A-02-5-23.3.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 }
               ]
@@ -93574,7 +94378,7 @@
                     "default-math-1000a-linear-02-6-08/answer/1-A-02-6-08.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93606,7 +94410,7 @@
                     "default-math-1000a-linear-02-6-10/answer/1-A-02-6-10.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93622,7 +94426,7 @@
                     "default-math-1000a-linear-02-6-11/answer/1-A-02-6-11.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93640,7 +94444,7 @@
                     "default-math-1000a-linear-02-6-12/answer/3-A-02-6-12.3.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93675,7 +94479,7 @@
                     "default-math-1000a-linear-02-6-14/answer/1-A-02-6-14.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93691,7 +94495,7 @@
                     "default-math-1000a-linear-02-6-15/answer/1-A-02-6-15.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93707,7 +94511,7 @@
                     "default-math-1000a-linear-02-6-16/answer/1-A-02-6-16.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93742,7 +94546,7 @@
                     "default-math-1000a-linear-02-6-18/answer/1-A-02-6-18.1.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93760,7 +94564,7 @@
                     "default-math-1000a-linear-02-6-19/answer/3-A-02-6-19.3.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93779,7 +94583,7 @@
                     "default-math-1000a-linear-02-6-20/answer/4-A-02-6-20.4.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93831,7 +94635,7 @@
                     "default-math-1000a-linear-02-6-23/answer/3-A-02-6-23.3.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {
@@ -93848,7 +94652,7 @@
                     "default-math-1000a-linear-02-6-24/answer/2-A-02-6-24.2.png"
                   ],
                   "tagIds": [
-                    "black"
+                    "red"
                   ]
                 },
                 {

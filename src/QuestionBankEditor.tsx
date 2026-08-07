@@ -190,7 +190,18 @@ export default function QuestionBankEditor({ banks, activeBankId, activeQuestion
     const sourceWidth = pdfUrl ? Number.parseFloat(canvas?.style.width || '0') : image?.naturalWidth || 0
     const sourceHeight = pdfUrl ? Number.parseFloat(canvas?.style.height || '0') : image?.naturalHeight || 0
     if (!sourceWidth || !sourceHeight) return
-    const fitScale = Math.min(1, area.clientWidth / sourceWidth, 510 / sourceHeight)
+    // Use the viewport's layout width instead of clientWidth. When zoomed or
+    // when a source is close to the viewport bounds, scrollbars can change
+    // clientWidth while the viewport itself stays the same. Measuring the
+    // border box keeps the base surface size stable across those transitions.
+    const styles = window.getComputedStyle(area)
+    const borderWidth = Number.parseFloat(styles.borderLeftWidth || '0') + Number.parseFloat(styles.borderRightWidth || '0')
+    const paddingWidth = Number.parseFloat(styles.paddingLeft || '0') + Number.parseFloat(styles.paddingRight || '0')
+    const borderHeight = Number.parseFloat(styles.borderTopWidth || '0') + Number.parseFloat(styles.borderBottomWidth || '0')
+    const paddingHeight = Number.parseFloat(styles.paddingTop || '0') + Number.parseFloat(styles.paddingBottom || '0')
+    const layoutWidth = Math.max(1, Math.floor(area.getBoundingClientRect().width - borderWidth - paddingWidth))
+    const layoutHeight = Math.max(1, Math.floor(area.getBoundingClientRect().height - borderHeight - paddingHeight))
+    const fitScale = Math.min(1, layoutWidth / sourceWidth, layoutHeight / sourceHeight)
     const width = Math.max(1, Math.floor(sourceWidth * fitScale))
     const height = Math.max(1, Math.floor(sourceHeight * fitScale))
     setCropSurfaceSize(previous => previous.width === width && previous.height === height ? previous : { width, height })

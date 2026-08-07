@@ -1,5 +1,6 @@
 import { parseExamDateValue } from './examCountdown'
 import { validateQuestionTagDefinitions, type QuestionTagDefinition } from './questionTags'
+import { validateMarkdownShortcutSettings, type MarkdownShortcutSettings } from './shortcutSettings'
 
 const SETTINGS_KEY = 'npee:settings:v1'
 const LEGACY_EXAM_DATE_KEY = 'npee:exam-date:v1'
@@ -10,6 +11,7 @@ export interface UserSettings {
   roundCount: number
   keepScreenAwake?: boolean
   questionTags?: QuestionTagDefinition[]
+  markdownShortcuts?: MarkdownShortcutSettings
 }
 
 export const DEFAULT_USER_SETTINGS: UserSettings = { activeRound: 1, roundCount: 5, keepScreenAwake: false }
@@ -24,7 +26,7 @@ export function validateUserSettings(value: unknown): UserSettings {
   const requestedRound = Number.isInteger(value.activeRound) && Number(value.activeRound) > 0 ? Math.min(99, Number(value.activeRound)) : 1
   const requestedCount = Number.isInteger(value.roundCount) && Number(value.roundCount) > 0 ? Math.min(99, Number(value.roundCount)) : 5
   const roundCount = Math.max(5, requestedRound, requestedCount)
-  return { ...(examDate ? { examDate } : {}), activeRound: requestedRound, roundCount, ...(value.keepScreenAwake === true ? { keepScreenAwake: true } : {}), ...(value.questionTags !== undefined ? { questionTags: validateQuestionTagDefinitions(value.questionTags) } : {}) }
+  return { ...(examDate ? { examDate } : {}), activeRound: requestedRound, roundCount, ...(value.keepScreenAwake === true ? { keepScreenAwake: true } : {}), ...(value.questionTags !== undefined ? { questionTags: validateQuestionTagDefinitions(value.questionTags) } : {}), ...(value.markdownShortcuts !== undefined ? { markdownShortcuts: validateMarkdownShortcutSettings(value.markdownShortcuts) } : {}) }
 }
 
 export function saveUserSettings(settings: UserSettings) {

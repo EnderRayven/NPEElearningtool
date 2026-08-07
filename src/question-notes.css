@@ -11,19 +11,31 @@
   margin: 14px 0 0;
 }
 
-.question-note-toggle {
+.question-note-toggle-shell {
   margin-top: 8px;
 }
 
+.question-note-toggle {
+  width: 100%;
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.question-note-toggle-content {
+  display: inline-flex;
+  grid-column: 2;
+  align-items: center;
+  gap: 7px;
+}
+
 .question-note-toggle em {
-  margin-left: auto;
+  grid-column: 3;
+  justify-self: end;
+  margin-left: 0;
   color: #8f3028;
   font-size: 8px;
   font-style: normal;
-}
-
-.question-note-toggle em + svg {
-  margin-left: 0;
 }
 
 .question-note-panel {
@@ -85,26 +97,364 @@
   font-size: 8px;
 }
 
-.question-note-panel > textarea {
-  display: block;
-  width: 100%;
-  min-height: 170px;
-  resize: vertical;
-  padding: 17px 18px;
-  border: 0;
-  outline: 0;
+.markdown-note-editor {
+  background: #fff;
+}
+
+.markdown-note-editor.expanded {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.markdown-note-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 6px 14px;
+  border-bottom: 1px solid #ebe3db;
+  background: #fffaf7;
+  color: #8f3028;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.markdown-note-editor-toolbar small {
+  margin-left: auto;
+  color: #a09890;
+  font-size: 8px;
+  font-weight: 400;
+  line-height: 1.55;
+  text-align: right;
+}
+
+.markdown-note-editor-toolbar code {
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: #f4e9e5;
+  color: #8f3028;
+  font: inherit;
+}
+
+.markdown-note-wysiwyg {
+  min-height: 240px;
+  overflow: visible;
   background: #fff;
   color: #423d38;
   font: 400 13px/1.8 'Noto Sans SC', sans-serif;
 }
 
-.question-note-panel > textarea::placeholder {
-  color: #b1aaa3;
+.markdown-note-editor.expanded .markdown-note-wysiwyg {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
 }
 
-.question-note-panel > textarea:focus {
+.markdown-note-wysiwyg .milkdown {
+  min-height: 240px;
+  background: transparent;
+  --crepe-base-font-size: 13px;
+  --crepe-font-default: 'Noto Sans SC', sans-serif;
+  --crepe-font-title: 'Noto Sans SC', sans-serif;
+}
+
+.markdown-note-wysiwyg .milkdown .editor {
+  min-height: 240px;
+  padding: 20px 26px 24px;
+  box-sizing: border-box;
+}
+
+.markdown-note-wysiwyg .milkdown .ProseMirror {
+  min-height: 208px;
+  padding: 20px 26px 24px;
+  outline: 0;
+  color: #423d38;
+  font: 400 13px/1.8 'Noto Sans SC', sans-serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.markdown-note-editor.expanded .markdown-note-wysiwyg .milkdown,
+.markdown-note-editor.expanded .markdown-note-wysiwyg .milkdown .editor {
+  min-height: 100%;
+}
+
+.markdown-note-editor.expanded .markdown-note-wysiwyg .milkdown .ProseMirror {
+  min-height: 100%;
+}
+
+.markdown-note-wysiwyg .milkdown .ProseMirror-focused {
   box-shadow: inset 0 0 0 2px rgba(159, 46, 37, .14);
 }
+
+/* The toolbar feature supplies the formatting keymaps; keep its floating UI hidden. */
+.markdown-note-wysiwyg .milkdown .milkdown-toolbar {
+  display: none !important;
+}
+
+.markdown-note-wysiwyg .milkdown .milkdown-latex-inline-edit {
+  display: none !important;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math {
+  position: relative;
+  display: inline-block;
+  padding: 0 3px;
+  border-radius: 4px;
+  cursor: text;
+  vertical-align: baseline;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math[data-editing='true'] {
+  min-width: 2ch;
+  padding: 0 2px;
+  background: rgba(205, 226, 255, .8);
+  color: #1f2937;
+  outline: 1px solid rgba(50, 109, 187, .45);
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-source {
+  display: inline-block;
+  min-width: 1ch;
+  max-width: min(720px, calc(100vw - 72px));
+  color: #6c2c9b;
+  font: 500 13px/1.8 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  outline: 0;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-preview {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 10px);
+  left: 50%;
+  min-width: 160px;
+  max-width: min(620px, calc(100vw - 48px));
+  box-sizing: border-box;
+  padding: 12px 18px;
+  border-radius: 7px;
+  background: #080b11;
+  box-shadow: 0 12px 28px rgba(20, 12, 8, .24);
+  color: #fff;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math[data-preview-placement='above'] .markdown-note-math-preview {
+  top: auto;
+  bottom: calc(100% + 10px);
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-preview::before {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  background: #080b11;
+  content: '';
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math[data-preview-placement='above'] .markdown-note-math-preview::before {
+  top: auto;
+  bottom: -7px;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-preview .katex-display {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-preview .katex {
+  color: #fff;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-block {
+  position: relative;
+  display: block;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: text;
+  text-align: center;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-block:hover {
+  background: rgba(249, 245, 241, .9);
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-block[data-editing='true'] {
+  min-height: 46px;
+  padding: 8px 10px;
+  background: rgba(205, 226, 255, .38);
+  outline: 1px solid rgba(50, 109, 187, .38);
+  text-align: left;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-block-source {
+  min-height: 26px;
+  color: #6c2c9b;
+  font: 500 13px/1.8 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  outline: 0;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-block-preview {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 10px);
+  left: 50%;
+  min-width: 220px;
+  max-width: min(720px, calc(100vw - 48px));
+  box-sizing: border-box;
+  padding: 12px 18px;
+  border-radius: 7px;
+  background: #080b11;
+  box-shadow: 0 12px 28px rgba(20, 12, 8, .24);
+  color: #fff;
+  transform: translateX(-50%);
+  pointer-events: none;
+  text-align: center;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-block[data-preview-placement='above'] .markdown-note-math-block-preview {
+  top: auto;
+  bottom: calc(100% + 10px);
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-block-preview::before {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  background: #080b11;
+  content: '';
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-block[data-preview-placement='above'] .markdown-note-math-block-preview::before {
+  top: auto;
+  bottom: -7px;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-block-preview .katex-display {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-math-block-preview .katex {
+  color: #fff;
+}
+
+.markdown-note-wysiwyg .milkdown .markdown-note-code-block {
+  margin: 8px 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  border-radius: 6px;
+  background: #f5f1ed;
+  color: #514840;
+  font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.markdown-note-wysiwyg .milkdown .ProseMirror h1,
+.markdown-note-wysiwyg .milkdown .ProseMirror h2,
+.markdown-note-wysiwyg .milkdown .ProseMirror h3,
+.markdown-note-wysiwyg .milkdown .ProseMirror h4,
+.markdown-note-wysiwyg .milkdown .ProseMirror h5,
+.markdown-note-wysiwyg .milkdown .ProseMirror h6 {
+  color: #514840;
+}
+
+.markdown-note-wysiwyg .milkdown .ProseMirror,
+.markdown-note-wysiwyg .milkdown .ProseMirror * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.markdown-note-wysiwyg .milkdown .ProseMirror .markdown-note-heading-active::before {
+  content: attr(data-markdown-prefix);
+  display: inline-block;
+  margin-right: .35em;
+  color: #9a6b62;
+  font: 600 .72em/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: .02em;
+  white-space: pre;
+  user-select: none;
+  pointer-events: none;
+}
+
+.markdown-note-preview {
+  min-width: 0;
+  min-height: 240px;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 16px 18px;
+  background: #fffdfb;
+  color: #423d38;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.markdown-note-editor.expanded .markdown-note-preview {
+  min-height: 0;
+}
+
+.markdown-note-preview > :first-child {
+  margin-top: 0;
+}
+
+.markdown-note-preview > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-note-preview h1,
+.markdown-note-preview h2,
+.markdown-note-preview h3,
+.markdown-note-preview h4,
+.markdown-note-preview h5,
+.markdown-note-preview h6 {
+  margin: 1em 0 .45em;
+  color: #514840;
+  line-height: 1.35;
+}
+
+.markdown-note-preview h1 { font-size: 1.45em; }
+.markdown-note-preview h2 { font-size: 1.3em; }
+.markdown-note-preview h3 { font-size: 1.15em; }
+.markdown-note-preview p { margin: .55em 0; }
+.markdown-note-preview ul,
+.markdown-note-preview ol { margin: .55em 0; padding-left: 1.6em; }
+.markdown-note-preview li + li { margin-top: .18em; }
+.markdown-note-preview blockquote { margin: .8em 0; padding: .1em 1em; border-left: 3px solid #d8b4ad; background: #fff7f4; color: #756e67; }
+.markdown-note-preview pre { margin: .8em 0; padding: 10px 12px; overflow-x: auto; border-radius: 7px; background: #f5f1ed; color: #514840; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.markdown-note-preview code { padding: .12em .3em; border-radius: 4px; background: #f4ece8; color: #8f3028; font: .9em ui-monospace, SFMono-Regular, Menlo, monospace; }
+.markdown-note-preview pre code { padding: 0; background: transparent; color: inherit; }
+.markdown-note-preview table { display: block; max-width: 100%; margin: .8em 0; overflow-x: auto; border-collapse: collapse; }
+.markdown-note-preview th,
+.markdown-note-preview td { padding: 5px 8px; border: 1px solid #e5dbd3; text-align: left; }
+.markdown-note-preview th { background: #faf2ee; color: #665f58; }
+.markdown-note-preview hr { border: 0; border-top: 1px solid #e8dfd8; }
+.markdown-note-preview a { color: #8f3028; }
+.markdown-note-preview img { max-width: 100%; height: auto; }
+.markdown-note-preview .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+.markdown-note-empty { margin: 0; color: #b1aaa3; }
 
 .handwriting-editor {
   background: #fff;
@@ -914,6 +1264,32 @@
   .question-note-tabs > small {
     width: 100%;
     margin: 0 2px;
+  }
+
+  .markdown-note-editor-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .markdown-note-editor-toolbar small {
+    margin-left: 0;
+    text-align: left;
+  }
+
+  .markdown-note-wysiwyg,
+  .markdown-note-wysiwyg .milkdown,
+  .markdown-note-wysiwyg .milkdown .editor {
+    min-height: 180px;
+  }
+
+  .markdown-note-wysiwyg .milkdown .editor {
+    padding: 16px 18px 20px;
+  }
+
+  .markdown-note-wysiwyg .milkdown .ProseMirror {
+    min-height: 148px;
+    padding: 16px 18px 20px;
   }
 
   .handwriting-toolbar {

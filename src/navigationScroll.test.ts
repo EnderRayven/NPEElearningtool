@@ -38,6 +38,36 @@ describe('navigationScrollTop', () => {
       sectionHeight: 36,
     })).toBe(700)
   })
+
+  it('keeps a visible target steady when the current scroll position is supplied', () => {
+    expect(navigationScrollTop({
+      containerHeight: 500,
+      scrollHeight: 1600,
+      currentScrollTop: 420,
+      chapterTop: 520,
+      sectionTop: 560,
+      sectionHeight: 36,
+    })).toBe(420)
+  })
+
+  it('moves only enough to reveal a target above or below the viewport', () => {
+    expect(navigationScrollTop({
+      containerHeight: 500,
+      scrollHeight: 1600,
+      currentScrollTop: 420,
+      chapterTop: 240,
+      sectionTop: 260,
+      sectionHeight: 36,
+    })).toBe(250)
+    expect(navigationScrollTop({
+      containerHeight: 500,
+      scrollHeight: 1600,
+      currentScrollTop: 420,
+      chapterTop: 850,
+      sectionTop: 940,
+      sectionHeight: 36,
+    })).toBe(490)
+  })
 })
 
 describe('shouldScrollSectionChangeToTop', () => {

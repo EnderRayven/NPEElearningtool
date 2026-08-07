@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowUpRight, BookOpen, FileText, NotebookPen, Plus, Search, Trash2, X } from 'lucide-react'
+import { ArrowUpRight, BookOpen, FileText, NotebookPen, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
 import type { Chapter, Question, QuestionBank, Section } from './types'
 import { bankSubject, subjectLabels } from './subjects'
 import ConfirmDialog from './ConfirmDialog'
@@ -8,6 +8,7 @@ import { croppedCanvasHeightForDrawing, pathsForStroke } from './QuestionNotePan
 import { DRAWING_WIDTH, hasPersonalNote, type PersonalNote, type PersonalNotebook, type PersonalNotebooks, type QuestionNote, type QuestionNotes } from './questionNotes'
 import { useDialogFocus } from './useDialogFocus'
 import { useModalScrollLock } from './useModalScrollLock'
+import { MarkdownNotePreview } from './MarkdownNote'
 
 type NotesFilter = 'all' | 'text' | 'handwriting'
 type NavigationTarget = { kind: 'bank'; id: string } | { kind: 'personal'; id: string }
@@ -49,6 +50,7 @@ interface NotesDialogProps {
   personalNotebooks: PersonalNotebooks
   onClose: () => void
   onOpenQuestion: (bankId: string, questionId: string) => void
+  onEditQuestion: (bankId: string, questionId: string) => void
   onCreateNotebook: (name: string) => PersonalNotebook | null
   onCreateNote: (notebookId: string, title: string) => PersonalNote | null
   onPersonalNoteChange: (notebookId: string, note: PersonalNote) => void
@@ -149,15 +151,18 @@ function NotesDrawing({ note }: { note: QuestionNote }) {
   </div>
 }
 
-function NoteStreamCard({ entry, onOpenQuestion }: { entry: NoteEntry; onOpenQuestion: (bankId: string, questionId: string) => void }) {
+function NoteStreamCard({ entry, onOpenQuestion, onEditQuestion }: { entry: NoteEntry; onOpenQuestion: (bankId: string, questionId: string) => void; onEditQuestion: (bankId: string, questionId: string) => void }) {
   const canOpen = Boolean(entry.bank && entry.question)
   return <article className={canOpen ? 'notes-stream-card' : 'notes-stream-card notes-stream-card-orphan'}>
     <header>
       <div className="notes-stream-card-title"><span>{entry.question ? `第 ${entry.question.number} 题` : '未归档题目'}</span><strong>{noteTypeLabel(entry.note)}</strong><time dateTime={entry.note.updatedAt || undefined}>{formatNoteDate(entry.note.updatedAt)}</time></div>
-      {canOpen && <button className="notes-stream-open" type="button" onClick={() => onOpenQuestion(entry.bank!.id, entry.question!.id)}><BookOpen size={14}/>查看原题<ArrowUpRight size={14}/></button>}
+      {canOpen && <div className="notes-stream-actions">
+        <button className="notes-stream-edit" type="button" aria-label={`编辑第 ${entry.question!.number} 题笔记`} onClick={() => onEditQuestion(entry.bank!.id, entry.question!.id)}><Pencil size={14}/>编辑</button>
+        <button className="notes-stream-open" type="button" onClick={() => onOpenQuestion(entry.bank!.id, entry.question!.id)}><BookOpen size={14}/>查看原题<ArrowUpRight size={14}/></button>
+      </div>}
     </header>
     <p className="notes-stream-question">{questionPreview(entry.question)}</p>
-    {noteHasText(entry.note) && <div className="notes-stream-text">{entry.note.text}</div>}
+    {noteHasText(entry.note) && <MarkdownNotePreview className="notes-stream-markdown" source={entry.note.text}/>}
     <NotesDrawing note={entry.note}/>
   </article>
 }
@@ -172,7 +177,7 @@ function PersonalNoteCard({ notebook, note, initialOpen, onChange, onDelete }: {
       </div>
       <button className="notes-stream-icon-button" type="button" aria-label={`删除笔记${note.title}`} title="删除笔记" onClick={onDelete}><Trash2 size={15}/></button>
     </header>
-    {noteHasText(note) && <div className="notes-stream-text">{note.text}</div>}
+    {noteHasText(note) && <MarkdownNotePreview className="notes-stream-markdown" source={note.text}/>}
     <NotesDrawing note={note}/>
     <QuestionNotePanel questionId={`personal-note-${notebook.id}-${note.id}`} note={note} initialOpen={initialOpen} onChange={next => onChange({ ...note, ...next })}/>
   </article>
@@ -180,7 +185,7 @@ function PersonalNoteCard({ notebook, note, initialOpen, onChange, onDelete }: {
 
 const anchorIdFor = (key: string) => `notes-stream-${key.replace(/[^a-zA-Z0-9_-]/g, '-')}`
 
-export default function NotesDialog({ banks, notes, personalNotebooks, onClose, onOpenQuestion, onCreateNotebook, onCreateNote, onPersonalNoteChange, onDeletePersonalNote, onDeleteNotebook }: NotesDialogProps) {
+export default function NotesDialog({ banks, notes, personalNotebooks, onClose, onOpenQuestion, onEditQuestion, onCreateNotebook, onCreateNote, onPersonalNoteChange, onDeletePersonalNote, onDeleteNotebook }: NotesDialogProps) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<NotesFilter>('all')
   const [activeTarget, setActiveTarget] = useState<NavigationTarget | null>(null)
@@ -368,7 +373,7 @@ export default function NotesDialog({ banks, notes, personalNotebooks, onClose, 
         </aside>
         <main ref={detailScrollRef} className="notes-detail-scroll">
           {activeBankGroup
-            ? <div className="notes-stream"><div className="notes-stream-sections">{activeBankGroup.sections.map(section => <section className="notes-stream-section" id={anchorIdFor(section.key)} key={section.key}><header><div><span>{section.chapterName}</span><strong>{section.sectionName}</strong></div><em>{section.entries.length} 条</em></header><div className="notes-stream-list">{section.entries.map(entry => <NoteStreamCard key={entry.questionId} entry={entry} onOpenQuestion={onOpenQuestion}/>)}</div></section>)}</div></div>
+            ? <div className="notes-stream"><div className="notes-stream-sections">{activeBankGroup.sections.map(section => <section className="notes-stream-section" id={anchorIdFor(section.key)} key={section.key}><header><div><span>{section.chapterName}</span><strong>{section.sectionName}</strong></div><em>{section.entries.length} 条</em></header><div className="notes-stream-list">{section.entries.map(entry => <NoteStreamCard key={entry.questionId} entry={entry} onOpenQuestion={onOpenQuestion} onEditQuestion={onEditQuestion}/>)}</div></section>)}</div></div>
             : activePersonalView
               ? <div className="notes-stream"><div className="notes-personal-heading"><div><span>PERSONAL NOTEBOOK</span><h3>{activePersonalView.notebook.name}</h3><p>独立笔记不会绑定题库，文字与手写内容会自动保存。</p></div><div className="notes-personal-heading-actions"><button type="button" onClick={() => openCreation('note', activePersonalView.notebook.id)}><Plus size={14}/>新建笔记</button><button className="notes-stream-icon-button" type="button" aria-label="删除笔记本" title="删除笔记本" onClick={() => setDeleteTarget({ kind: 'notebook', notebookId: activePersonalView.notebook.id, label: activePersonalView.notebook.name })}><Trash2 size={15}/></button></div></div><div className="notes-stream-list notes-personal-note-list">{activePersonalView.notes.length ? activePersonalView.notes.map(note => <PersonalNoteCard key={note.id} notebook={activePersonalView.notebook} note={note} initialOpen={newlyCreatedNoteId === note.id} onChange={next => onPersonalNoteChange(activePersonalView.notebook.id, next)} onDelete={() => setDeleteTarget({ kind: 'note', notebookId: activePersonalView.notebook.id, noteId: note.id, label: note.title || '未命名笔记' })}/>) : <div className="notes-detail-placeholder"><NotebookPen size={34}/><strong>这个笔记本还是空的</strong><p>新建一条笔记，记录公式、思路或手写内容。</p><button type="button" onClick={() => openCreation('note', activePersonalView.notebook.id)}><Plus size={14}/>新建笔记</button></div>}</div></div>
               : <div className="notes-detail-placeholder"><NotebookPen size={34}/><strong>开始整理你的笔记</strong><p>可以把笔记放进题库，也可以新建独立笔记本。</p><div><button type="button" onClick={() => openCreation('notebook')}><Plus size={14}/>新建笔记本</button><button type="button" onClick={() => openCreation('note')}><Plus size={14}/>新建笔记</button></div></div>}

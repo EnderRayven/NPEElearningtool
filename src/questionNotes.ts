@@ -161,6 +161,15 @@ export function emptyQuestionNote(): QuestionNote {
   return { text: '', drawing: emptyHandwritingDrawing(), updatedAt: '' }
 }
 
+export type QuestionNoteDisplayMode = 'text' | 'handwriting'
+
+/** Select the useful editor when a note is opened; handwriting wins when both exist. */
+export function preferredQuestionNoteDisplayMode(note: Pick<QuestionNote, 'text' | 'drawing'> | undefined): QuestionNoteDisplayMode {
+  if (note?.drawing.strokes.length) return 'handwriting'
+  if (note?.text.trim()) return 'text'
+  return 'handwriting'
+}
+
 function validatePoint(value: unknown): HandwritingPoint | null {
   if (!isRecord(value)) return null
   const x = finiteNumber(value.x, Number.NaN)

@@ -1,4 +1,5 @@
 import { orderedQuestionEntriesForBank } from './bankManagement'
+import { groupEnglishTopicEntries, type EnglishTopicKey } from './englishNavigation'
 import type { QuestionBank, QuestionStatus } from './types'
 
 export interface SavedNavigation {
@@ -6,6 +7,8 @@ export interface SavedNavigation {
   sectionId: string
   questionId: string
   view: 'section' | 'wrong'
+  englishNavigationMode?: 'paper' | 'topic'
+  englishTopic?: EnglishTopicKey
 }
 
 export interface ResolvedNavigation {
@@ -37,6 +40,23 @@ export function resolveNavigation(
     sectionId: section.id,
     questionIndex: Math.max(0, questions.findIndex(question => question.id === saved.questionId)),
     view: saved.view,
+  }
+}
+
+export function resolveEnglishTopicNavigation(bank: QuestionBank, saved: SavedNavigation | null) {
+  if (!saved || saved.view === 'wrong' || saved.englishNavigationMode !== 'topic') return null
+  const groups = groupEnglishTopicEntries(orderedQuestionEntriesForBank(bank))
+  const group = groups.find(item => item.key === (saved.englishTopic || 'cloze')) || groups[0]
+  if (!group) return null
+  const entry = group.entries.find(item => item.question.id === saved.questionId)
+    || group.entries.find(item => item.sectionId === saved.sectionId)
+    || group.entries[0]
+  if (!entry) return null
+  const chapterEntries = group.entries.filter(item => item.chapterId === entry.chapterId)
+  return {
+    chapterId: entry.chapterId,
+    sectionId: entry.sectionId,
+    questionIndex: Math.max(0, chapterEntries.findIndex(item => item.question.id === entry.question.id)),
   }
 }
 

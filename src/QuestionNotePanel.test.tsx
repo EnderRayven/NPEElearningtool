@@ -1,7 +1,8 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import QuestionNotePanel, { autoExtendedCanvasHeight, canvasHeightForDrawing, canvasHeightForMovingSelection, canvasHeightForStrokes, clampSpaceAdjustment, createShapeStrokes, croppedCanvasHeightForDrawing, handwritingPointFromClientDelta, handwritingToolForShortcut, historyActionForShortcut, insertSpaceIntoStrokes, lineSnapAxisForPoints, pathsForStroke, selectionHandlePointsForBounds, shouldResetCanvasForDrawingChange, snapLineEndPoint, updateSelectedStrokeSize } from './QuestionNotePanel'
+import type { HandwritingStroke } from './questionNotes'
+import QuestionNotePanel, { autoExtendedCanvasHeight, canvasHeightForDrawing, canvasHeightForMovingSelection, canvasHeightForStrokes, clampSpaceAdjustment, createShapeStrokes, croppedCanvasHeightForDrawing, handwritingPointFromClientDelta, handwritingToolForShortcut, historyActionForShortcut, insertSpaceIntoStrokes, lineSnapAxisForPoints, pathsForStroke, selectionHandlePointsForBounds, shouldResetCanvasForDrawingChange, snapLineEndPoint, updateSelectedShapeFill, updateSelectedShapeFillColor, updateSelectedShapeFillOpacity, updateSelectedShapeLineStyle, updateSelectedStrokeSize } from './QuestionNotePanel'
 
 describe('QuestionNotePanel', () => {
   it('uses an answer-style disclosure and marks saved content', () => {
@@ -17,6 +18,60 @@ describe('QuestionNotePanel', () => {
     expect(markup).toContain('查看与编辑笔记')
     expect(markup).toContain('已保存')
     expect(markup).toContain('aria-expanded="false"')
+  })
+
+  it('renders a note lock control when the note is open', () => {
+    const markup = renderToStaticMarkup(createElement(QuestionNotePanel, {
+      questionId: 'question-1',
+      open: true,
+      locked: false,
+      note: undefined,
+      onChange: () => {},
+    }))
+    expect(markup).toContain('锁定笔记，切题时保持当前展开状态')
+    expect(markup).toContain('aria-pressed="false"')
+    expect(markup).toContain('question-note-toggle-content')
+  })
+
+  it('opens a text-only note in the text editor and keeps handwriting as the priority when both exist', () => {
+    const textOnly = renderToStaticMarkup(createElement(QuestionNotePanel, {
+      questionId: 'question-text-only',
+      open: true,
+      note: {
+        text: '**重点**：$x^2$',
+        drawing: { version: 1, aspectRatio: 5 / 3, strokes: [] },
+        updatedAt: '2026-08-06T00:00:00.000Z',
+      },
+      onChange: () => {},
+    }))
+    expect(textOnly).toContain('class="markdown-note-editor"')
+    expect(textOnly).toContain('aria-selected="true" class="active">文字笔记')
+
+    const both = renderToStaticMarkup(createElement(QuestionNotePanel, {
+      questionId: 'question-both',
+      open: true,
+      note: {
+        text: '**重点**：$x^2$',
+        drawing: { version: 1, aspectRatio: 5 / 3, strokes: [{ id: 'stroke', color: '#000000', size: 2, input: 'pen', points: [{ x: .2, y: .3 }] }] },
+        updatedAt: '2026-08-06T00:00:00.000Z',
+      },
+      onChange: () => {},
+    }))
+    expect(both).toContain('aria-selected="true" class="active">手写笔记')
+    expect(both).not.toContain('class="markdown-note-editor"')
+  })
+
+  it('can open the enlarged handwriting editor without the disclosure panel', () => {
+    const markup = renderToStaticMarkup(createElement(QuestionNotePanel, {
+      questionId: 'question-1',
+      note: undefined,
+      initialExpanded: true,
+      expandedOnly: true,
+      onChange: () => {},
+    }))
+    expect(markup).toContain('class="handwriting-dialog-backdrop"')
+    expect(markup).toContain('aria-label="完成并关闭"')
+    expect(markup).not.toContain('查看与编辑笔记')
   })
 
   it('renders handwriting as pressure-aware smooth curves', () => {
@@ -111,7 +166,7 @@ describe('QuestionNotePanel', () => {
   })
 
   it('inserts space by moving only strokes below the insertion line', () => {
-    const strokes = [
+    const strokes: HandwritingStroke[] = [
       { id: 'above', color: '#000000', size: 2, input: 'pen' as const, points: [{ x: .2, y: .2 }] },
       { id: 'below', color: '#000000', size: 2, input: 'pen' as const, points: [{ x: .2, y: .8 }] },
     ]
@@ -121,7 +176,7 @@ describe('QuestionNotePanel', () => {
   })
 
   it('allows inserting space when the canvas still has room below the strokes', () => {
-    const strokes = [
+    const strokes: HandwritingStroke[] = [
       { id: 'above', color: '#000000', size: 2, input: 'pen' as const, points: [{ x: .2, y: .2 }] },
       { id: 'below', color: '#000000', size: 2, input: 'pen' as const, points: [{ x: .2, y: .8 }] },
     ]
@@ -175,6 +230,40 @@ describe('QuestionNotePanel', () => {
     const result = updateSelectedStrokeSize(strokes, ['selected'], 9)
     expect(result.map(stroke => stroke.size)).toEqual([9, 5])
     expect(strokes.map(stroke => stroke.size)).toEqual([2, 5])
+  })
+
+  it('updates line style only on selected shapes and removes the solid override', () => {
+    const strokes: HandwritingStroke[] = [
+      { id: 'shape', color: '#000000', size: 2, input: 'mouse' as const, shape: 'rectangle' as const, shapeLineStyle: 'dashed' as const, points: [{ x: .2, y: .2 }, { x: .5, y: .5 }] },
+      { id: 'freehand', color: '#8f3028', size: 5, input: 'mouse' as const, points: [{ x: .6, y: .6 }] },
+    ]
+    const dotted = updateSelectedShapeLineStyle(strokes, ['shape', 'freehand'], 'dotted')
+    expect(dotted[0].shapeLineStyle).toBe('dotted')
+    expect(dotted[1]).toBe(strokes[1])
+
+    const solid = updateSelectedShapeLineStyle(dotted, ['shape'], 'solid')
+    expect(solid[0].shapeLineStyle).toBeUndefined()
+    expect(solid[0].shape).toBe('rectangle')
+  })
+
+  it('updates fill appearance only on selected closed shapes', () => {
+    const strokes: HandwritingStroke[] = [
+      { id: 'rectangle', color: '#000000', size: 2, input: 'mouse' as const, shape: 'rectangle' as const, points: [{ x: .2, y: .2 }, { x: .5, y: .5 }] },
+      { id: 'line', color: '#8f3028', size: 2, input: 'mouse' as const, shape: 'line' as const, points: [{ x: .6, y: .6 }, { x: .8, y: .8 }] },
+    ]
+    const filled = updateSelectedShapeFill(strokes, ['rectangle', 'line'], true, '#3474a7', .42)
+    expect(filled[0]).toMatchObject({ shapeFill: true, shapeFillColor: '#3474a7', shapeFillOpacity: .42 })
+    expect(filled[1]).toBe(strokes[1])
+
+    const recolored = updateSelectedShapeFillColor(filled, ['rectangle'], '#d06432')
+    expect(recolored[0].shapeFillColor).toBe('#d06432')
+    const faded = updateSelectedShapeFillOpacity(recolored, ['rectangle'], .18)
+    expect(faded[0].shapeFillOpacity).toBe(.18)
+
+    const unfilled = updateSelectedShapeFill(faded, ['rectangle'], false, '#d06432', .18)
+    expect(unfilled[0].shapeFill).toBeUndefined()
+    expect(unfilled[0].shapeFillColor).toBeUndefined()
+    expect(unfilled[0].shapeFillOpacity).toBeUndefined()
   })
 
   it('places adjustment handles on selection corners and polygon edges', () => {
