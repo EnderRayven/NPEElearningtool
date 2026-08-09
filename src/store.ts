@@ -324,10 +324,12 @@ export function validateBanks(value: unknown): QuestionBank[] {
             }
             const passage = optionalString(rawSection.passage, `${sectionPath}.passage`)
             const passageImageUrls = optionalStringArray(rawSection.passageImageUrls, `${sectionPath}.passageImageUrls`)
+            const passageAnalysisImageUrls = optionalStringArray(rawSection.passageAnalysisImageUrls, `${sectionPath}.passageAnalysisImageUrls`)
             const partBKind = VALID_PART_B_KINDS.has(rawSection.partBKind as PartBKind) ? rawSection.partBKind as PartBKind : undefined
             const partBSequence = optionalString(rawSection.partBSequence, `${sectionPath}.partBSequence`)
             if (passage !== undefined) section.passage = passage
             if (passageImageUrls !== undefined) section.passageImageUrls = passageImageUrls
+            if (passageAnalysisImageUrls !== undefined) section.passageAnalysisImageUrls = passageAnalysisImageUrls
             if (partBKind !== undefined) section.partBKind = partBKind
             if (partBSequence !== undefined) section.partBSequence = partBSequence
             return section

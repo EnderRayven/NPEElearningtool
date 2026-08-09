@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, BookOpen, ChevronDown, ChevronRight, CircleHelp, Filter, FolderSync, Lock, Maximize2, Menu, Minimize2, NotebookPen, Pencil, Plus, RotateCcw, Search, Settings as SettingsIcon, Timer, Unlock, Wrench, X } from 'lucide-react'
 import type { MathModule, Question, QuestionBank, QuestionStatus, ReadingQuestionType, Section, Subject } from './types'
 import { loadNavigation, renameBank, renameChapter, saveNavigation, validateBanks } from './store'
-import { deleteAssets, putAssets } from './assets'
+import { deleteAssets, getAssetFiles, putAssets } from './assets'
 import AssetGallery from './AssetGallery'
 import ExportDialog, { ExportPage, waitForExportContent, type ExportJob, type ExportMode } from './ExportDialog'
 import SettingsDialog from './SettingsDialog'
@@ -10,7 +10,7 @@ import StudyRecordManagerDialog from './StudyRecordManagerDialog'
 import { assetKeysForBank, clearQuestionStatuses, orderedQuestionEntriesForBank, questionIdsForBank, removeBank, resetBankData } from './bankManagement'
 import { builtInBanks, defaultBankIds, englishBanks, initializeDefaultBanks, loadDefaultBanks } from './data'
 import { mergeImageEntries } from './imageImport'
-import { addDefaultWorkspaceImage, BUILTIN_ENGLISH_VERSION, chooseWorkspace, clearWorkspaceHandle, createBankFolder, createWorkspaceManifest, createWorkspaceMetadata, defaultWorkspaceFileUrl, deleteDefaultWorkspaceImage, deleteDefaultWorkspaceImageByName, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceCache, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, readWorkspaceNoteBuckets, readWorkspaceUserData, removeBankFolder, replaceDefaultWorkspaceImage, resolveWorkspaceUserData, safeFolderName, saveWorkspaceCache, scanWorkspaceBankFolders, scanWorkspaceImages, type WorkspaceCache, type WorkspaceCacheImage, workspaceBankName, writeDefaultWorkspaceImage, writeDefaultWorkspaceManifest, writeDefaultWorkspaceNoteBuckets, writeDefaultWorkspaceUserData, writeWorkspaceManifest, writeWorkspaceNoteBuckets, writeWorkspaceUserData } from './workspace'
+import { addDefaultWorkspaceImage, BUILTIN_ENGLISH_VERSION, chooseWorkspace, clearWorkspaceHandle, createBankFolder, createWorkspaceManifest, createWorkspaceMetadata, defaultWorkspaceFileUrl, deleteDefaultWorkspaceImage, deleteDefaultWorkspaceImageByName, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceCache, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, readWorkspaceNoteBuckets, readWorkspaceUserData, removeBankFolder, replaceDefaultWorkspaceImage, resolveWorkspaceUserData, safeFolderName, saveWorkspaceCache, scanWorkspaceBankFolders, scanWorkspaceImages, type WorkspaceCache, type WorkspaceCacheImage, workspaceBankName, writeDefaultWorkspaceImage, writeDefaultWorkspaceManifest, writeDefaultWorkspaceNoteBuckets, writeDefaultWorkspaceUserData, writeWorkspaceImage, writeWorkspaceManifest, writeWorkspaceNoteBuckets, writeWorkspaceUserData } from './workspace'
 import { formatPassageParagraphs } from './passageFormatting'
 import { isImageAnswerPlaceholder, isImageQuestionType } from './questionPresentation'
 import AdvancedQuestionFilter from './AdvancedQuestionFilter'
@@ -38,7 +38,8 @@ import { navigationScrollTop, shouldScrollSectionChangeToTop } from './navigatio
 import { scheduleDeferredPreloads } from './deferredPreload'
 import { useModalScrollLock } from './useModalScrollLock'
 import { resolveMarkdownShortcutSettings, type MarkdownShortcutSettings } from './shortcutSettings'
-import { cloudSyncManifestPath, cloudSyncUserDataPath, completeOneDriveSignIn, createCloudSyncFiles, hasOneDriveSession, isOneDriveWebAuthConfigured, loadCloudSyncSettings, saveCloudSyncSettings, signOutOneDrive, startOneDriveSignIn, syncCloudFiles, type CloudSyncSettings, type CloudSyncState } from './cloudSync'
+import { cloudSyncAssetKey, cloudSyncAssetPath, cloudSyncImagePath, cloudSyncImagePrefix, cloudSyncManifestPath, cloudSyncUserDataPath, completeOneDriveSignIn, createCloudSyncFiles, hasOneDriveSession, isOneDriveWebAuthConfigured, loadCloudSyncSettings, loadLastSuccessfulSyncAt, resetLastSuccessfulSyncAt, saveCloudSyncSettings, signOutOneDrive, startOneDriveSignIn, syncCloudFiles, type CloudSyncFile, type CloudSyncSettings, type CloudSyncState } from './cloudSync'
+import UpdateDialog from './UpdateDialog'
 
 type DeferredModules = {
   SettingsPanel?: (typeof import('./SettingsPanel'))['default']
@@ -325,6 +326,7 @@ export default function App() {
   const [questionNoteOpen, setQuestionNoteOpen] = useState(false)
   const [questionNoteLocked, setQuestionNoteLocked] = useState(false)
   const [expandedPassageAnswers, setExpandedPassageAnswers] = useState<Set<string>>(() => new Set())
+  const [expandedPassageAnalyses, setExpandedPassageAnalyses] = useState<Set<string>>(() => new Set())
   const [expandedChapterIds, setExpandedChapterIds] = useState<Set<string>>(() => new Set(banks[0]?.chapters[0] ? [banks[0].chapters[0].id] : []))
   const [query, setQuery] = useState('')
   const [advancedFilter, setAdvancedFilter] = useState<AdvancedQuestionFilterState>(createEmptyAdvancedQuestionFilter)
@@ -348,6 +350,7 @@ export default function App() {
   const [newBankSubject, setNewBankSubject] = useState<Subject>('math')
   const [newBankMathModule, setNewBankMathModule] = useState<MathModule>('calculus')
   const [settingsPanelOpen, setSettingsPanelOpen] = useState(false)
+  const [updateOpen, setUpdateOpen] = useState(false)
   const [studyRecordManagerOpen, setStudyRecordManagerOpen] = useState(false)
   const [toolboxOpen, setToolboxOpen] = useState(false)
   const [timerView, setTimerView] = useState<'closed' | 'large' | 'mini'>('closed')
@@ -370,6 +373,8 @@ export default function App() {
   const [cloudSyncState, setCloudSyncState] = useState<CloudSyncState>(() => hasOneDriveSession() ? 'connected' : 'idle')
   const [cloudSyncMessage, setCloudSyncMessage] = useState('')
   const [oneDriveSignedIn, setOneDriveSignedIn] = useState(hasOneDriveSession)
+  const [cloudSyncLastSuccessfulAt, setCloudSyncLastSuccessfulAt] = useState(() => loadLastSuccessfulSyncAt(cloudSyncSettings))
+  const cloudSyncInFlight = useRef(false)
   useModalScrollLock(newBankOpen || Boolean(renameTarget) || Boolean(questionZoomTarget))
   const screenWakeLockSupported = isScreenWakeLockSupported()
   const questionTags = userSettings.questionTags?.length ? userSettings.questionTags : DEFAULT_QUESTION_TAGS
@@ -899,10 +904,10 @@ export default function App() {
   }, [isEnglishTopicMode, currentChapter, filteredQuestionEntries])
   const currentEnglishTopicPassageGroup = englishTopicSectionGroups.find(group => group.entries.some(entry => entry.question.id === question?.id))
     || englishTopicSectionGroups.find(group => group.section.id === sectionId)
-  const englishTopicHasPassageSection = Boolean(currentEnglishTopicPassageGroup && (currentEnglishTopicPassageGroup.section.passage || currentEnglishTopicPassageGroup.section.passageImageUrls?.length || (currentEnglishTopicPassageGroup.section.questions.length > 0 && currentEnglishTopicPassageGroup.section.questions.every(item => item.type === '阅读理解 Part B'))))
+  const englishTopicHasPassageSection = Boolean(currentEnglishTopicPassageGroup && (currentEnglishTopicPassageGroup.section.passage || currentEnglishTopicPassageGroup.section.passageImageUrls?.length || currentEnglishTopicPassageGroup.section.passageAnalysisImageUrls?.length || (currentEnglishTopicPassageGroup.section.questions.length > 0 && currentEnglishTopicPassageGroup.section.questions.every(item => item.type === '阅读理解 Part B'))))
   const showPassageStudy = Boolean(question && view === 'section' && (isEnglishTopicMode
     ? englishTopicHasPassageSection
-    : !isMathExamKeyPointMode && Boolean(section?.passage || section?.passageImageUrls?.length || isPartBSection)))
+    : !isMathExamKeyPointMode && Boolean(section?.passage || section?.passageImageUrls?.length || section?.passageAnalysisImageUrls?.length || isPartBSection)))
   const keyPointNavigationGroups = useMemo<MathExamYearNavigationGroup[]>(() => {
     if (!showKeyPointNavigation) return []
     const groups = new Map<string, BankQuestionEntry[]>()
@@ -1062,6 +1067,28 @@ export default function App() {
   function collapseAnswerUnlessLocked() {
     if (!answerLocked) setAnswerOpen(false)
     if (!questionNoteLocked) setQuestionNoteOpen(false)
+  }
+
+  function togglePassageAnalysis(sectionId: string) {
+    setExpandedPassageAnalyses(previous => {
+      const next = new Set(previous)
+      if (next.has(sectionId)) next.delete(sectionId)
+      else next.add(sectionId)
+      return next
+    })
+  }
+
+  function renderPassageAnalysis(section: Section, alt: string) {
+    const urls = section.passageAnalysisImageUrls
+    if (!urls?.length) return null
+    const expanded = expandedPassageAnalyses.has(section.id)
+    return <div className="source-analysis">
+      <div className="source-analysis-heading">
+        <div><span>FULL ANALYSIS</span><h3>全文解析</h3></div>
+        <button className="passage-answer-toggle source-analysis-toggle" aria-expanded={expanded} onClick={() => togglePassageAnalysis(section.id)}><CircleHelp size={16}/>{expanded ? '收起全文解析' : '查看全文解析'}<ChevronDown className={expanded ? 'rotated' : ''} size={15}/></button>
+      </div>
+      {expanded && <AssetGallery urls={urls} alt={alt}/>}
+    </div>
   }
 
   function updateQuestionTags(nextTags: QuestionTagDefinition[]) {
@@ -2209,18 +2236,98 @@ export default function App() {
     setCloudSyncState('idle')
     setCloudSyncMessage('已退出 OneDrive')
   }
-  async function syncOneDrive() {
+  async function createCloudSyncImageFiles(): Promise<CloudSyncFile[]> {
+    if (!cloudSyncSettings.includeBanks) return []
+    const output: CloudSyncFile[] = []
+    const addBlob = async (path: string, blob: Blob) => {
+      output.push({ path, content: new Uint8Array(await blob.arrayBuffer()), contentType: 'binary', mimeType: blob.type || 'application/octet-stream' })
+    }
+    if (defaultWorkspaceConnected) {
+      for (const image of workspaceImages.current) {
+        if (!image.url) continue
+        const response = await fetch(image.url)
+        if (!response.ok) continue
+        await addBlob(cloudSyncImagePath(image.bankFolder, image.relativePath), await response.blob())
+      }
+      return output
+    }
+    if (workspaceHandle && workspaceState === 'connected') {
+      const images = await scanWorkspaceImages(workspaceHandle, Object.values(workspaceFolders))
+      for (const image of images) await addBlob(cloudSyncImagePath(image.bankFolder, image.relativePath), image.file)
+      return output
+    }
+    const keys = [...new Set(banks.flatMap(assetKeysForBank))]
+    const assets = await getAssetFiles(keys)
+    for (const asset of assets) {
+      const fileName = asset.key.split('/').at(-1) || 'image.bin'
+      await addBlob(cloudSyncAssetPath(asset.key, fileName), asset.blob)
+    }
+    return output
+  }
+
+  function cloudSyncImageEntryPath(path: string) {
+    return path.slice(cloudSyncImagePrefix().length)
+  }
+
+  async function applyCloudSyncImages(files: CloudSyncFile[], initialBanks: QuestionBank[], folders: Record<string, string>) {
+    const imageFiles = files.filter(file => file.path.startsWith(cloudSyncImagePrefix()) && file.content instanceof Uint8Array)
+    if (!imageFiles.length) return { banks: initialBanks, count: 0 }
+    const entries: Array<{ file: File; relativePath: string; bankId: string; assetUrl?: string }> = []
+    let count = 0
+    for (const item of imageFiles) {
+      const content = item.content as Uint8Array
+      const relativePath = cloudSyncImageEntryPath(item.path)
+      const fileName = relativePath.split('/').at(-1) || 'image.bin'
+      const file = new File([content as unknown as BlobPart], fileName, { type: item.mimeType || 'application/octet-stream' })
+      const assetKey = cloudSyncAssetKey(item.path)
+      if (assetKey) {
+        await putAssets([{ key: assetKey, file }])
+        count++
+        continue
+      }
+      const bankFolder = Object.values(folders)
+        .filter(Boolean)
+        .sort((left, right) => right.length - left.length)
+        .find(folder => relativePath === folder || relativePath.startsWith(`${folder}/`)) || ''
+      const imageRelativePath = bankFolder ? relativePath.slice(bankFolder.length + 1) : relativePath
+      const target = bankFolder
+        ? initialBanks.find(bank => folders[bank.id] === bankFolder || bank.workspaceFolder === bankFolder)
+        : initialBanks[0]
+      if (!target) continue
+      if (defaultWorkspaceConnected) {
+        await writeDefaultWorkspaceImage(file, relativePath)
+        entries.push({ file, relativePath: imageRelativePath, bankId: target.id, assetUrl: defaultWorkspaceFileUrl(relativePath, Date.now()) })
+      } else if (workspaceHandle && workspaceState === 'connected') {
+        await writeWorkspaceImage(workspaceHandle, file, relativePath)
+        entries.push({ file, relativePath: imageRelativePath, bankId: target.id, assetUrl: URL.createObjectURL(file) })
+      } else {
+        entries.push({ file, relativePath: imageRelativePath, bankId: target.id })
+      }
+      count++
+    }
+    if (!entries.length) return { banks: initialBanks, count }
+    const validEntries = entries.filter(entry => initialBanks.some(bank => bank.id === entry.bankId))
+    const result = await mergeImageEntries(initialBanks, validEntries, { replaceExistingAssets: true })
+    return { banks: result.banks, count }
+  }
+
+  async function syncOneDrive(silent = false) {
     if (!oneDriveSignedIn) {
-      setCloudSyncMessage('请先登录 OneDrive')
+      if (!silent) setCloudSyncMessage('请先登录 OneDrive')
       return
     }
+    if (cloudSyncInFlight.current) return
+    cloudSyncInFlight.current = true
     setCloudSyncState('syncing')
     try {
-      const files = createCloudSyncFiles(banks, workspaceFolders, currentStudyRounds(), userSettings, questionNotes, questionErrorRecords, personalNotebooks, cloudSyncSettings.includeBanks)
+      const files = [
+        ...createCloudSyncFiles(banks, workspaceFolders, currentStudyRounds(), userSettings, questionNotes, questionErrorRecords, personalNotebooks, cloudSyncSettings.includeBanks),
+        ...(await createCloudSyncImageFiles()),
+      ]
       const result = await syncCloudFiles(cloudSyncSettings, files)
       let syncedStatuses = statuses
       const userDataFile = result.files.find(file => file.path === cloudSyncUserDataPath())
-      if (userDataFile) {
+      if (userDataFile && typeof userDataFile.content === 'string') {
         const parsed = JSON.parse(userDataFile.content)
         const resolved = resolveWorkspaceUserData(parsed, undefined, currentStudyRounds(), userSettings, questionNotes, questionErrorRecords, personalNotebooks)
         const nextRound = getStudyRound(resolved.rounds, resolved.settings.activeRound)
@@ -2238,26 +2345,62 @@ export default function App() {
       }
       if (cloudSyncSettings.includeBanks) {
         const manifestFile = result.files.find(file => file.path === cloudSyncManifestPath())
-        if (manifestFile) {
+        let nextBanks = banks
+        let folders = workspaceFolders
+        if (manifestFile && typeof manifestFile.content === 'string') {
           const manifest = JSON.parse(manifestFile.content)
-          const nextBanks = removeRetiredBanks(validateBanks(manifest))
-          const folders = { ...(manifest.folders || {}) }
-          setBanks(nextBanks)
-          setWorkspaceFolders(folders)
-          restoreSavedNavigation(nextBanks, syncedStatuses)
+          nextBanks = removeRetiredBanks(validateBanks(manifest))
+          folders = { ...(manifest.folders || {}) }
         }
+        const downloadedImageFiles = result.files.filter(file => result.downloadedPaths.includes(file.path))
+        const imageResult = await applyCloudSyncImages(downloadedImageFiles, nextBanks, folders)
+        nextBanks = imageResult.banks
+        setBanks(nextBanks)
+        setWorkspaceFolders(folders)
+        restoreSavedNavigation(nextBanks, syncedStatuses)
       }
       setOneDriveSignedIn(true)
       setCloudSyncState('connected')
+      setCloudSyncLastSuccessfulAt(loadLastSuccessfulSyncAt(cloudSyncSettings))
       const conflictMessage = result.conflicts.length ? `，已保留 ${result.conflicts.length} 个冲突副本` : ''
-      setCloudSyncMessage(`已同步 ${result.uploaded + result.downloaded} 个文件${conflictMessage}`)
-      setToast(`OneDrive 同步完成${conflictMessage}`)
+      if (silent) setCloudSyncMessage(`自动同步完成：${result.uploaded + result.downloaded} 个文件${conflictMessage}`)
+      else {
+        setCloudSyncMessage(`已同步 ${result.uploaded + result.downloaded} 个文件${conflictMessage}`)
+        setToast(`OneDrive 同步完成${conflictMessage}`)
+      }
     } catch (error) {
       setCloudSyncState('error')
       setCloudSyncMessage(error instanceof Error ? error.message : 'OneDrive 同步失败')
-      setToast(error instanceof Error ? error.message : 'OneDrive 同步失败')
+      if (!silent) setToast(error instanceof Error ? error.message : 'OneDrive 同步失败')
+    } finally {
+      cloudSyncInFlight.current = false
     }
   }
+
+  function resetCloudSyncTime() {
+    if (!resetLastSuccessfulSyncAt(cloudSyncSettings)) {
+      setCloudSyncMessage('上次同步时间重置失败，请检查浏览器存储空间')
+      return
+    }
+    setCloudSyncLastSuccessfulAt('')
+    setCloudSyncMessage('已重置上次成功同步时间')
+  }
+
+  useEffect(() => {
+    setCloudSyncLastSuccessfulAt(loadLastSuccessfulSyncAt(cloudSyncSettings))
+  }, [cloudSyncSettings.clientId, cloudSyncSettings.remotePath])
+
+  useEffect(() => {
+    if (!oneDriveSignedIn || cloudSyncSettings.startupSyncDelaySeconds <= 0) return
+    const timer = window.setTimeout(() => { void syncOneDrive(true) }, cloudSyncSettings.startupSyncDelaySeconds * 1000)
+    return () => window.clearTimeout(timer)
+  }, [oneDriveSignedIn, cloudSyncSettings.startupSyncDelaySeconds])
+
+  useEffect(() => {
+    if (!oneDriveSignedIn || cloudSyncSettings.autoSyncMinutes <= 0) return
+    const timer = window.setInterval(() => { void syncOneDrive(true) }, cloudSyncSettings.autoSyncMinutes * 60 * 1000)
+    return () => window.clearInterval(timer)
+  }, [oneDriveSignedIn, cloudSyncSettings.autoSyncMinutes, banks, workspaceFolders, userSettings, questionNotes, questionErrorRecords, personalNotebooks])
   function openNewBank(targetSubject: Subject = subject) {
     setNewBankSubject(targetSubject)
     if (targetSubject === 'math') setNewBankMathModule(mathModule)
@@ -2378,7 +2521,7 @@ export default function App() {
           </article>
         })}
       </section>
-      {(topicSection.passage || topicSection.passageImageUrls?.length) && <article className="source-passage"><div className="passage-block-heading"><span>ORIGINAL TEXT</span><h2>原文</h2><p>{topicSection.name}</p></div>{topicSection.passage && <div className="source-copy">{formatPassageParagraphs(topicSection.passage).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>}{topicSection.passageImageUrls?.length && <div className="source-scan"><AssetGallery urls={topicSection.passageImageUrls} alt="专题原文"/></div>}</article>}
+      {(topicSection.passage || topicSection.passageImageUrls?.length || topicSection.passageAnalysisImageUrls?.length) && <article className="source-passage"><div className="passage-block-heading"><span>ORIGINAL TEXT</span><h2>原文</h2><p>{topicSection.name}</p></div>{topicSection.passage && <div className="source-copy">{formatPassageParagraphs(topicSection.passage).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>}{topicSection.passageImageUrls?.length && <div className="source-scan"><AssetGallery urls={topicSection.passageImageUrls} alt="专题原文"/></div>}{renderPassageAnalysis(topicSection, '专题全文解析')}</article>}
     </div>
   }
   function renderEnglishTopicPassageNavigation() {
@@ -2399,7 +2542,7 @@ export default function App() {
       <div className="header-actions">
         <input ref={importRef} hidden type="file" accept=".json,application/json" onChange={e => importData(e.target.files?.[0])}/>
         <input ref={node => { imageImportRef.current = node; node?.setAttribute('webkitdirectory', '') }} hidden type="file" multiple accept="image/*" onChange={e => importImages(e.target.files)}/>
-        <div className="header-sync-status" title={workspaceState === 'connected' ? `已同步：${defaultWorkspaceConnected ? '默认题库' : workspaceHandle?.name}` : workspaceState === 'error' ? '题库连接失败，请点击按钮重试' : '数据与位置保存在本地'}><span className={`source-dot ${workspaceState === 'connected' ? 'workspace-on' : ''}`}/><span>{workspaceState === 'connected' ? '已同步' : workspaceState === 'syncing' ? '同步中' : workspaceState === 'error' ? '连接失败' : '本地保存'}</span></div>
+        <div className="header-sync-status" title={workspaceState === 'connected' ? `已同步：${defaultWorkspaceConnected ? '默认题库' : workspaceHandle?.name}` : workspaceState === 'error' ? '题库连接失败，请点击按钮重试' : '数据与位置保存在本地'}><span className={`source-dot ${workspaceState === 'connected' ? 'workspace-on' : ''}`}/><span>{workspaceState === 'connected' ? '已同步' : workspaceState === 'syncing' ? '同步中' : workspaceState === 'error' ? '连接失败' : '本地保存'}</span>{cloudSyncSettings.showLastSuccessfulSync && oneDriveSignedIn && cloudSyncLastSuccessfulAt && <small>云端 {new Date(cloudSyncLastSuccessfulAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</small>}</div>
         <button className="workspace-sync-button" type="button" aria-label={workspaceState === 'connected' ? '重新同步题库' : '连接题库'} title={workspaceState === 'connected' ? '重新同步题库' : '连接题库'} onClick={connectWorkspace} disabled={workspaceState === 'syncing'}><FolderSync/></button>
         <div className="toolbox-module" ref={toolboxRef}>
           <button className={toolboxOpen ? 'tool-button toolbox-trigger active' : 'tool-button toolbox-trigger'} type="button" aria-label="工具箱" aria-haspopup="menu" aria-expanded={toolboxOpen} onClick={() => setToolboxOpen(open => !open)}><Wrench/><span>工具箱</span><ChevronDown/></button>
@@ -2545,16 +2688,17 @@ export default function App() {
               </article>
             })}
           </section>
-          {(section?.passage || section?.passageImageUrls?.length) && <article className="source-passage">
+          {(section?.passage || section?.passageImageUrls?.length || section?.passageAnalysisImageUrls?.length) && <article className="source-passage">
             <div className="passage-block-heading"><span>ORIGINAL TEXT</span><h2>原文</h2></div>
             {section.passage && <div className="source-copy">{formatPassageParagraphs(section.passage).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>}
             {section.passageImageUrls?.length && <div className="source-scan"><AssetGallery urls={section.passageImageUrls} alt="Part B 原卷原文"/></div>}
+            {renderPassageAnalysis(section, '全文解析')}
           </article>}
         </div><nav className="question-nav passage-question-nav" aria-label={showFullPaperNavigation ? '全卷导航' : '题号导航'}><div className="question-nav-heading"><div><strong>{showFullPaperNavigation ? '全卷导航' : '题号导航'}</strong></div>{renderQuestionNavigationModeSwitch()}</div><div className="number-grid">{showFullPaperNavigation ? currentPaperEntries.map(entry => { const item = entry.question; const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={item.id === question.id ? 'true' : undefined} title={questionNavigationTitle(entry.sectionName, item)} className={questionNavigationButtonClass(item.id === question.id, itemStatus)} style={questionNavigationButtonStyle(item)} onClick={() => navigateToBankQuestion(entry)}><span className="question-nav-number">{item.number}</span>{renderQuestionNavigationIndicator(item, itemStatus)}</button> }) : filteredQuestions.map((item, index) => { const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={index === questionIndex ? 'true' : undefined} title={questionNavigationTitle('题号导航', item)} className={questionNavigationButtonClass(index === questionIndex, itemStatus)} style={questionNavigationButtonStyle(item)} onClick={() => jumpToPassageQuestion(item.id, index)}><span className="question-nav-number">{item.number}</span>{renderQuestionNavigationIndicator(item, itemStatus)}</button> })}</div>{renderQuestionNavigationLegend()}<div className="nav-accuracy"><span>本卷正确率</span><strong>{formatRate(currentNavigationStats.accuracy)}</strong><small>{currentNavigationStats.marked} 道题已标记</small></div></nav></div> : question ? <div ref={studyContentTopRef} className="study-layout">
           <section ref={questionCardRef} className="question-card">
             <div className="question-top"><div><span className="number">{String(question.number).padStart(2,'0')}</span><QuestionTagPicker tags={questionTags} selectedTagIds={question.tagIds} onChange={tagIds => setQuestionTagIds(question.id, tagIds)}/>{currentQuestionEntry && <span className="wrong-context">{currentQuestionEntry.chapterName} · {currentQuestionEntry.sectionName}</span>}</div><nav className="question-top-pager" aria-label="顶部上下题切换"><button disabled={questionIndex === 0} onClick={() => moveQuestion(-1)}><span>←</span> 上一题</button><em>{questionIndex + 1} / {filteredQuestions.length}</em><button disabled={questionIndex >= filteredQuestions.length - 1} onClick={() => moveQuestion(1)}>下一题 <span>→</span></button></nav><div className="question-top-mastery" aria-label="顶部熟练度标记">{questionErrorRecordPicker(question, currentQuestionStatus)}{masteryChoices(question, binaryFilterMode).map(s => { const meta = questionStatusMeta(question, s, binaryFilterMode); return <button key={s} className={currentQuestionStatus === s ? `status-button ${s} active` : `status-button ${s}`} onClick={() => mark(currentQuestionStatus === s ? 'none' : s)}><b>{meta.icon}</b>{meta.label}</button> })}</div></div>
             {(questionTypeLabel || question.score !== undefined || question.keyPoint) && <div className="question-meta-row" aria-label="题目信息">{questionTypeLabel && <span>{questionTypeLabel}</span>}{question.score !== undefined && <span>{question.score}分</span>}{question.keyPoint && <span className="question-key-point">{isMathExamBank ? mathExamKeyPointLabel(question.keyPoint) : question.keyPoint}</span>}</div>}
-            {isEnglishTopicMode && currentEnglishTopicSection && (currentEnglishTopicSection.passage || currentEnglishTopicSection.passageImageUrls?.length) && <article className="english-topic-source"><div className="english-topic-source-heading"><div><span>ORIGINAL TEXT</span><h2>原文</h2></div><small>{currentQuestionNavigationEntry?.chapterName} · {currentEnglishTopicSection.name}</small></div>{currentEnglishTopicSection.passage && <div className="source-copy">{formatPassageParagraphs(currentEnglishTopicSection.passage).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>}{currentEnglishTopicSection.passageImageUrls?.length && <div className="source-scan"><AssetGallery urls={currentEnglishTopicSection.passageImageUrls} alt="专题原文"/></div>}</article>}
+            {isEnglishTopicMode && currentEnglishTopicSection && (currentEnglishTopicSection.passage || currentEnglishTopicSection.passageImageUrls?.length || currentEnglishTopicSection.passageAnalysisImageUrls?.length) && <article className="english-topic-source"><div className="english-topic-source-heading"><div><span>ORIGINAL TEXT</span><h2>原文</h2></div><small>{currentQuestionNavigationEntry?.chapterName} · {currentEnglishTopicSection.name}</small></div>{currentEnglishTopicSection.passage && <div className="source-copy">{formatPassageParagraphs(currentEnglishTopicSection.passage).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>}{currentEnglishTopicSection.passageImageUrls?.length && <div className="source-scan"><AssetGallery urls={currentEnglishTopicSection.passageImageUrls} alt="专题原文"/></div>}{renderPassageAnalysis(currentEnglishTopicSection, '专题全文解析')}</article>}
             <div className={questionSources.length && !questionText ? 'question-content image-only-question-content' : 'question-content'}>{questionText && <p>{questionText}</p>}<AssetGallery sources={questionSources} alt="题目配图" onImageZoom={imageSource => setQuestionZoomTarget({ question, imageSource })}/>{question.options && <div className="options">{question.options.map((o, i) => <div key={i}>{o}</div>)}</div>}</div>
             <div className="answer-toggle-shell standard-answer-toggle-shell">
               <button className={answerOpen ? 'answer-toggle passage-answer-toggle standard-answer-toggle has-answer-lock' : 'answer-toggle passage-answer-toggle standard-answer-toggle'} aria-expanded={answerOpen} onClick={() => setAnswerOpen(v => !v)}><CircleHelp size={19}/>{answerOpen ? '收起答案与解析' : '查看答案与解析'}<ChevronDown className={answerOpen ? 'rotated' : ''} size={18}/></button>
@@ -2585,7 +2729,8 @@ export default function App() {
     {toast && <div className="toast">{toast}</div>}
     {newBankOpen && <div className="modal-backdrop" onClick={() => setNewBankOpen(false)}><section className="modal-card new-bank-dialog" role="dialog" aria-modal="true" aria-labelledby="new-bank-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setNewBankOpen(false)}><X/></button><div className="new-bank-heading"><span className="modal-icon"><BookOpen/></span><div><span>QUESTION BANK</span><h2 id="new-bank-title">新建题库</h2></div></div><p className="new-bank-description">连接工作区后会同步建立对应文件夹。</p><div className="new-bank-field"><div className="new-bank-field-heading"><strong>所属学科</strong><small>决定目录位置</small></div><div className="new-bank-subject-options">{([{ value: 'math', label: '数学', hint: '高数 / 线代' }, { value: 'english', label: '英语', hint: '英语一 / 英语二' }, { value: 'professional', label: '专业课', hint: '自定义课程' }] as Array<{ value: Subject; label: string; hint: string }>).map(option => <button key={option.value} type="button" className={newBankSubject === option.value ? 'active' : ''} onClick={() => setNewBankSubject(option.value)}><strong>{option.label}</strong><small>{option.hint}</small></button>)}</div></div>{newBankSubject === 'math' && <div className="new-bank-field"><div className="new-bank-field-heading"><strong>数学板块</strong></div><div className="new-bank-module-options">{mathModuleOrder.map(module => <button key={module} type="button" className={newBankMathModule === module ? 'active' : ''} onClick={() => setNewBankMathModule(module)}><strong>{mathModuleLabels[module]}</strong><small>{module === 'exams' ? '历年考研数学二真题' : module === 'calculus' ? '微积分与高数' : '矩阵与线性代数'}</small></button>)}</div></div>}<label className="new-bank-name-field"><span>题库名称</span><input autoFocus value={newBankName} onChange={event => setNewBankName(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') createBank() }} placeholder={newBankSubject === 'professional' ? '例如：机械原理强化题' : newBankSubject === 'english' ? '例如：英语一阅读专项' : '例如：线代强化题'}/></label><div className="new-bank-folder-preview"><span>目录预览</span><code>{newBankFolderPreview}</code></div><button className="primary-button" onClick={createBank} disabled={!newBankName.trim()}>创建题库</button></section></div>}
     {exportOpen && <ExportDialog banks={banks} statuses={statuses} notes={questionNotes} defaultBankId={bank.id} defaultSectionId={sectionId} mode={exportMode} onClose={() => setExportOpen(false)} onPdf={printExport} onNotice={setToast}/>}
-    {settingsPanelOpen && (LoadedSettingsPanel ? <LoadedSettingsPanel userSettings={userSettings} questionTags={questionTags} screenWakeLockSupported={screenWakeLockSupported} examDate={formatExamDateValue(examCountdown.target)} minExamDate={formatExamDateValue(countdownNow)} customExamDate={Boolean(customExamDate)} workspaceState={workspaceState} cloudSyncSettings={cloudSyncSettings} cloudSyncState={cloudSyncState} cloudSyncMessage={cloudSyncMessage} oneDriveSignedIn={oneDriveSignedIn} oneDriveAuthConfigured={isOneDriveWebAuthConfigured(cloudSyncSettings)} appVersion={appVersion} githubUrl={githubRepositoryUrl} roundMarkedCount={round => countMarkedQuestions(displayedStudyRound(round))} onClose={() => setSettingsPanelOpen(false)} onSwitchRound={switchStudyRound} onAddRound={addStudyRound} onUpdateExamDate={updateExamDate} onResetExamDate={resetExamDate} onToggleScreenAwake={toggleScreenAwake} onUpdateQuestionTags={updateQuestionTags} onResetQuestionTags={resetQuestionTags} onOpenNewBank={() => { setSettingsPanelOpen(false); openNewBank(newBankSubject) }} onOpenEditor={() => { setSettingsPanelOpen(false); setEditorOpen(true) }} onOpenStudyRecords={() => { setSettingsPanelOpen(false); setStudyRecordManagerOpen(true) }} onOpenDataManager={() => { setSettingsPanelOpen(false); setSettingsOpen(true) }} onConnectWorkspace={() => { setSettingsPanelOpen(false); void connectWorkspace() }} onSwitchWorkspace={() => { setSettingsPanelOpen(false); void switchWorkspace() }} onUpdateCloudSyncSettings={updateCloudSyncSettings} onSignInOneDrive={signInOneDrive} onSignOutOneDrive={signOutCloudSync} onCloudSync={syncOneDrive} onImportData={() => { setSettingsPanelOpen(false); importRef.current?.click() }} onImportImages={() => { setSettingsPanelOpen(false); imageImportRef.current?.click() }} onOpenExport={() => { setSettingsPanelOpen(false); setExportMode('questions'); setExportOpen(true) }} onOpenNotesExport={() => { setSettingsPanelOpen(false); setExportMode('notes'); setExportOpen(true) }} onExportData={() => { setSettingsPanelOpen(false); exportData() }} shortcutSettings={markdownShortcuts} onUpdateShortcutSettings={updateMarkdownShortcutSettings} onResetShortcutSettings={resetMarkdownShortcutSettings}/>: <DeferredInterfaceFallback/>)}
+    {settingsPanelOpen && (LoadedSettingsPanel ? <LoadedSettingsPanel userSettings={userSettings} questionTags={questionTags} screenWakeLockSupported={screenWakeLockSupported} examDate={formatExamDateValue(examCountdown.target)} minExamDate={formatExamDateValue(countdownNow)} customExamDate={Boolean(customExamDate)} workspaceState={workspaceState} cloudSyncSettings={cloudSyncSettings} cloudSyncState={cloudSyncState} cloudSyncMessage={cloudSyncMessage} cloudSyncLastSuccessfulAt={cloudSyncLastSuccessfulAt} oneDriveSignedIn={oneDriveSignedIn} oneDriveAuthConfigured={isOneDriveWebAuthConfigured(cloudSyncSettings)} appVersion={appVersion} githubUrl={githubRepositoryUrl} roundMarkedCount={round => countMarkedQuestions(displayedStudyRound(round))} onClose={() => setSettingsPanelOpen(false)} onSwitchRound={switchStudyRound} onAddRound={addStudyRound} onUpdateExamDate={updateExamDate} onResetExamDate={resetExamDate} onToggleScreenAwake={toggleScreenAwake} onUpdateQuestionTags={updateQuestionTags} onResetQuestionTags={resetQuestionTags} onOpenNewBank={() => { setSettingsPanelOpen(false); openNewBank(newBankSubject) }} onOpenEditor={() => { setSettingsPanelOpen(false); setEditorOpen(true) }} onOpenStudyRecords={() => { setSettingsPanelOpen(false); setStudyRecordManagerOpen(true) }} onOpenDataManager={() => { setSettingsPanelOpen(false); setSettingsOpen(true) }} onConnectWorkspace={() => { setSettingsPanelOpen(false); void connectWorkspace() }} onSwitchWorkspace={() => { setSettingsPanelOpen(false); void switchWorkspace() }} onUpdateCloudSyncSettings={updateCloudSyncSettings} onSignInOneDrive={signInOneDrive} onSignOutOneDrive={signOutCloudSync} onCloudSync={() => { void syncOneDrive() }} onResetCloudSyncTime={resetCloudSyncTime} onImportData={() => { setSettingsPanelOpen(false); importRef.current?.click() }} onImportImages={() => { setSettingsPanelOpen(false); imageImportRef.current?.click() }} onOpenExport={() => { setSettingsPanelOpen(false); setExportMode('questions'); setExportOpen(true) }} onOpenNotesExport={() => { setSettingsPanelOpen(false); setExportMode('notes'); setExportOpen(true) }} onExportData={() => { setSettingsPanelOpen(false); exportData() }} onOpenUpdate={() => setUpdateOpen(true)} shortcutSettings={markdownShortcuts} onUpdateShortcutSettings={updateMarkdownShortcutSettings} onResetShortcutSettings={resetMarkdownShortcutSettings}/>: <DeferredInterfaceFallback/>)}
+    {updateOpen && <UpdateDialog onClose={() => setUpdateOpen(false)}/>}
     {studyRecordManagerOpen && <StudyRecordManagerDialog banks={banks} activities={activities} statuses={statuses} activeBankId={bank.id} activeSectionId={sectionId} onClose={() => setStudyRecordManagerOpen(false)} onSave={(result, changedCount) => { setActivities(result.activities); setStatuses(result.statuses); setToast(`已保存 ${changedCount} 条学习记录修改`) }}/>}
     {editorOpen && (LoadedQuestionBankEditor ? <LoadedQuestionBankEditor banks={banks} activeBankId={bank.id} activeQuestionId={question?.id} onClose={() => setEditorOpen(false)} onSave={saveQuestionEditorChange}/> : <DeferredInterfaceFallback/>)}
     {notesOpen && !notePreviewData && !noteEditData && (LoadedNotesDialog ? <LoadedNotesDialog banks={banks} notes={questionNotes} personalNotebooks={personalNotebooks} onClose={() => setNotesOpen(false)} onOpenQuestion={openNoteQuestionPreview} onEditQuestion={openNoteQuestionEditor} onCreateNotebook={createPersonalNotebook} onCreateNote={createPersonalNote} onPersonalNoteChange={updatePersonalNote} onDeletePersonalNote={deletePersonalNote} onDeleteNotebook={deletePersonalNotebook}/> : <DeferredInterfaceFallback/>)}

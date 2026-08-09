@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createCloudSyncFiles, DEFAULT_CLOUD_SYNC_SETTINGS, hasOneDriveSession, loadCloudSyncSettings, mergeCloudSyncUserData, oneDriveClientId, saveCloudSyncSettings, signOutOneDrive } from './cloudSync'
+import { createCloudSyncFiles, DEFAULT_CLOUD_SYNC_SETTINGS, hasOneDriveSession, loadCloudSyncSettings, loadLastSuccessfulSyncAt, mergeCloudSyncUserData, oneDriveClientId, resetLastSuccessfulSyncAt, saveCloudSyncSettings, signOutOneDrive } from './cloudSync'
 import { createWorkspaceUserData } from './workspace'
 
 class MemoryStorage implements Storage {
@@ -40,9 +40,18 @@ describe('cloud sync data model', () => {
 
   it('persists only non-secret OneDrive settings', () => {
     const storage = new MemoryStorage()
-    const settings = { ...DEFAULT_CLOUD_SYNC_SETTINGS, clientId: 'client-id', redirectUri: 'https://example.test/' }
+    const settings = { ...DEFAULT_CLOUD_SYNC_SETTINGS, clientId: 'client-id', redirectUri: 'https://example.test/', includeBanks: true, autoSyncMinutes: 15, startupSyncDelaySeconds: 30, showLastSuccessfulSync: false }
     expect(saveCloudSyncSettings(settings, storage)).toBe(true)
     expect(loadCloudSyncSettings(storage)).toMatchObject({ ...settings, clientId: oneDriveClientId(settings) })
+  })
+
+  it('keeps the last successful sync time separate from sync settings', () => {
+    const storage = new MemoryStorage()
+    const settings = { ...DEFAULT_CLOUD_SYNC_SETTINGS, clientId: 'client-id', remotePath: 'study-space' }
+    storage.setItem(`npee:onedrive-sync-last-success:v1:${oneDriveClientId(settings)}|study-space`, '2026-08-09T09:00:00.000Z')
+    expect(loadLastSuccessfulSyncAt(settings, storage)).toBe('2026-08-09T09:00:00.000Z')
+    expect(resetLastSuccessfulSyncAt(settings, storage)).toBe(true)
+    expect(loadLastSuccessfulSyncAt(settings, storage)).toBe('')
   })
 
   it('keeps the browser login session until the user signs out', () => {

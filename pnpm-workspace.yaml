@@ -1,0 +1,4 @@
+allowBuilds:
+  electron-winstaller: true
+onlyBuiltDependencies:
+  - electron-winstaller

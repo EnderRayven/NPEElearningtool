@@ -21,6 +21,8 @@ const PKCE_STATE_KEY = 'npee:onedrive-pkce-state:v1'
 const INDEX_PATH = 'sync/index.json'
 const USER_DATA_PATH = '用户数据/用户数据.json'
 const MANIFEST_PATH = '默认题库/题库数据.json'
+const IMAGE_PREFIX = '题库图片/'
+const LAST_SUCCESS_PREFIX = 'npee:onedrive-sync-last-success:v1:'
 const GRAPH_ROOT = 'https://graph.microsoft.com/v1.0'
 const AUTH_ROOT = (import.meta.env.VITE_ONEDRIVE_AUTHORITY || 'https://login.microsoftonline.com/consumers/oauth2/v2.0').replace(/\/+$/, '')
 const BUILT_IN_CLIENT_ID = (import.meta.env.VITE_ONEDRIVE_CLIENT_ID || '').trim()
@@ -31,6 +33,9 @@ export interface CloudSyncSettings {
   redirectUri: string
   remotePath: string
   includeBanks: boolean
+  autoSyncMinutes: number
+  startupSyncDelaySeconds: number
+  showLastSuccessfulSync: boolean
 }
 
 interface OneDriveSession {
@@ -43,7 +48,9 @@ export type CloudSyncState = 'idle' | 'syncing' | 'connected' | 'error'
 
 export interface CloudSyncFile {
   path: string
-  content: string
+  content: string | Uint8Array
+  contentType?: 'text' | 'binary'
+  mimeType?: string
 }
 
 export interface CloudSyncEntry {
@@ -53,6 +60,8 @@ export interface CloudSyncEntry {
   updatedAt: string
   deviceId: string
   deletedAt?: string
+  contentType?: 'text' | 'binary'
+  mimeType?: string
 }
 
 export interface CloudSyncIndex {
@@ -66,6 +75,7 @@ export interface CloudSyncResult {
   files: CloudSyncFile[]
   uploaded: number
   downloaded: number
+  downloadedPaths: string[]
   conflicts: string[]
   firstSync: boolean
 }
@@ -75,6 +85,9 @@ export const DEFAULT_CLOUD_SYNC_SETTINGS: CloudSyncSettings = {
   redirectUri: '',
   remotePath: 'npee-study-space',
   includeBanks: false,
+  autoSyncMinutes: 0,
+  startupSyncDelaySeconds: 0,
+  showLastSuccessfulSync: true,
 }
 
 export function oneDriveClientId(settings: CloudSyncSettings) {
@@ -108,6 +121,9 @@ function cleanSettings(value: unknown): CloudSyncSettings {
     redirectUri: runtimeRedirectUri || (typeof value.redirectUri === 'string' ? value.redirectUri.trim() : ''),
     remotePath: typeof value.remotePath === 'string' && value.remotePath.trim() ? value.remotePath.trim().replace(/^\/+|\/+$/g, '') : DEFAULT_CLOUD_SYNC_SETTINGS.remotePath,
     includeBanks: value.includeBanks === true,
+    autoSyncMinutes: [0, 5, 15, 30, 60].includes(Number(value.autoSyncMinutes)) ? Number(value.autoSyncMinutes) : DEFAULT_CLOUD_SYNC_SETTINGS.autoSyncMinutes,
+    startupSyncDelaySeconds: [0, 30, 60].includes(Number(value.startupSyncDelaySeconds)) ? Number(value.startupSyncDelaySeconds) : DEFAULT_CLOUD_SYNC_SETTINGS.startupSyncDelaySeconds,
+    showLastSuccessfulSync: value.showLastSuccessfulSync !== false,
   }
 }
 
@@ -168,6 +184,19 @@ function writeLocalIndex(settings: CloudSyncSettings, index: CloudSyncIndex, sto
   try { storage.setItem(stateKey(settings), JSON.stringify(index)) } catch {}
 }
 
+function lastSuccessKey(settings: CloudSyncSettings) {
+  return `${LAST_SUCCESS_PREFIX}${oneDriveClientId(settings)}|${settings.remotePath}`
+}
+
+export function loadLastSuccessfulSyncAt(settings: CloudSyncSettings, storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage) {
+  if (!storage) return ''
+  try { return storage.getItem(lastSuccessKey(settings)) || '' } catch { return '' }
+}
+
+export function resetLastSuccessfulSyncAt(settings: CloudSyncSettings, storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage) {
+  try { storage?.removeItem(lastSuccessKey(settings)); return true } catch { return false }
+}
+
 function stringifyJson(value: unknown) {
   return JSON.stringify(value, null, 2) + '\n'
 }
@@ -190,13 +219,19 @@ export function createCloudSyncFiles(
   return files
 }
 
-function byteLength(value: string) {
-  return new TextEncoder().encode(value).byteLength
+type SyncContent = string | Uint8Array
+
+function contentBytes(value: SyncContent) {
+  return typeof value === 'string' ? new TextEncoder().encode(value) : value
 }
 
-async function sha256(value: string) {
+function byteLength(value: SyncContent) {
+  return contentBytes(value).byteLength
+}
+
+async function sha256(value: SyncContent) {
   if (typeof crypto === 'undefined' || !crypto.subtle) throw new Error('当前浏览器不支持 OneDrive 同步所需的加密摘要功能')
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value))
+  const digest = await crypto.subtle.digest('SHA-256', contentBytes(value) as BufferSource)
   return Array.from(new Uint8Array(digest), item => item.toString(16).padStart(2, '0')).join('')
 }
 
@@ -315,6 +350,13 @@ class OneDriveClient {
     return response.text()
   }
 
+  async readBytes(path: string) {
+    const response = await this.request(`${this.itemPath(path)}/content`)
+    if (response.status === 404) return null
+    if (!response.ok) throw new Error(`OneDrive 读取失败（${response.status}）`)
+    return new Uint8Array(await response.arrayBuffer())
+  }
+
   private async ensureFolder(path: string) {
     let current = ''
     const rootSegments = this.settings.remotePath.split('/').map(item => item.trim()).filter(Boolean)
@@ -331,10 +373,19 @@ class OneDriveClient {
   }
 
   async writeText(path: string, content: string) {
+    return this.writeContent(path, content, 'application/json; charset=utf-8')
+  }
+
+  async writeBytes(path: string, content: Uint8Array, mimeType = 'application/octet-stream') {
+    return this.writeContent(path, content, mimeType)
+  }
+
+  private async writeContent(path: string, content: SyncContent, mimeType: string) {
     if (byteLength(content) > 250 * 1024 * 1024) throw new Error('当前版本暂不支持超过 250 MB 的 OneDrive 文件')
     const parent = path.split('/').slice(0, -1).join('/')
     if (parent) await this.ensureFolder(parent)
-    const response = await this.request(`${this.itemPath(path)}/content`, { method: 'PUT', headers: { 'Content-Type': 'application/json; charset=utf-8' }, body: content })
+    const body = typeof content === 'string' ? content : content as unknown as BodyInit
+    const response = await this.request(`${this.itemPath(path)}/content`, { method: 'PUT', headers: { 'Content-Type': mimeType }, body })
     if (!response.ok) throw new Error(`OneDrive 写入失败（${response.status}）`)
   }
 }
@@ -348,7 +399,16 @@ function validRemoteIndex(value: unknown): CloudSyncIndex | null {
   const files: Record<string, CloudSyncEntry> = {}
   Object.entries(value.files).forEach(([path, item]) => {
     if (!isRecord(item) || typeof item.hash !== 'string' || typeof item.updatedAt !== 'string' || typeof item.deviceId !== 'string') return
-    files[path] = { path, hash: item.hash, size: typeof item.size === 'number' ? item.size : 0, updatedAt: item.updatedAt, deviceId: item.deviceId, ...(typeof item.deletedAt === 'string' ? { deletedAt: item.deletedAt } : {}) }
+    files[path] = {
+      path,
+      hash: item.hash,
+      size: typeof item.size === 'number' ? item.size : 0,
+      updatedAt: item.updatedAt,
+      deviceId: item.deviceId,
+      ...(typeof item.deletedAt === 'string' ? { deletedAt: item.deletedAt } : {}),
+      ...(item.contentType === 'binary' ? { contentType: 'binary' as const } : {}),
+      ...(typeof item.mimeType === 'string' ? { mimeType: item.mimeType } : {}),
+    }
   })
   return { version: 1, updatedAt: typeof value.updatedAt === 'string' ? value.updatedAt : new Date(0).toISOString(), deviceId: typeof value.deviceId === 'string' ? value.deviceId : '', files }
 }
@@ -413,6 +473,31 @@ function conflictPath(path: string) {
   return `sync/conflicts/${stamp}-${path.replaceAll('/', '__')}`
 }
 
+function isBankSyncPath(path: string) {
+  return path === MANIFEST_PATH || path.startsWith(IMAGE_PREFIX)
+}
+
+function isBinaryEntry(path: string, entry?: CloudSyncEntry) {
+  return entry?.contentType === 'binary' || path.startsWith(IMAGE_PREFIX)
+}
+
+function fileContentType(file: CloudSyncFile) {
+  return file.contentType || (typeof file.content === 'string' ? 'text' : 'binary')
+}
+
+async function readRemoteFile(client: OneDriveClient, path: string, entry?: CloudSyncEntry) {
+  return isBinaryEntry(path, entry) ? client.readBytes(path) : client.readText(path)
+}
+
+function remoteFile(path: string, content: SyncContent, entry?: CloudSyncEntry): CloudSyncFile {
+  return {
+    path,
+    content,
+    contentType: entry?.contentType || (isBinaryEntry(path, entry) ? 'binary' : typeof content === 'string' ? 'text' : 'binary'),
+    ...(entry?.mimeType ? { mimeType: entry.mimeType } : {}),
+  }
+}
+
 export async function syncCloudFiles(settings: CloudSyncSettings, files: CloudSyncFile[], storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage): Promise<CloudSyncResult> {
   if (!isOneDriveWebAuthConfigured(settings)) throw new Error('当前版本尚未配置 OneDrive 网页授权应用，请联系应用维护者')
   const client = new OneDriveClient(settings)
@@ -426,14 +511,26 @@ export async function syncCloudFiles(settings: CloudSyncSettings, files: CloudSy
   const localEntries = new Map<string, CloudSyncEntry>()
   for (const file of files) {
     const hash = await sha256(file.content)
-    localEntries.set(file.path, { path: file.path, hash, size: byteLength(file.content), updatedAt: new Date().toISOString(), deviceId: id })
+    localEntries.set(file.path, {
+      path: file.path,
+      hash,
+      size: byteLength(file.content),
+      updatedAt: new Date().toISOString(),
+      deviceId: id,
+      contentType: fileContentType(file),
+      ...(file.mimeType ? { mimeType: file.mimeType } : {}),
+    })
   }
   const nextFiles = new Map(localByPath)
   const nextIndex: CloudSyncIndex = remoteIndex || emptyIndex(id)
   const conflicts: string[] = []
   let uploaded = 0
   let downloaded = 0
-  const paths = new Set([...localByPath.keys(), ...Object.keys(nextIndex.files)])
+  const downloadedPaths: string[] = []
+  const paths = new Set([
+    ...localByPath.keys(),
+    ...Object.keys(nextIndex.files).filter(path => settings.includeBanks || !isBankSyncPath(path)),
+  ])
 
   for (const path of paths) {
     const local = localByPath.get(path)
@@ -441,31 +538,51 @@ export async function syncCloudFiles(settings: CloudSyncSettings, files: CloudSy
     const remoteEntry = nextIndex.files[path]
     const previousEntry = previous?.files[path]
     if (!remoteEntry || remoteEntry.deletedAt) {
-      if (local && localEntry) { await client.writeText(path, local.content); nextIndex.files[path] = localEntry; uploaded++ }
+      if (local && localEntry) {
+        if (fileContentType(local) === 'binary') await client.writeBytes(path, contentBytes(local.content), local.mimeType)
+        else await client.writeText(path, local.content as string)
+        nextIndex.files[path] = localEntry
+        uploaded++
+      }
       continue
     }
     if (!local || !localEntry) {
-      const content = await client.readText(path)
-      if (content !== null) { nextFiles.set(path, { path, content }); downloaded++ }
+      const content = await readRemoteFile(client, path, remoteEntry)
+      if (content !== null) { nextFiles.set(path, remoteFile(path, content, remoteEntry)); downloaded++; downloadedPaths.push(path) }
       continue
     }
     if (remoteEntry.hash === localEntry.hash) { nextIndex.files[path] = remoteEntry; continue }
     const localChanged = !previousEntry || localEntry.hash !== previousEntry.hash
     const remoteChanged = !previousEntry || remoteEntry.hash !== previousEntry.hash
     if (firstSync || (!localChanged && remoteChanged)) {
-      const content = await client.readText(path)
-      if (content !== null) { nextFiles.set(path, { path, content }); nextIndex.files[path] = remoteEntry; downloaded++ }
+      const content = await readRemoteFile(client, path, remoteEntry)
+      if (content !== null) { nextFiles.set(path, remoteFile(path, content, remoteEntry)); nextIndex.files[path] = remoteEntry; downloaded++; downloadedPaths.push(path) }
       continue
     }
-    if (localChanged && !remoteChanged) { await client.writeText(path, local.content); nextIndex.files[path] = localEntry; uploaded++; continue }
-    const remoteContent = await client.readText(path)
+    if (localChanged && !remoteChanged) {
+      if (fileContentType(local) === 'binary') await client.writeBytes(path, contentBytes(local.content), local.mimeType)
+      else await client.writeText(path, local.content as string)
+      nextIndex.files[path] = localEntry
+      uploaded++
+      continue
+    }
+    const remoteContent = await readRemoteFile(client, path, remoteEntry)
     if (remoteContent === null) continue
-    const merged = mergeFile(path, local.content, remoteContent)
-    if (!merged.merged) { await client.writeText(conflictPath(path), remoteContent); conflicts.push(path) }
+    if (fileContentType(local) === 'binary' || isBinaryEntry(path, remoteEntry)) {
+      await client.writeBytes(conflictPath(path), remoteContent as Uint8Array, remoteEntry.mimeType)
+      conflicts.push(path)
+      const mergedEntry = { ...localEntry, updatedAt: new Date().toISOString(), deviceId: id }
+      await client.writeBytes(path, contentBytes(local.content), local.mimeType)
+      nextIndex.files[path] = mergedEntry
+      uploaded++
+      continue
+    }
+    const merged = mergeFile(path, local.content as string, remoteContent as string)
+    if (!merged.merged) { await client.writeText(conflictPath(path), remoteContent as string); conflicts.push(path) }
     const hash = await sha256(merged.content)
     const mergedEntry = { path, hash, size: byteLength(merged.content), updatedAt: new Date().toISOString(), deviceId: id }
     await client.writeText(path, merged.content)
-    nextFiles.set(path, { path, content: merged.content })
+    nextFiles.set(path, { path, content: merged.content, contentType: 'text' })
     nextIndex.files[path] = mergedEntry
     uploaded++
   }
@@ -473,8 +590,24 @@ export async function syncCloudFiles(settings: CloudSyncSettings, files: CloudSy
   nextIndex.deviceId = id
   await client.writeText(INDEX_PATH, stringifyJson(nextIndex))
   writeLocalIndex(settings, nextIndex, storage)
-  return { files: [...nextFiles.values()], uploaded, downloaded, conflicts, firstSync }
+  try { storage?.setItem(lastSuccessKey(settings), new Date().toISOString()) } catch {}
+  return { files: [...nextFiles.values()], uploaded, downloaded, downloadedPaths, conflicts, firstSync }
 }
 
 export function cloudSyncUserDataPath() { return USER_DATA_PATH }
 export function cloudSyncManifestPath() { return MANIFEST_PATH }
+export function cloudSyncImagePrefix() { return IMAGE_PREFIX }
+export function cloudSyncImagePath(bankFolder: string, relativePath: string) {
+  return `${IMAGE_PREFIX}${[bankFolder, relativePath].filter(Boolean).join('/').replaceAll('\\', '/')}`
+}
+export function cloudSyncAssetPath(key: string, fileName: string) {
+  return `${IMAGE_PREFIX}缓存/${encodeURIComponent(key)}__${encodeURIComponent(fileName || 'image.bin')}`
+}
+export function cloudSyncAssetKey(path: string) {
+  const prefix = `${IMAGE_PREFIX}缓存/`
+  if (!path.startsWith(prefix)) return null
+  const value = path.slice(prefix.length)
+  const separator = value.lastIndexOf('__')
+  if (separator < 0) return null
+  try { return decodeURIComponent(value.slice(0, separator)) } catch { return null }
+}

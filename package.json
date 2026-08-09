@@ -30,6 +30,7 @@
     "@milkdown/crepe": "^7.22.0",
     "@milkdown/kit": "7.22.0",
     "@vitejs/plugin-react": "latest",
+    "electron-updater": "^6.6.2",
     "katex": "^0.18.1",
     "lucide-react": "latest",
     "pdfjs-dist": "^6.1.200",
@@ -69,6 +70,12 @@
       "vite.config.ts"
     ],
     "asar": true,
+    "publish": {
+      "provider": "github",
+      "owner": "EnderRayven",
+      "repo": "NPEElearningtool",
+      "releaseType": "release"
+    },
     "icon": "electron/icon.png",
     "mac": {
       "category": "public.app-category.education",

@@ -8,9 +8,9 @@
 
 当前默认内置 **22 个题库、7212 道题**。英语真题按“年份 → 题型”组织，数学和专业课图片题按“章节 → 小节 → 题号”组织；题库内容与个人学习记录分开存储，更新题库不会覆盖熟练度和复习历史。
 
-> 当前正式版：**v0.4.4** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
+> 当前正式版：**v0.4.5** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
 
-[**下载 v0.4.4 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.4/NPEE-Study-Space-v0.4.4-Software.zip) · [下载 v0.4.4 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.4/NPEE-Study-Space-v0.4.4-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.4) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
+[**下载 v0.4.5 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.5/NPEE-Study-Space-v0.4.5-Software.zip) · [下载 v0.4.5 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.5/NPEE-Study-Space-v0.4.5-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.5) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
 
 软件包与题库数据分开发布：软件包包含应用源码、启动脚本和运行所需配置，不包含默认题库图片；题库数据包包含 `数据/` 目录，其中集中放置题库和用户数据。首次使用时，将两个压缩包解压到同一个目录，再运行对应系统的一键启动脚本；后续更新软件或题库时可以单独替换对应包。无需安装 Git 或克隆仓库。
 
@@ -219,7 +219,7 @@ flowchart LR
 
 ### 一键启动
 
-1. 在同一个 [v0.4.4 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.4) 中分别下载 `NPEE-Study-Space-v0.4.4-Software.zip` 和 `NPEE-Study-Space-v0.4.4-Question-Bank.zip`。
+1. 在同一个 [v0.4.5 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.5) 中分别下载 `NPEE-Study-Space-v0.4.5-Software.zip` 和 `NPEE-Study-Space-v0.4.5-Question-Bank.zip`。
 2. 将两个压缩包解压到同一个可长期保存的目录，使 `数据/` 与 `一键启动.command` 或 `一键启动.bat` 位于同一级；不要直接在压缩包预览中运行。
 3. 按系统启动：
    - macOS：双击 `一键启动.command`，自动配置 Homebrew、Node.js、pnpm 和项目依赖。
@@ -403,7 +403,7 @@ flowchart TD
 - 浏览器首次必须由用户选择并授权文件夹，这是浏览器的安全要求；授权记录会保存在当前浏览器中。
 - Safari/Firefox 暂不支持目录写回时，仍可使用原有“图片”导入与 JSON 备份。
 
-### OneDrive 多端同步（当前为首版）
+### OneDrive 多端同步
 
 设置 → 同步可以把学习轮次、熟练度、复习记录、考试日期、题目笔记和个人笔记同步到 OneDrive，供多台设备使用。当前实现只适配 OneDrive 个人账号，通过 Microsoft Graph 的 App Folder 保存数据；点击“网页登录 OneDrive”后会跳转 Microsoft 登录页，授权完成后自动回到本应用。
 
@@ -413,7 +413,7 @@ flowchart TD
 2. 将客户端 ID 写入构建环境变量 `VITE_ONEDRIVE_CLIENT_ID`（可参考 `.env.example`）；用户不需要在设置页面手动填写。
 3. 构建并打开应用，在“设置 → 同步”点击“网页登录 OneDrive”，完成 Microsoft 授权后点击“立即同步”；另一台设备打开同一版本应用并登录同一个 Microsoft 账号即可读取数据。
 
-当前版本默认只同步用户数据和笔记；勾选“同步题库结构”后还会同步题库 JSON，但不会上传题库图片。授权令牌保存在本机浏览器，关闭页面后仍可继续同步，退出登录会清除令牌。应用不会在后台持续同步。题库图片的增量同步和大文件断点上传将在后续版本加入。
+当前版本默认只同步用户数据和笔记；勾选“同步题库”后会额外同步题库 JSON、题目图片和答案图片。同步设置支持关闭或按 5/15/30/60 分钟自动运行，也支持启动后延迟运行一次，并可显示和重置上次成功同步时间。授权令牌保存在本机浏览器，关闭页面后仍可继续同步，退出登录会清除令牌。题库图片按文件摘要增量同步，冲突图片会保留在 OneDrive 的 `sync/conflicts/` 中。
 
 - 题库键：`npee:banks:v1`
 - 学习轮次键：`npee:rounds:v1`（旧版状态与每日记录会合并迁移到第 1 轮，成功后删除旧键和空轮次）
@@ -482,6 +482,10 @@ pnpm electron:dist # 生成当前系统的桌面安装包
 所有生产构建文件统一输出到 `构建/`：网页构建在 `构建/dist/`，Electron 安装包在 `构建/release/electron/`，不会混入源码和数据目录。
 
 Electron 版与网页版共用 React 界面、题库格式和用户数据格式。桌面版启动时会优先查找程序旁边或当前目录的 `数据/`；如果没有找到，会在系统文档目录创建 `考研学习空间/数据/`。桌面版不会把题库或用户数据写入安装包内部，应用文件与 `数据/` 始终分开。
+
+## 应用内更新
+
+打开 **设置 → 关于 → 检查更新** 即可从应用内检查 GitHub Releases。网页版会在当前页面下载软件更新包；受浏览器安全边界限制，下载完成后仍需解压替换网页程序文件。macOS / Windows 封装版会在应用内下载更新，下载完成后可直接重启安装，题库和用户数据目录不会被覆盖；macOS 正式自动更新包需要 Developer ID 签名。Linux 封装版请从发布页下载新包。
 
 发布前建议至少运行 `pnpm test` 与 `pnpm build`，并在桌面和手机宽度下检查题目学习、答案展开、熟练度撤销、学习看板和复习弹窗；生成桌面安装包后，还要分别验证默认题库连接、外部工作区选择、图片显示、题库编辑保存和完整备份。
 

@@ -20,6 +20,7 @@ describe('English exam bank data', () => {
   it('stores every English resource under the shared default bank folder', () => {
     const resources = bank.chapters.flatMap(chapter => chapter.sections.flatMap(section => [
       ...(section.passageImageUrls || []),
+      ...(section.passageAnalysisImageUrls || []),
       ...section.questions.flatMap(question => [question.imageUrl, question.answerImageUrl].filter((url): url is string => Boolean(url)))
     ]))
     expect(new Set(resources).size).toBeGreaterThanOrEqual(504)
@@ -38,10 +39,22 @@ describe('English exam bank data', () => {
     })
   })
 
-  it('uses per-question analysis crops for 2005-2009 standard reading questions', () => {
+  it('keeps focused single-question analysis for the supplied source years', () => {
     bank.chapters.filter(chapter => {
       const year = yearOf(chapter)
-      return year >= 2005 && year <= 2009
+      return (year >= 2007 && year <= 2021) || year === 2025
+    }).forEach(chapter => {
+      chapter.sections.filter(section => /Text [1-4]/.test(section.name)).forEach(section => {
+        expect(section.passageAnalysisImageUrls).toHaveLength(1)
+        section.questions.forEach(question => expect(question.answerImageUrl).toContain(`analysis-${yearOf(chapter)}-q${String(question.number).padStart(2, '0')}-focused.webp`))
+      })
+    })
+  })
+
+  it('uses per-question analysis crops for 2005-2006 standard reading questions', () => {
+    bank.chapters.filter(chapter => {
+      const year = yearOf(chapter)
+      return year >= 2005 && year <= 2006
     }).forEach(chapter => {
       chapter.sections.flatMap(section => section.questions).filter(question =>
         (question.number >= 21 && question.number <= 40) || (question.number >= 46 && question.number <= 50)
@@ -51,10 +64,10 @@ describe('English exam bank data', () => {
     })
   })
 
-  it('uses complete per-question PDF crops for 2010-2024', () => {
+  it('keeps complete per-question PDF crops for years without the supplied source reorganization', () => {
     bank.chapters.filter(chapter => {
       const year = yearOf(chapter)
-      return year >= 2010 && year <= 2024
+      return year >= 2022 && year <= 2024
     }).forEach(chapter => {
       const year = yearOf(chapter)
       const questions = chapter.sections.flatMap(section => section.questions)

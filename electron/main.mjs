@@ -1,4 +1,5 @@
-import { app, BrowserWindow, dialog, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import { preview } from 'vite'
 import { access, mkdir } from 'node:fs/promises'
 import Module from 'node:module'
@@ -17,6 +18,84 @@ const runtimeConfigFile = isDevelopment
   : path.join(process.resourcesPath, 'app.asar.unpacked', 'vite.config.ts')
 let previewServer
 let mainWindow
+const canAutoUpdate = !isDevelopment && (process.platform === 'darwin' || process.platform === 'win32')
+let updaterState = {
+  status: isDevelopment || !canAutoUpdate ? 'unsupported' : 'idle',
+  version: '',
+  releaseName: '',
+  releaseNotes: '',
+  releaseDate: '',
+  progress: 0,
+  error: '',
+}
+
+function releaseNotesText(value) {
+  if (typeof value === 'string') return value
+  if (!Array.isArray(value)) return ''
+  return value.map(item => {
+    if (typeof item === 'string') return item
+    if (!item || typeof item !== 'object') return ''
+    return typeof item.note === 'string' ? item.note : typeof item.text === 'string' ? item.text : ''
+  }).filter(Boolean).join('\n\n')
+}
+
+function updateInfoState(info = {}, extra = {}) {
+  return {
+    ...updaterState,
+    ...extra,
+    version: typeof info.version === 'string' ? info.version : updaterState.version,
+    releaseName: typeof info.releaseName === 'string' ? info.releaseName : updaterState.releaseName,
+    releaseNotes: releaseNotesText(info.releaseNotes) || updaterState.releaseNotes,
+    releaseDate: info.releaseDate instanceof Date ? info.releaseDate.toISOString() : typeof info.releaseDate === 'string' ? info.releaseDate : updaterState.releaseDate,
+  }
+}
+
+function publishUpdaterState(next) {
+  updaterState = next
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('npee-update:state', updaterState)
+}
+
+function setUpdaterState(extra, info) {
+  publishUpdaterState(info ? updateInfoState(info, extra) : { ...updaterState, ...extra })
+}
+
+function setupAutoUpdater() {
+  if (!canAutoUpdate) return
+  autoUpdater.autoDownload = false
+  autoUpdater.autoInstallOnAppQuit = false
+  autoUpdater.allowPrerelease = false
+  autoUpdater.on('checking-for-update', () => setUpdaterState({ status: 'checking', error: '', progress: 0 }))
+  autoUpdater.on('update-available', info => setUpdaterState({ status: 'available', error: '', progress: 0 }, info))
+  autoUpdater.on('update-not-available', info => setUpdaterState({ status: 'not-available', error: '', progress: 0 }, info))
+  autoUpdater.on('download-progress', progress => setUpdaterState({ status: 'downloading', error: '', progress: Math.max(0, Math.min(1, Number(progress.percent || 0) / 100)) }))
+  autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName, releaseDate) => setUpdaterState({ status: 'downloaded', error: '', progress: 1 }, { version: updaterState.version, releaseNotes, releaseName, releaseDate }))
+  autoUpdater.on('error', error => setUpdaterState({ status: 'error', error: error instanceof Error ? error.message : String(error), progress: 0 }))
+}
+
+ipcMain.handle('npee-update:get-state', () => updaterState)
+ipcMain.handle('npee-update:check', async () => {
+  if (!canAutoUpdate) return updaterState
+  try {
+    setUpdaterState({ status: 'checking', error: '', progress: 0 })
+    await autoUpdater.checkForUpdates()
+  } catch (error) {
+    setUpdaterState({ status: 'error', error: error instanceof Error ? error.message : String(error), progress: 0 })
+  }
+  return updaterState
+})
+ipcMain.handle('npee-update:download', async () => {
+  if (!canAutoUpdate) return updaterState
+  try {
+    await autoUpdater.downloadUpdate()
+  } catch (error) {
+    setUpdaterState({ status: 'error', error: error instanceof Error ? error.message : String(error), progress: 0 })
+  }
+  return updaterState
+})
+ipcMain.handle('npee-update:install', () => {
+  if (canAutoUpdate && updaterState.status === 'downloaded') autoUpdater.quitAndInstall()
+  return updaterState
+})
 
 function configurePackagedModuleResolution() {
   if (isDevelopment) return
@@ -102,6 +181,7 @@ function createMainWindow(url) {
   })
 
   mainWindow.once('ready-to-show', () => mainWindow.show())
+  mainWindow.webContents.on('did-finish-load', () => publishUpdaterState(updaterState))
   mainWindow.webContents.setWindowOpenHandler(({ url: target }) => {
     if (/^https?:\/\//i.test(target)) void shell.openExternal(target)
     return { action: 'deny' }
@@ -132,6 +212,8 @@ if (!hasSingleInstance) {
   })
 
   app.whenReady().then(async () => {
+    app.setAppUserModelId('com.enderrayven.npee-study-space')
+    setupAutoUpdater()
     const url = await startPreviewServer()
     createMainWindow(url)
     app.on('activate', () => {

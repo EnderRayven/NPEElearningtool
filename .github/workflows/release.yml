@@ -104,3 +104,43 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$GITHUB_REF_NAME" "$RELEASE_ARCHIVE" "$RELEASE_ARCHIVE.sha256" --clobber
+
+  package-electron:
+    name: 生成 ${{ matrix.platform }} 封装更新包
+    if: startsWith(github.ref_name, 'v')
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macOS
+            os: macos-latest
+          - platform: Windows
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: 检出正式版源码
+        uses: actions/checkout@v6
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.12.0
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.13.0
+          cache: pnpm
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 生成 Electron 更新包
+        run: pnpm build && pnpm exec electron-builder --publish never
+
+      - name: 上传 Electron 更新包到 GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" 构建/release/electron/* --clobber

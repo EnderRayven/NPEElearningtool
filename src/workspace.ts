@@ -444,6 +444,21 @@ export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, 
   })
 }
 
+export async function writeWorkspaceImage(handle: FileSystemDirectoryHandle, file: File, relativePath: string) {
+  const layout = await resolveWorkspaceLayout(handle, true)
+  const parts = normalizeWorkspacePath(relativePath).split('/').filter(Boolean)
+  if (!parts.length || parts.some(part => part === '.' || part === '..')) throw new Error('题库图片路径无效')
+  await queueWorkspaceWrite(handle, `image:${parts.join('/')}`, async () => {
+    const fileName = parts.pop()!
+    let directory = layout.bankRoot
+    for (const part of parts) directory = await directory.getDirectoryHandle(part, { create: true })
+    const fileHandle = await directory.getFileHandle(fileName, { create: true })
+    const writable = await fileHandle.createWritable()
+    await writable.write(file)
+    await writable.close()
+  })
+}
+
 export async function readWorkspaceManifest(handle: FileSystemDirectoryHandle): Promise<WorkspaceManifest | null> {
   const layout = await resolveWorkspaceLayout(handle)
   try {

@@ -31,6 +31,7 @@ export interface Section {
   questions: Question[]
   passage?: string
   passageImageUrls?: string[]
+  passageAnalysisImageUrls?: string[]
   partBKind?: PartBKind
   partBSequence?: string
 }
