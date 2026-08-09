@@ -155,6 +155,7 @@ jobs:
 
       - name: 检查 macOS 签名与公证凭据
         if: matrix.platform == 'macOS'
+        id: macos_credentials
         shell: bash
         env:
           MACOS_CSC_LINK: ${{ secrets.MACOS_CSC_LINK }}
@@ -171,26 +172,36 @@ jobs:
           [[ -n "${APPLE_APP_SPECIFIC_PASSWORD//[[:space:]]/}" ]] || missing+=(APPLE_APP_SPECIFIC_PASSWORD)
           [[ -n "${APPLE_TEAM_ID//[[:space:]]/}" ]] || missing+=(APPLE_TEAM_ID)
           if (( ${#missing[@]} > 0 )); then
+            echo 'available=false' >> "$GITHUB_OUTPUT"
             echo "::warning::未配置完整的 macOS 发布凭据：${missing[*]}。本次将生成包含解除隔离脚本的未签名备用包；配置凭据后重新运行可生成正式签名包。"
           else
+            echo 'available=true' >> "$GITHUB_OUTPUT"
             echo '已检测到完整的 macOS 签名与公证凭据，将生成正式签名包。'
           fi
 
-      - name: 生成 Electron 更新包
+      - name: 生成已签名 macOS 更新包
+        if: matrix.platform == 'macOS' && steps.macos_credentials.outputs.available == 'true'
         env:
-          CSC_LINK: ${{ matrix.platform == 'macOS' && secrets.MACOS_CSC_LINK || '' }}
-          CSC_KEY_PASSWORD: ${{ matrix.platform == 'macOS' && secrets.MACOS_CSC_KEY_PASSWORD || '' }}
-          APPLE_ID: ${{ matrix.platform == 'macOS' && secrets.APPLE_ID || '' }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.platform == 'macOS' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
-          APPLE_TEAM_ID: ${{ matrix.platform == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
+          CSC_LINK: ${{ secrets.MACOS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MACOS_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          set -euo pipefail
           pnpm build
-          if [[ "${{ matrix.platform }}" == "macOS" && -n "${CSC_LINK//[[:space:]]/}" && -n "${CSC_KEY_PASSWORD//[[:space:]]/}" && -n "${APPLE_ID//[[:space:]]/}" && -n "${APPLE_APP_SPECIFIC_PASSWORD//[[:space:]]/}" && -n "${APPLE_TEAM_ID//[[:space:]]/}" ]]; then
-            pnpm exec electron-builder --publish never --universal -c.mac.forceCodeSigning=true
-          else
-            pnpm exec electron-builder --publish never
-          fi
+          pnpm exec electron-builder --publish never --universal -c.mac.forceCodeSigning=true
+
+      - name: 生成未签名 macOS 备用包
+        if: matrix.platform == 'macOS' && steps.macos_credentials.outputs.available != 'true'
+        run: |
+          pnpm build
+          pnpm exec electron-builder --publish never --universal
+
+      - name: 生成 Windows 更新包
+        if: matrix.platform == 'Windows'
+        run: |
+          pnpm build
+          pnpm exec electron-builder --publish never
 
       - name: 验证 macOS 安装包
         if: matrix.platform == 'macOS'
