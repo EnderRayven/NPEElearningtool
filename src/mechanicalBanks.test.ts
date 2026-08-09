@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import manifest from '../默认题库/题库数据.json'
+import manifest from '../数据/默认题库/题库数据.json'
 import type { QuestionBank } from './types'
 import { bankSubject } from './subjects'
 

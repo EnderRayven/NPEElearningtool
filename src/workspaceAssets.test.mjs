@@ -3,7 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-const workspaceRoot = fileURLToPath(new URL('../默认题库', import.meta.url))
+const workspaceRoot = fileURLToPath(new URL('../数据/默认题库', import.meta.url))
 const manifest = JSON.parse(readFileSync(path.join(workspaceRoot, '题库数据.json'), 'utf8'))
 const imagePattern = /\.(png|jpe?g|webp|gif|bmp|avif)$/i
 const structuredImagePattern = /^(Q|A)-(\d{2})-(\d+)-(\d{2,})\.(\d+)\.(png|jpe?g|webp|gif|bmp|avif)$/i

@@ -6,6 +6,7 @@ import LassoDeleteIcon from './LassoDeleteIcon'
 import { copyHandwritingStrokes, readHandwritingStrokes } from './handwritingClipboard'
 import { loadHandwritingPreferences, saveHandwritingPreferences, type HandwritingPreferences } from './handwritingPreferences'
 import { MarkdownNoteEditor } from './MarkdownNote'
+import NoteTagEditor from './NoteTagEditor'
 import type { MarkdownShortcutSettings } from './shortcutSettings'
 
 interface QuestionNotePanelProps {
@@ -62,6 +63,15 @@ const COMMON_INK_COLORS = [
   { value: '#765b9e', label: '紫色' },
 ]
 const INK_WIDTH_LEVELS = [.44, .59, .74, .89, 1.04, 1.19, 1.34, 1.49, 1.64]
+// Chrome's current SVG non-scaling-stroke rasterization differs from Safari's
+// for this pressure-layered handwriting. Keep Safari unchanged and omit that
+// property in Chromium so saved and newly drawn strokes use the same base width.
+const isChromiumBrowser = typeof navigator !== 'undefined'
+  && /(?:Chrome|CriOS|Chromium)\//.test(navigator.userAgent)
+  && !/(?:Edg|OPR)\//.test(navigator.userAgent)
+const CHROMIUM_INK_WIDTH_SCALE = 1
+export const renderedInkStrokeWidth = (width: number) => width * (isChromiumBrowser ? CHROMIUM_INK_WIDTH_SCALE : 1)
+export const renderedInkVectorEffect = isChromiumBrowser ? undefined : 'non-scaling-stroke' as const
 const drawingPoint = (point: HandwritingPoint) => ({ x: point.x * DRAWING_WIDTH, y: point.y * DRAWING_BASE_HEIGHT })
 const midpoint = (left: HandwritingPoint, right: HandwritingPoint) => ({
   x: (left.x + right.x) * 500,
@@ -497,8 +507,8 @@ interface StrokeLayerProps {
  */
 const StrokeLayer = memo(function StrokeLayer({ strokes, selectedStrokeIds }: StrokeLayerProps) {
   return <>{strokes.flatMap(stroke => pathsForStroke(stroke).flatMap((path, index) => [
-    selectedStrokeIds.includes(stroke.id) && <path key={`${stroke.id}-selected-${index}`} d={path.d} fill="none" stroke="#bf8179" strokeWidth={path.width + 5} strokeLinecap="round" strokeLinejoin="round" opacity=".32" vectorEffect="non-scaling-stroke"/>,
-    <path key={`${stroke.id}-${index}`} d={path.d} fill={path.fill || 'none'} fillOpacity={path.fillOpacity} stroke={stroke.color} strokeWidth={path.width} strokeDasharray={path.dashArray} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>,
+    selectedStrokeIds.includes(stroke.id) && <path key={`${stroke.id}-selected-${index}`} d={path.d} fill="none" stroke="#bf8179" strokeWidth={renderedInkStrokeWidth(path.width + 5)} strokeLinecap="round" strokeLinejoin="round" opacity=".32" vectorEffect={renderedInkVectorEffect}/>,
+    <path key={`${stroke.id}-${index}`} d={path.d} fill={path.fill || 'none'} fillOpacity={path.fillOpacity} stroke={stroke.color} strokeWidth={renderedInkStrokeWidth(path.width)} strokeDasharray={path.dashArray} strokeLinecap="round" strokeLinejoin="round" vectorEffect={renderedInkVectorEffect}/>,
   ]))}</>
 })
 
@@ -1198,11 +1208,11 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
             d={path.d}
             fill="none"
             stroke={currentStroke.color}
-            strokeWidth={path.width}
+            strokeWidth={renderedInkStrokeWidth(path.width)}
             strokeDasharray={path.dashArray}
             strokeLinecap="round"
             strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
+            vectorEffect={renderedInkVectorEffect}
           />
         ))}
         {tool === 'space' && spaceHoverY !== null && !spacePreview && (
@@ -1608,7 +1618,7 @@ function HandwritingEditor(props: HandwritingEditorProps) {
   </div>
 }
 
-function ExpandedHandwritingDialog({ title, editor, onClose }: { title: string; editor: ReactNode; onClose: () => void }) {
+function ExpandedHandwritingDialog({ title, tags, editor, onTagsChange, onClose }: { title: string; tags?: string[]; editor: ReactNode; onTagsChange: (tags: string[]) => void; onClose: () => void }) {
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -1628,7 +1638,7 @@ function ExpandedHandwritingDialog({ title, editor, onClose }: { title: string; 
 
   return <div className="handwriting-dialog-backdrop" role="presentation" onPointerDown={event => { if (event.target === event.currentTarget) onClose() }}>
     <section className="handwriting-dialog" role="dialog" aria-modal="true" aria-labelledby="handwriting-dialog-title">
-      <header><div><span>{title === '手写笔记' ? 'HANDWRITING NOTE' : 'MARKDOWN NOTE'}</span><h2 id="handwriting-dialog-title">{title}</h2></div><button aria-label="完成并关闭" onClick={onClose}><X size={19}/><span>完成</span></button></header>
+      <header><div className="handwriting-dialog-title"><span>{title === '手写笔记' ? 'HANDWRITING NOTE' : 'MARKDOWN NOTE'}</span><h2 id="handwriting-dialog-title">{title}</h2></div><NoteTagEditor className="handwriting-dialog-tags" tags={tags} onChange={onTagsChange}/><button aria-label="完成并关闭" onClick={onClose}><X size={19}/><span>完成</span></button></header>
       {editor}
     </section>
   </div>
@@ -1674,9 +1684,10 @@ export default function QuestionNotePanel({ questionId, note, onChange, initialO
       : { ...previous, [key]: nextValue })
   }
 
-  const change = (next: Partial<Pick<QuestionNote, 'text' | 'drawing'>>) => onChange({
+  const change = (next: Partial<Pick<QuestionNote, 'text' | 'drawing' | 'tags'>>) => onChange({
     text: next.text ?? value.text,
     drawing: next.drawing ?? drawing,
+    ...((next.tags ?? value.tags)?.length ? { tags: next.tags ?? value.tags } : {}),
     updatedAt: new Date().toISOString(),
   })
 
@@ -1794,8 +1805,9 @@ export default function QuestionNotePanel({ questionId, note, onChange, initialO
       {mode === 'text'
         ? <MarkdownNoteEditor key={`text-${questionId}`} value={value.text} shortcuts={markdownShortcuts} onChange={text => change({ text })}/>
         : <HandwritingEditor {...editorProps} onExpand={() => setExpanded(true)}/>}
+      <NoteTagEditor tags={value.tags} onChange={tags => change({ tags })}/>
     </div>}
-    {expanded && <ExpandedHandwritingDialog title={mode === 'text' ? '文字笔记' : '手写笔记'} onClose={closeExpanded} editor={mode === 'text'
+    {expanded && <ExpandedHandwritingDialog title={mode === 'text' ? '文字笔记' : '手写笔记'} tags={value.tags} onTagsChange={tags => change({ tags })} onClose={closeExpanded} editor={mode === 'text'
       ? <MarkdownNoteEditor key={`expanded-text-${questionId}`} value={value.text} shortcuts={markdownShortcuts} onChange={text => change({ text })} expanded/>
       : <HandwritingEditor {...editorProps} expanded/>}/>}
     {clearPending && <ConfirmDialog title="清空这道题的手写笔记？" description="本题的全部手写笔迹将被删除，但可以使用撤销恢复。" onConfirm={confirmClear} onCancel={() => setClearPending(false)}/>}

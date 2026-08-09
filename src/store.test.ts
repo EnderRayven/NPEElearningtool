@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import defaultManifest from '../默认题库/题库数据.json'
+import defaultManifest from '../数据/默认题库/题库数据.json'
 import { initializeDefaultBanks } from './data'
 import { loadBanks, loadNavigation, renameBank, renameChapter, saveBanks, saveNavigation, validateBanks, validateStatuses } from './store'
 import { loadStudyRounds, saveStudyRounds } from './studyRounds'

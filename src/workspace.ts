@@ -6,7 +6,10 @@ import { mergeQuestionNoteBuckets, parseQuestionNoteBucketKey, questionNoteBucke
 
 const DB_NAME = 'npee-workspace'
 const STORE_NAME = 'handles'
-const HANDLE_KEY = 'question-bank-root'
+const CACHE_STORE_NAME = 'cache'
+const DB_VERSION = 2
+const HANDLE_KEY = 'data-root'
+const WORKSPACE_CACHE_KEY = 'workspace'
 export const WORKSPACE_MANIFEST = '题库数据.json'
 export const WORKSPACE_USER_DATA = '用户数据.json'
 export const WORKSPACE_NOTES_FOLDER = '用户笔记'
@@ -22,6 +25,7 @@ type DirectoryPickerWindow = Window & {
 
 export interface WorkspaceImageFile {
   file: File
+  fileHandle?: FileSystemFileHandle
   relativePath: string
   bankFolder: string
 }
@@ -31,7 +35,7 @@ export interface WorkspaceManifest {
   builtinEnglishVersion?: number
   updatedAt: string
   banks: QuestionBank[]
-  /** 兼容旧版清单；新写入的项目数据不再包含用户标记。 */
+  /** 清单只保存题库结构、重命名和目录映射。 */
   statuses?: Record<string, QuestionStatus>
   folders?: Record<string, string>
 }
@@ -40,7 +44,6 @@ export interface WorkspaceUserData {
   version: number
   updatedAt: string
   rounds?: StudyRounds
-  /** 兼容 v2 及更早版本，读取后会迁移到第 1 轮。 */
   statuses?: Record<string, QuestionStatus>
   activities?: StudyActivity[]
   settings?: UserSettings
@@ -58,9 +61,33 @@ export interface DefaultWorkspaceIndex {
   images: Array<{ name: string; relativePath: string; bankFolder: string; url: string }>
 }
 
+export interface WorkspaceCacheImage {
+  name: string
+  relativePath: string
+  bankFolder: string
+  bankId?: string
+  url?: string
+}
+
+export interface WorkspaceCache {
+  version: 1
+  source: 'default' | 'directory'
+  updatedAt: string
+  manifest: WorkspaceManifest | null
+  userData: WorkspaceUserData | null
+  notes: QuestionNotes
+  images: WorkspaceCacheImage[]
+}
+
 const MATH_MODULE_FOLDERS = new Set(['高数', '线代', '真题'])
 const GROUPING_FOLDERS = new Set(['数学', '英语', '专业课'])
 const workspaceWriteQueues = new WeakMap<FileSystemDirectoryHandle, Map<string, Promise<void>>>()
+
+export interface WorkspaceLayout {
+  parent: FileSystemDirectoryHandle
+  bankRoot: FileSystemDirectoryHandle
+  userRoot: FileSystemDirectoryHandle
+}
 
 function queueWorkspaceWrite(handle: FileSystemDirectoryHandle, key: string, write: () => Promise<void>) {
   const queues = workspaceWriteQueues.get(handle) || new Map<string, Promise<void>>()
@@ -76,6 +103,20 @@ function queueWorkspaceWrite(handle: FileSystemDirectoryHandle, key: string, wri
 
 function normalizeWorkspacePath(value: string) {
   return value.replaceAll('\\', '/').replace(/^\/|\/$/g, '')
+}
+
+/** The browser selects the single `数据/` directory containing both data roots. */
+export async function resolveWorkspaceLayout(handle: FileSystemDirectoryHandle, createUserRoot = false): Promise<WorkspaceLayout> {
+  try {
+    const bankRoot = await handle.getDirectoryHandle('默认题库', { create: createUserRoot })
+    const userRoot = await handle.getDirectoryHandle('用户数据', { create: createUserRoot })
+    return { parent: handle, bankRoot, userRoot }
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'NotFoundError') {
+      throw new Error('请选择“数据”文件夹，该文件夹必须同时包含“默认题库”和“用户数据”')
+    }
+    throw error
+  }
 }
 
 export function workspaceBankName(folder: string) {
@@ -122,7 +163,7 @@ export function createWorkspaceMetadata(rounds: StudyRounds, settings: UserSetti
 }
 
 export function resolveWorkspaceUserData(userData: WorkspaceUserData | null | undefined, manifestStatuses: unknown, fallbackRounds: StudyRounds, fallbackSettings: UserSettings, fallbackNotes: QuestionNotes = {}, fallbackErrorRecords: QuestionErrorRecords = {}, fallbackPersonalNotebooks: PersonalNotebooks = []) {
-  const settings = userData?.settings ? validateUserSettings(userData.settings) : fallbackSettings
+  const settings = userData?.settings ? validateUserSettings({ ...fallbackSettings, ...userData.settings }) : fallbackSettings
   const rounds = userData || manifestStatuses
     ? migrateStudyRounds(userData?.rounds, userData?.statuses || manifestStatuses, userData?.activities)
     : fallbackRounds
@@ -218,9 +259,9 @@ function parseWorkspaceNoteBucket(value: unknown, fallbackBankId = '', fallbackC
   return { bankId, chapterId, notes: validateQuestionNotes(value.notes) }
 }
 
-export async function readWorkspaceNoteBuckets(handle: FileSystemDirectoryHandle): Promise<QuestionNotes> {
+async function readWorkspaceNoteBucketsFromRoot(root: FileSystemDirectoryHandle): Promise<QuestionNotes> {
   try {
-    const notesDirectory = await handle.getDirectoryHandle(WORKSPACE_NOTES_FOLDER)
+    const notesDirectory = await root.getDirectoryHandle(WORKSPACE_NOTES_FOLDER)
     const buckets: QuestionNoteBucket[] = []
     for await (const [bankSegment, bankEntry] of notesDirectory.entries()) {
       if (bankEntry.kind !== 'directory') continue
@@ -241,10 +282,16 @@ export async function readWorkspaceNoteBuckets(handle: FileSystemDirectoryHandle
   }
 }
 
+export async function readWorkspaceNoteBuckets(handle: FileSystemDirectoryHandle): Promise<QuestionNotes> {
+  const layout = await resolveWorkspaceLayout(handle)
+  return readWorkspaceNoteBucketsFromRoot(layout.userRoot)
+}
+
 export async function writeWorkspaceNoteBucket(handle: FileSystemDirectoryHandle, bucket: QuestionNoteBucket) {
+  const layout = await resolveWorkspaceLayout(handle, true)
   const key = `${WORKSPACE_NOTES_FOLDER}/${workspaceNoteSegment(bucket.bankId)}/${workspaceNoteSegment(bucket.chapterId)}.json`
   await queueWorkspaceWrite(handle, key, async () => {
-    const notesDirectory = await handle.getDirectoryHandle(WORKSPACE_NOTES_FOLDER, { create: true })
+    const notesDirectory = await layout.userRoot.getDirectoryHandle(WORKSPACE_NOTES_FOLDER, { create: true })
     const bankDirectory = await notesDirectory.getDirectoryHandle(workspaceNoteSegment(bucket.bankId), { create: true })
     const fileHandle = await bankDirectory.getFileHandle(`${workspaceNoteSegment(bucket.chapterId)}.json`, { create: true })
     const writable = await fileHandle.createWritable()
@@ -278,13 +325,50 @@ export async function writeDefaultWorkspaceNoteBuckets(notes: QuestionNotes, ban
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1)
+    const request = indexedDB.open(DB_NAME, DB_VERSION)
     request.onupgradeneeded = () => {
       if (!request.result.objectStoreNames.contains(STORE_NAME)) request.result.createObjectStore(STORE_NAME)
+      if (!request.result.objectStoreNames.contains(CACHE_STORE_NAME)) request.result.createObjectStore(CACHE_STORE_NAME)
     }
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error || new Error('无法保存题库文件夹授权'))
   })
+}
+
+export async function saveWorkspaceCache(cache: WorkspaceCache) {
+  const database = await openDatabase()
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(CACHE_STORE_NAME, 'readwrite')
+    transaction.objectStore(CACHE_STORE_NAME).put(cache, WORKSPACE_CACHE_KEY)
+    transaction.oncomplete = () => resolve()
+    transaction.onerror = () => reject(transaction.error)
+    transaction.onabort = () => reject(transaction.error)
+  })
+  database.close()
+}
+
+export async function loadWorkspaceCache(source?: WorkspaceCache['source']): Promise<WorkspaceCache | null> {
+  const database = await openDatabase()
+  const cache = await new Promise<WorkspaceCache | null>((resolve, reject) => {
+    const request = database.transaction(CACHE_STORE_NAME, 'readonly').objectStore(CACHE_STORE_NAME).get(WORKSPACE_CACHE_KEY)
+    request.onsuccess = () => resolve(request.result || null)
+    request.onerror = () => reject(request.error)
+  })
+  database.close()
+  if (!cache || cache.version !== 1 || (source && cache.source !== source) || !cache.manifest) return null
+  return cache
+}
+
+export async function clearWorkspaceCache() {
+  const database = await openDatabase()
+  await new Promise<void>((resolve, reject) => {
+    const transaction = database.transaction(CACHE_STORE_NAME, 'readwrite')
+    transaction.objectStore(CACHE_STORE_NAME).delete(WORKSPACE_CACHE_KEY)
+    transaction.oncomplete = () => resolve()
+    transaction.onerror = () => reject(transaction.error)
+    transaction.onabort = () => reject(transaction.error)
+  })
+  database.close()
 }
 
 export async function saveWorkspaceHandle(handle: FileSystemDirectoryHandle) {
@@ -318,6 +402,7 @@ export async function clearWorkspaceHandle() {
     transaction.onerror = () => reject(transaction.error)
   })
   database.close()
+  await clearWorkspaceCache().catch(() => {})
 }
 
 export function isMissingWorkspaceError(error: unknown) {
@@ -335,12 +420,14 @@ export async function chooseWorkspace() {
   if (!('showDirectoryPicker' in window)) throw new Error('当前浏览器不支持文件夹实时同步，请使用最新版 Chrome 或 Edge')
   const handle = await (window as DirectoryPickerWindow).showDirectoryPicker({ id: 'npee-question-bank-workspace', mode: 'readwrite' })
   await saveWorkspaceHandle(handle)
+  await clearWorkspaceCache().catch(() => {})
   return handle
 }
 
 export async function writeWorkspaceManifest(handle: FileSystemDirectoryHandle, banks: QuestionBank[], folders: Record<string, string> = {}) {
+  const layout = await resolveWorkspaceLayout(handle, true)
   await queueWorkspaceWrite(handle, WORKSPACE_MANIFEST, async () => {
-    const fileHandle = await handle.getFileHandle(WORKSPACE_MANIFEST, { create: true })
+    const fileHandle = await layout.bankRoot.getFileHandle(WORKSPACE_MANIFEST, { create: true })
     const writable = await fileHandle.createWritable()
     await writable.write(JSON.stringify(createWorkspaceManifest(banks, folders), null, 2))
     await writable.close()
@@ -348,8 +435,9 @@ export async function writeWorkspaceManifest(handle: FileSystemDirectoryHandle, 
 }
 
 export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}, personalNotebooks: PersonalNotebooks = []) {
+  const layout = await resolveWorkspaceLayout(handle, true)
   await queueWorkspaceWrite(handle, WORKSPACE_USER_DATA, async () => {
-    const fileHandle = await handle.getFileHandle(WORKSPACE_USER_DATA, { create: true })
+    const fileHandle = await layout.userRoot.getFileHandle(WORKSPACE_USER_DATA, { create: true })
     const writable = await fileHandle.createWritable()
     await writable.write(JSON.stringify(createWorkspaceMetadata(rounds, settings, errorRecords, personalNotebooks), null, 2))
     await writable.close()
@@ -357,8 +445,9 @@ export async function writeWorkspaceUserData(handle: FileSystemDirectoryHandle, 
 }
 
 export async function readWorkspaceManifest(handle: FileSystemDirectoryHandle): Promise<WorkspaceManifest | null> {
+  const layout = await resolveWorkspaceLayout(handle)
   try {
-    const file = await (await handle.getFileHandle(WORKSPACE_MANIFEST)).getFile()
+    const file = await (await layout.bankRoot.getFileHandle(WORKSPACE_MANIFEST)).getFile()
     return JSON.parse(await file.text()) as WorkspaceManifest
   } catch (error) {
     if (error instanceof DOMException && error.name === 'NotFoundError') return null
@@ -366,14 +455,19 @@ export async function readWorkspaceManifest(handle: FileSystemDirectoryHandle): 
   }
 }
 
-export async function readWorkspaceUserData(handle: FileSystemDirectoryHandle): Promise<WorkspaceUserData | null> {
+async function readWorkspaceUserDataFromRoot(root: FileSystemDirectoryHandle): Promise<WorkspaceUserData | null> {
   try {
-    const file = await (await handle.getFileHandle(WORKSPACE_USER_DATA)).getFile()
+    const file = await (await root.getFileHandle(WORKSPACE_USER_DATA)).getFile()
     return JSON.parse(await file.text()) as WorkspaceUserData
   } catch (error) {
     if (error instanceof DOMException && error.name === 'NotFoundError') return null
     throw error
   }
+}
+
+export async function readWorkspaceUserData(handle: FileSystemDirectoryHandle): Promise<WorkspaceUserData | null> {
+  const layout = await resolveWorkspaceLayout(handle)
+  return readWorkspaceUserDataFromRoot(layout.userRoot)
 }
 
 export function resolveWorkspaceImagePath(relativePath: string, bankFolders: string[] = []) {
@@ -397,7 +491,7 @@ async function collectImages(directory: FileSystemDirectoryHandle, prefix: strin
     if (handle.kind === 'directory') await collectImages(handle, relativePath, bankFolders, output)
     else if (/\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(name)) {
       const resolved = resolveWorkspaceImagePath(relativePath, bankFolders)
-      output.push({ file: await handle.getFile(), ...resolved })
+      output.push({ file: await handle.getFile(), fileHandle: handle as FileSystemFileHandle, ...resolved })
     }
   }
 }
@@ -412,17 +506,19 @@ async function collectDirectoryPaths(directory: FileSystemDirectoryHandle, prefi
 }
 
 export async function scanWorkspaceBankFolders(handle: FileSystemDirectoryHandle) {
+  const layout = await resolveWorkspaceLayout(handle)
   const directoryPaths: string[] = []
-  await collectDirectoryPaths(handle, '', directoryPaths)
+  await collectDirectoryPaths(layout.bankRoot, '', directoryPaths)
   return workspaceBankFoldersFromDirectoryPaths(directoryPaths)
 }
 
 export async function scanWorkspaceImages(handle: FileSystemDirectoryHandle, bankFolders: string[] = []) {
+  const layout = await resolveWorkspaceLayout(handle)
   const output: WorkspaceImageFile[] = []
-  for await (const [name, child] of handle.entries()) {
+  for await (const [name, child] of layout.bankRoot.entries()) {
     if (name.startsWith('.') || name === WORKSPACE_MANIFEST || name === WORKSPACE_USER_DATA || name === WORKSPACE_NOTES_FOLDER) continue
     if (child.kind === 'directory') await collectImages(child, name, bankFolders, output)
-    else if (/\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(name)) output.push({ file: await child.getFile(), relativePath: name, bankFolder: '' })
+    else if (/\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(name)) output.push({ file: await child.getFile(), fileHandle: child as FileSystemFileHandle, relativePath: name, bankFolder: '' })
   }
   return output
 }
@@ -432,12 +528,14 @@ export function safeFolderName(name: string) {
 }
 
 export async function createBankFolder(handle: FileSystemDirectoryHandle, name: string) {
+  const layout = await resolveWorkspaceLayout(handle, true)
   const folderPath = name.split('/').map(safeFolderName).filter(Boolean).join('/')
-  let parent = handle
+  let parent = layout.bankRoot
   for (const folderName of folderPath.split('/')) parent = await parent.getDirectoryHandle(folderName, { create: true })
   return folderPath
 }
 
 export async function removeBankFolder(handle: FileSystemDirectoryHandle, folderName: string) {
-  await handle.removeEntry(folderName, { recursive: true })
+  const layout = await resolveWorkspaceLayout(handle, true)
+  await layout.bankRoot.removeEntry(folderName, { recursive: true })
 }

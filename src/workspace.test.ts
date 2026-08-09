@@ -49,6 +49,17 @@ describe('workspace data separation', () => {
     expect(resolved.rounds['1']).not.toHaveProperty('notes')
   })
 
+  it('uses the canonical workspace file without fallback migration data', () => {
+    const resolved = resolveWorkspaceUserData(
+      { version: 5, updatedAt: '2026-08-09T01:47:00.000Z', rounds: { '1': { statuses: {}, activities: [] } }, settings: { activeRound: 1, roundCount: 5 } },
+      undefined,
+      { '1': { statuses: { 'question-1': 'wrong' }, activities: [] } },
+      { activeRound: 1, roundCount: 5, keepScreenAwake: true },
+    )
+    expect(resolved.rounds['1'].statuses).toEqual({})
+    expect(resolved.settings.keepScreenAwake).toBe(true)
+  })
+
   it('writes isolated study rounds only to user data', () => {
     const activities = [{ date: '2026-07-14', questionId: 'question-1', bankId: 'bank-1', status: 'wrong' as const, updatedAt: '2026-07-14T02:00:00.000Z' }]
     const userData = createWorkspaceUserData(
@@ -93,6 +104,7 @@ describe('workspace data separation', () => {
     let maximumActiveWriters = 0
     const writtenBankNames: string[] = []
     const handle = {
+      getDirectoryHandle: async () => handle,
       getFileHandle: async () => ({
         createWritable: async () => {
           activeWriters += 1

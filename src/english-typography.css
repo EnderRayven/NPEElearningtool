@@ -1,0 +1,35 @@
+/* Keep long English question text consistent with the reading-passage source. */
+.english-app .question-content > p,
+.english-app .dashboard-question-content > p,
+.english-app .passage-question-text,
+.english-app .source-copy p,
+.english-app .question-zoom-content > p,
+.english-app .export-question > p {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: .002em;
+  color: #302d2a;
+}
+
+/* Standard question cards use a tighter default line-height than the source copy. */
+.english-app .question-content > p,
+.english-app .dashboard-question-content > p {
+  line-height: 1.82;
+}
+
+@media (max-width: 700px) {
+  .english-app .question-content > p,
+  .english-app .dashboard-question-content > p {
+    font-size: 16px;
+    line-height: 1.76;
+  }
+}
+
+/* Options are UI choices, not part of the long-form English reading style. */
+.english-app .question-content .options > div,
+.english-app .dashboard-question-content .options > div,
+.english-app .question-zoom-content .options > div,
+.english-app .export-question .export-option {
+  font-family: 'Noto Sans SC', system-ui, sans-serif;
+  letter-spacing: normal;
+}

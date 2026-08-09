@@ -285,9 +285,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--api-dir", type=Path, default=Path("/tmp"))
     parser.add_argument("--temp", type=Path, default=Path("TEMP/张宇"))
-    parser.add_argument("--output", type=Path, default=Path("默认题库"))
+    parser.add_argument("--output", type=Path, default=Path("数据/默认题库"))
     parser.add_argument("--curl-config", type=Path, default=Path("/tmp/yuge-image-downloads.conf"))
-    parser.add_argument("--report", type=Path, default=Path("默认题库/张宇题库导入报告.json"))
+    parser.add_argument("--report", type=Path, default=Path("数据/默认题库/张宇题库导入报告.json"))
     parser.add_argument("--clean", action="store_true", help="replace only the five generated bank directories")
     args = parser.parse_args()
 

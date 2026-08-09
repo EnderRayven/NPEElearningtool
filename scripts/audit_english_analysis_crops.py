@@ -84,7 +84,7 @@ def inspect(item: tuple[int, int, str, str, Path]) -> dict[str, object]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
-    parser.add_argument("default_root", type=Path, nargs="?", default=Path("默认题库"))
+    parser.add_argument("default_root", type=Path, nargs="?", default=Path("数据/默认题库"))
     parser.add_argument("--years", default="2005-2024")
     parser.add_argument("--questions", default="21-40,46-50")
     parser.add_argument("--workers", type=int, default=4)

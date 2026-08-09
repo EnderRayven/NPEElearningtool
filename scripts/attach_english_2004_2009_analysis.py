@@ -71,7 +71,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
     parser.add_argument("analysis_dir", type=Path)
-    parser.add_argument("default_root", type=Path, default=Path("默认题库"), nargs="?")
+    parser.add_argument("default_root", type=Path, default=Path("数据/默认题库"), nargs="?")
     args = parser.parse_args()
 
     payload = json.loads(args.manifest.read_text(encoding="utf-8"))

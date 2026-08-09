@@ -33,6 +33,32 @@ describe('QuestionNotePanel', () => {
     expect(markup).toContain('question-note-toggle-content')
   })
 
+  it('renders editable note tags in the regular and enlarged editors', () => {
+    const note = {
+      text: '',
+      tags: ['易错点', '重点'],
+      drawing: { version: 1 as const, aspectRatio: 5 / 3, strokes: [] },
+      updatedAt: '2026-08-08T00:00:00.000Z',
+    }
+    const regular = renderToStaticMarkup(createElement(QuestionNotePanel, {
+      questionId: 'question-with-tags',
+      open: true,
+      note,
+      onChange: () => {},
+    }))
+    expect(regular).toContain('添加笔记标签')
+    expect(regular).toContain('易错点')
+    const expanded = renderToStaticMarkup(createElement(QuestionNotePanel, {
+      questionId: 'question-with-tags-expanded',
+      note,
+      initialExpanded: true,
+      expandedOnly: true,
+      onChange: () => {},
+    }))
+    expect(expanded).toContain('class=\"note-tag-editor handwriting-dialog-tags\"')
+    expect(expanded).toContain('删除标签 易错点')
+  })
+
   it('opens a text-only note in the text editor and keeps handwriting as the priority when both exist', () => {
     const textOnly = renderToStaticMarkup(createElement(QuestionNotePanel, {
       questionId: 'question-text-only',

@@ -20,7 +20,7 @@ from PIL import Image, ImageDraw
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_ROOT = ROOT / "默认题库"
+DEFAULT_ROOT = ROOT / "数据/默认题库"
 MANIFEST = DEFAULT_ROOT / "题库数据.json"
 TMP = ROOT / "tmp" / "pdfs" / "mechanical-lecture-bank"
 POPPLER = Path(

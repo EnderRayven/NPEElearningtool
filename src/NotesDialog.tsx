@@ -4,11 +4,12 @@ import type { Chapter, Question, QuestionBank, Section } from './types'
 import { bankSubject, subjectLabels } from './subjects'
 import ConfirmDialog from './ConfirmDialog'
 import QuestionNotePanel from './QuestionNotePanel'
-import { croppedCanvasHeightForDrawing, pathsForStroke } from './QuestionNotePanel'
+import { croppedCanvasHeightForDrawing, pathsForStroke, renderedInkStrokeWidth, renderedInkVectorEffect } from './QuestionNotePanel'
 import { DRAWING_WIDTH, hasPersonalNote, type PersonalNote, type PersonalNotebook, type PersonalNotebooks, type QuestionNote, type QuestionNotes } from './questionNotes'
 import { useDialogFocus } from './useDialogFocus'
 import { useModalScrollLock } from './useModalScrollLock'
 import { MarkdownNotePreview } from './MarkdownNote'
+import { NoteTagChips } from './NoteTagEditor'
 
 type NotesFilter = 'all' | 'text' | 'handwriting'
 type NavigationTarget = { kind: 'bank'; id: string } | { kind: 'personal'; id: string }
@@ -85,7 +86,7 @@ function formatNoteDate(value: string) {
 function questionPreview(question: Question | undefined) {
   if (!question) return '这条笔记对应的题目已不在当前题库中。'
   const text = question.text.trim()
-  if (!text || text === `第 ${question.number} 题`) return `第 ${question.number} 题`
+  if (!text || text === `第 ${question.number} 题`) return ''
   return text
 }
 
@@ -146,7 +147,7 @@ function NotesDrawing({ note }: { note: QuestionNote }) {
   const height = croppedCanvasHeightForDrawing(note.drawing)
   return <div className="notes-stream-drawing">
     <svg viewBox={`0 0 ${DRAWING_WIDTH} ${height}`} preserveAspectRatio="xMidYMin meet" role="img" aria-label="完整手写笔记">
-      {note.drawing.strokes.flatMap(stroke => pathsForStroke(stroke).map((path, index) => <path key={`${stroke.id}-${index}`} d={path.d} fill={path.fill || 'none'} fillOpacity={path.fillOpacity} stroke={stroke.color} strokeWidth={path.width} strokeDasharray={path.dashArray} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>))}
+      {note.drawing.strokes.flatMap(stroke => pathsForStroke(stroke).map((path, index) => <path key={`${stroke.id}-${index}`} d={path.d} fill={path.fill || 'none'} fillOpacity={path.fillOpacity} stroke={stroke.color} strokeWidth={renderedInkStrokeWidth(path.width)} strokeDasharray={path.dashArray} strokeLinecap="round" strokeLinejoin="round" vectorEffect={renderedInkVectorEffect}/>))}
     </svg>
   </div>
 }
@@ -161,7 +162,8 @@ function NoteStreamCard({ entry, onOpenQuestion, onEditQuestion }: { entry: Note
         <button className="notes-stream-open" type="button" onClick={() => onOpenQuestion(entry.bank!.id, entry.question!.id)}><BookOpen size={14}/>查看原题<ArrowUpRight size={14}/></button>
       </div>}
     </header>
-    <p className="notes-stream-question">{questionPreview(entry.question)}</p>
+    <NoteTagChips className="notes-stream-tags" tags={entry.note.tags}/>
+    {questionPreview(entry.question) && <p className="notes-stream-question">{questionPreview(entry.question)}</p>}
     {noteHasText(entry.note) && <MarkdownNotePreview className="notes-stream-markdown" source={entry.note.text}/>}
     <NotesDrawing note={entry.note}/>
   </article>
@@ -177,6 +179,7 @@ function PersonalNoteCard({ notebook, note, initialOpen, onChange, onDelete }: {
       </div>
       <button className="notes-stream-icon-button" type="button" aria-label={`删除笔记${note.title}`} title="删除笔记" onClick={onDelete}><Trash2 size={15}/></button>
     </header>
+    <NoteTagChips className="notes-stream-tags" tags={note.tags}/>
     {noteHasText(note) && <MarkdownNotePreview className="notes-stream-markdown" source={note.text}/>}
     <NotesDrawing note={note}/>
     <QuestionNotePanel questionId={`personal-note-${notebook.id}-${note.id}`} note={note} initialOpen={initialOpen} onChange={next => onChange({ ...note, ...next })}/>
@@ -208,7 +211,7 @@ export default function NotesDialog({ banks, notes, personalNotebooks, onClose, 
   const filteredEntries = useMemo(() => entries.filter(entry => {
     if (!noteMatchesFilter(entry.note, filter)) return false
     if (!normalizedQuery) return true
-    const searchText = [entry.bank?.name, entry.chapter?.name, entry.section?.name, entry.question?.text, entry.note.text, noteTypeLabel(entry.note)].filter(Boolean).join(' ').toLowerCase()
+    const searchText = [entry.bank?.name, entry.chapter?.name, entry.section?.name, entry.question?.text, entry.note.text, ...(entry.note.tags || []), ...(entry.note.tags || []).map(tag => '#' + tag), noteTypeLabel(entry.note)].filter(Boolean).join(' ').toLowerCase()
     return searchText.includes(normalizedQuery)
   }), [entries, filter, normalizedQuery])
   const bankGroups = useMemo(() => groupBankEntries(filteredEntries), [filteredEntries])
@@ -217,7 +220,7 @@ export default function NotesDialog({ banks, notes, personalNotebooks, onClose, 
     const filteredNotes = notebook.notes.filter(note => {
       if (!noteMatchesFilter(note, filter)) return false
       if (!normalizedQuery || notebookNameMatches) return true
-      return [note.title, note.text, noteTypeLabel(note)].join(' ').toLowerCase().includes(normalizedQuery)
+      return [note.title, note.text, ...(note.tags || []), ...(note.tags || []).map(tag => '#' + tag), noteTypeLabel(note)].join(' ').toLowerCase().includes(normalizedQuery)
     })
     if (normalizedQuery && !notebookNameMatches && !filteredNotes.length) return []
     return [{ notebook, notes: filteredNotes }]

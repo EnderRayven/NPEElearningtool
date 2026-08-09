@@ -248,7 +248,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("manifest", type=Path)
     parser.add_argument("analysis_dir", type=Path)
-    parser.add_argument("default_root", type=Path, nargs="?", default=Path("默认题库"))
+    parser.add_argument("default_root", type=Path, nargs="?", default=Path("数据/默认题库"))
     parser.add_argument("--years", default="2005-2009")
     args = parser.parse_args()
     if "-" in args.years:

@@ -156,8 +156,8 @@ def main() -> None:
     parser.add_argument("paper_2025", type=Path)
     parser.add_argument("paper_2026", type=Path)
     parser.add_argument("analysis_2025", type=Path)
-    parser.add_argument("--bank", type=Path, default=Path("默认题库/题库数据.json"))
-    parser.add_argument("--assets", type=Path, default=Path("默认题库/英语/英语一真题"))
+    parser.add_argument("--bank", type=Path, default=Path("数据/默认题库/题库数据.json"))
+    parser.add_argument("--assets", type=Path, default=Path("数据/默认题库/英语/英语一真题"))
     args = parser.parse_args()
 
     legacy.ANSWER_KEYS.update(ANSWER_KEYS)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import payload from '../默认题库/题库数据.json'
+import payload from '../数据/默认题库/题库数据.json'
 import type { QuestionBank } from './types'
 
 describe('English exam bank data', () => {
@@ -121,6 +121,18 @@ describe('English exam bank data', () => {
       expect(Boolean(section.passage?.length || section.passageImageUrls?.length)).toBe(true)
       expect(section.passage || '').not.toContain('Underlined segment (50)')
     })
+  })
+
+  it('keeps translation topic questions free of placeholder prompts', () => {
+    const translations = bank.chapters.flatMap(chapter => chapter.sections)
+      .filter(section => section.name.includes('英译汉'))
+      .flatMap(section => section.questions)
+    expect(translations.filter(question => question.text.startsWith('Underlined segment')).map(question => question.id)).toEqual([])
+
+    const repairedYears = /english-(2010|2012|2013|2014|2018)-02-3-/
+    const repaired = translations.filter(question => repairedYears.test(question.id))
+    expect(repaired).toHaveLength(25)
+    expect(repaired.every(question => question.answer !== '参考译文见原解析 PDF。')).toBe(true)
   })
 
   it('includes all eight ordering paragraphs in years with fixed paragraphs', () => {

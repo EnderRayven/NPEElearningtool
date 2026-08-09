@@ -22,8 +22,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PDF_ROOT = Path("/Users/enderrayven/Library/CloudStorage/OneDrive-个人/Study/06 考研/04 专业课/机械原理/机械原理 第九版 章节拆分")
 RENDER_ROOT = ROOT / "tmp" / "pdfs" / "mechanical-textbook-300"
 TEXTBOOK_ROOT = ROOT / "题库校验数据" / "机械原理-教材习题"
-DEFAULT_ROOT = ROOT / "默认题库" / "专业课" / "机械原理-教材习题"
-MANIFEST = ROOT / "默认题库" / "题库数据.json"
+DEFAULT_ROOT = ROOT / "数据/默认题库" / "专业课" / "机械原理-教材习题"
+MANIFEST = ROOT / "数据/默认题库" / "题库数据.json"
 POPPLER = Path("/Users/enderrayven/.cache/codex-runtimes/codex-primary-runtime/dependencies/native/poppler/bin/pdftoppm")
 
 OCR_DPI = 160

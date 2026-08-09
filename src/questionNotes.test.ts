@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptyQuestionNote, eraseHandwritingStrokes, hasPersonalNote, hasQuestionNote, mergeQuestionNoteBuckets, preferredQuestionNoteDisplayMode, questionNoteBucketKey, splitQuestionNotes, validateHandwritingDrawing, validatePersonalNotebooks, validateQuestionErrorRecords, validateQuestionNotes } from './questionNotes'
+import { emptyQuestionNote, eraseHandwritingStrokes, hasPersonalNote, hasQuestionNote, mergeQuestionNoteBuckets, normalizeNoteTags, preferredQuestionNoteDisplayMode, questionNoteBucketKey, splitQuestionNotes, validateHandwritingDrawing, validatePersonalNotebooks, validateQuestionErrorRecords, validateQuestionNotes } from './questionNotes'
 import type { QuestionBank } from './types'
 
 describe('questionNotes', () => {
@@ -37,6 +37,19 @@ describe('questionNotes', () => {
       aspectRatio: 2,
       strokes: [{ id: 's1', color: '#aabbcc', size: 4, input: 'pen', points: [{ x: 0, y: .5, pressure: 1 }, { x: .8, y: 1.5 }] }],
     })
+  })
+
+  it('normalizes note tags and keeps a tag-only question note', () => {
+    expect(normalizeNoteTags([' 易错点 ', '易错点', '重点', 2, '重点'])).toEqual(['易错点', '重点'])
+    const notes = validateQuestionNotes({
+      q1: {
+        text: '',
+        tags: ['易错点', '易错点', '重点'],
+        drawing: emptyQuestionNote().drawing,
+      },
+    })
+    expect(notes.q1.tags).toEqual(['易错点', '重点'])
+    expect(hasQuestionNote(notes.q1)).toBe(true)
   })
 
   it('preserves supported shape metadata and discards unknown shapes', () => {

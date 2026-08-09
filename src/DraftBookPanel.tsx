@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react'
 import { Eraser, GripVertical, Hand, Lasso, NotebookPen, Palette, Pencil, Redo2, RotateCcw, Trash2, Undo2, X, ZoomIn, ZoomOut } from 'lucide-react'
 import { loadDraftBook, saveDraftBook, type DraftBookData, type DraftBookPoint, type DraftBookSize, type DraftBookView, type DraftStroke } from './draftBook'
+import { clampDraftBookIconPosition, draftBookIconAnchorFromPosition, draftBookIconPositionFromAnchor, migrateLegacyDraftBookIconAnchor } from './draftBookLayout'
 import ConfirmDialog from './ConfirmDialog'
 import LassoDeleteIcon from './LassoDeleteIcon'
 import { copyHandwritingStrokes, readHandwritingStrokes } from './handwritingClipboard'
@@ -56,7 +57,6 @@ interface DraftSelectionBounds {
   maxY: number
 }
 
-const FAB_SIZE = 54
 const WINDOW_GAP = 12
 const MIN_WINDOW_WIDTH = 320
 const MIN_WINDOW_HEIGHT = 260
@@ -83,23 +83,10 @@ function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(Math.max(value, minimum), Math.max(minimum, maximum))
 }
 
-function defaultIconPosition() {
-  const viewport = viewportSize()
-  return { x: viewport.width - FAB_SIZE - 20, y: viewport.height - FAB_SIZE - 104 }
-}
-
 function defaultWindowPosition(size: DraftBookSize) {
   const viewport = viewportSize()
   const width = Math.min(size.width, viewport.width - WINDOW_GAP * 2)
   return { x: viewport.width - width - 28, y: 94 }
-}
-
-function clampIconPosition(position: DraftBookPoint) {
-  const viewport = viewportSize()
-  return {
-    x: clamp(position.x, WINDOW_GAP, viewport.width - FAB_SIZE - WINDOW_GAP),
-    y: clamp(position.y, WINDOW_GAP, viewport.height - FAB_SIZE - WINDOW_GAP),
-  }
 }
 
 function visibleWindowSize(size: DraftBookSize) {
@@ -120,11 +107,13 @@ function clampWindowPosition(position: DraftBookPoint, size: DraftBookSize) {
 }
 
 function resolveLayout(data: DraftBookData) {
-  const iconPosition = data.iconPosition.x < 0 || data.iconPosition.y < 0 ? defaultIconPosition() : clampIconPosition(data.iconPosition)
+  const viewport = viewportSize()
+  const iconAnchor = data.iconAnchor || migrateLegacyDraftBookIconAnchor(data.iconPosition, viewport)
+  const iconPosition = draftBookIconPositionFromAnchor(iconAnchor, viewport)
   const windowPosition = data.windowPosition.x < 0 || data.windowPosition.y < 0
     ? clampWindowPosition(defaultWindowPosition(data.size), data.size)
     : clampWindowPosition(data.windowPosition, data.size)
-  return { ...data, iconPosition, windowPosition }
+  return { ...data, iconPosition, iconAnchor, windowPosition }
 }
 
 function canvasMetrics(canvas: HTMLCanvasElement, view: DraftBookView) {
@@ -422,7 +411,16 @@ export default function DraftBook() {
   }, [interaction])
 
   useEffect(() => {
-    const updateLayout = () => setDraft(previous => ({ ...previous, iconPosition: clampIconPosition(previous.iconPosition), windowPosition: clampWindowPosition(previous.windowPosition, previous.size) }))
+    const updateLayout = () => setDraft(previous => {
+      const viewport = viewportSize()
+      const iconAnchor = previous.iconAnchor || draftBookIconAnchorFromPosition(previous.iconPosition, viewport)
+      return {
+        ...previous,
+        iconAnchor,
+        iconPosition: draftBookIconPositionFromAnchor(iconAnchor, viewport),
+        windowPosition: clampWindowPosition(previous.windowPosition, previous.size),
+      }
+    })
     window.addEventListener('resize', updateLayout)
     return () => window.removeEventListener('resize', updateLayout)
   }, [])
@@ -499,7 +497,7 @@ export default function DraftBook() {
       if (current?.mode === 'icon' && !current.moved) setOpen(true)
       else if (current) {
         setDraft(previous => current.mode === 'icon'
-          ? { ...previous, iconPosition: current.previewPosition }
+          ? { ...previous, iconPosition: current.previewPosition, iconAnchor: draftBookIconAnchorFromPosition(current.previewPosition, viewportSize()) }
           : current.mode === 'window'
             ? { ...previous, windowPosition: current.previewPosition }
             : { ...previous, size: current.previewSize, windowPosition: current.previewPosition })
@@ -536,7 +534,7 @@ export default function DraftBook() {
     const deltaY = clientY - current.startY
     current.moved = current.moved || Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4
     if (current.mode === 'icon') {
-      current.previewPosition = clampIconPosition({ x: current.startPosition.x + deltaX, y: current.startPosition.y + deltaY })
+      current.previewPosition = clampDraftBookIconPosition({ x: current.startPosition.x + deltaX, y: current.startPosition.y + deltaY }, viewportSize())
       if (draftFabRef.current) {
         draftFabRef.current.style.left = `${current.previewPosition.x}px`
         draftFabRef.current.style.top = `${current.previewPosition.y}px`

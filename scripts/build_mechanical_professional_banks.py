@@ -23,7 +23,7 @@ from PIL import Image, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
 SPLIT_ROOT = ROOT / "拆分"
-DEFAULT_ROOT = ROOT / "默认题库"
+DEFAULT_ROOT = ROOT / "数据/默认题库"
 MANIFEST = DEFAULT_ROOT / "题库数据.json"
 AUDIT_REPORT = SPLIT_ROOT / "专业课题库审计.json"
 IMAGE_NAME = re.compile(r"^([QA])-(\d+)-(\d+)-(\d+)(?:\.(\d+))?\.png$", re.I)

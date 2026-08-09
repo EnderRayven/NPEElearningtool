@@ -32,6 +32,7 @@ export interface HandwritingDrawing {
 export interface QuestionNote {
   text: string
   drawing: HandwritingDrawing
+  tags?: string[]
   updatedAt: string
 }
 
@@ -85,6 +86,8 @@ export const MAX_DRAWING_HEIGHT = DRAWING_BASE_HEIGHT * MAX_DRAWING_HEIGHT_MULTI
 export const MIN_DRAWING_ASPECT_RATIO = DRAWING_WIDTH / MAX_DRAWING_HEIGHT
 const MAX_TEXT_LENGTH = 100_000
 const MAX_NOTE_TITLE_LENGTH = 500
+export const MAX_NOTE_TAGS = 20
+export const MAX_NOTE_TAG_LENGTH = 30
 const MAX_NOTEBOOK_NAME_LENGTH = 200
 const MAX_PERSONAL_NOTEBOOKS = 200
 const MAX_PERSONAL_NOTES_PER_NOTEBOOK = 2_000
@@ -159,6 +162,19 @@ export function emptyHandwritingDrawing(): HandwritingDrawing {
 
 export function emptyQuestionNote(): QuestionNote {
   return { text: '', drawing: emptyHandwritingDrawing(), updatedAt: '' }
+}
+
+export function normalizeNoteTags(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  const seen = new Set<string>()
+  return value.flatMap(item => {
+    if (typeof item !== 'string') return []
+    const tag = item.trim().slice(0, MAX_NOTE_TAG_LENGTH)
+    const key = tag.toLocaleLowerCase()
+    if (!tag || seen.has(key)) return []
+    seen.add(key)
+    return [tag]
+  }).slice(0, MAX_NOTE_TAGS)
 }
 
 export type QuestionNoteDisplayMode = 'text' | 'handwriting'
@@ -319,10 +335,12 @@ export function validateQuestionNote(value: unknown, keepEmpty = false): Questio
   if (!isRecord(value)) return null
   const text = typeof value.text === 'string' ? value.text.slice(0, MAX_TEXT_LENGTH) : ''
   const drawing = validateHandwritingDrawing(value.drawing)
-  if (!keepEmpty && !text.trim() && !drawing.strokes.length && drawing.aspectRatio >= DEFAULT_ASPECT_RATIO) return null
+  const tags = normalizeNoteTags(value.tags)
+  if (!keepEmpty && !text.trim() && !drawing.strokes.length && drawing.aspectRatio >= DEFAULT_ASPECT_RATIO && !tags.length) return null
   return {
     text,
     drawing,
+    ...(tags.length ? { tags } : {}),
     updatedAt: typeof value.updatedAt === 'string' ? value.updatedAt : '',
   }
 }
@@ -380,6 +398,7 @@ export function hasQuestionNote(note: QuestionNote | undefined) {
     note.text.trim()
     || note.drawing.strokes.length
     || note.drawing.aspectRatio < DEFAULT_ASPECT_RATIO
+    || note.tags?.length
   ))
 }
 

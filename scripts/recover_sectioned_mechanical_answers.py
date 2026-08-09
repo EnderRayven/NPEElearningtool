@@ -19,7 +19,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 PDF_ROOT = ROOT / "拆分" / "原始文件"
 OUTPUT_BASE = ROOT / "拆分" / "原始答案重匹配"
-MANIFEST = ROOT / "默认题库" / "题库数据.json"
+MANIFEST = ROOT / "数据/默认题库" / "题库数据.json"
 OCR_DPI = 160
 OUTPUT_DPI = 200
 ARABIC_HEADING = re.compile(r"^(\d{1,3})[.．、,，]")

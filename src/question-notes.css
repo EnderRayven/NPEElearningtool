@@ -2,6 +2,71 @@
   margin: 0 24px 18px;
 }
 
+.question-tag-trigger {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.question-tag-trigger.has-tags {
+  background: transparent;
+}
+
+.question-tag-trigger:hover,
+.question-tag-trigger[aria-expanded="true"] {
+  border: 0;
+  background: rgba(159, 46, 37, .07);
+  color: #8f3028;
+}
+
+.question-tag-trigger:focus-visible {
+  outline: 2px solid rgba(159, 46, 37, .28);
+  outline-offset: 2px;
+}
+
+.filter-row .advanced-filter-trigger {
+  position: relative;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #8f3028;
+}
+
+.filter-row .advanced-filter-trigger:hover,
+.filter-row .advanced-filter-trigger.active {
+  border-color: #e3c8c2;
+  background: #fff5f2;
+  color: #8f3028;
+}
+
+.filter-row .advanced-filter-trigger b {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  place-items: center;
+  border: 1px solid #fff;
+  border-radius: 999px;
+  background: #9f2e25;
+  color: #fff;
+  font-size: 8px;
+  line-height: 1;
+}
+
+.filter-row .advanced-filter-trigger:focus-visible {
+  outline: 2px solid rgba(159, 46, 37, .28);
+  outline-offset: 2px;
+}
+
 .passage-question .question-note-section {
   margin: 0;
 }
@@ -95,6 +160,106 @@
   margin-left: auto;
   color: #a09890;
   font-size: 8px;
+}
+
+.note-tag-editor {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 11px;
+  border-top: 1px solid #ebe3db;
+  background: #fcfaf7;
+}
+
+.note-tag-input-shell {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 27px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.note-tag-input-shell:focus-within {
+  background: transparent;
+}
+
+.note-tag-leading-icon {
+  display: grid;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 0;
+  background: transparent;
+  color: #a15c53;
+}
+
+.note-tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+}
+
+.note-tag-chip {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 3px;
+  min-height: 21px;
+  box-sizing: border-box;
+  padding: 0 4px 0 8px;
+  border: 1px solid #d7e7e9;
+  border-radius: 7px;
+  background: #eff6f7;
+  color: #286e7d;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.note-tag-chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-tag-chip button {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: currentColor;
+}
+
+.note-tag-chip button:hover {
+  background: rgba(40, 110, 125, .12);
+}
+
+.note-tag-input-shell > input {
+  flex: 1 1 120px;
+  min-width: 90px;
+  height: 23px;
+  padding: 0 2px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #514840;
+  font: inherit;
+  font-size: 9px;
+}
+
+.note-tag-input-shell > input::placeholder {
+  color: #b3aca5;
 }
 
 .markdown-note-editor {
@@ -1215,7 +1380,41 @@
   backdrop-filter: none;
 }
 
-.handwriting-dialog > header span {
+.handwriting-dialog-title {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.handwriting-dialog > header .handwriting-dialog-tags {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: flex-end;
+  padding: 0 12px;
+  border-top: 0;
+  background: transparent;
+}
+
+.handwriting-dialog > header .handwriting-dialog-tags .note-tag-input-shell {
+  min-height: 27px;
+  height: 27px;
+  padding: 1px 8px;
+}
+
+.handwriting-dialog > header .handwriting-dialog-tags .note-tag-input-shell > input {
+  height: 23px;
+}
+
+.handwriting-dialog > header .handwriting-dialog-tags .note-tag-chip {
+  min-height: 21px;
+}
+
+.handwriting-dialog > header .handwriting-dialog-tags .note-tag-chip span {
+  color: inherit;
+  font-size: inherit;
+  letter-spacing: 0;
+}
+
+.handwriting-dialog > header .handwriting-dialog-title > span {
   color: #b28f87;
   font-size: 8px;
   font-weight: 800;
@@ -1228,7 +1427,7 @@
   font-size: 18px;
 }
 
-.handwriting-dialog > header button {
+.handwriting-dialog > header > button {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1240,7 +1439,7 @@
   color: #8f3028;
 }
 
-.handwriting-dialog > header button span {
+.handwriting-dialog > header > button span {
   color: inherit;
   font-size: 10px;
   letter-spacing: 0;
@@ -1298,6 +1497,21 @@
 
   .handwriting-toolbar-spacer {
     display: none;
+  }
+
+  .note-tag-editor {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .handwriting-dialog > header {
+    flex-wrap: wrap;
+  }
+
+  .handwriting-dialog > header .handwriting-dialog-tags {
+    order: 3;
+    flex-basis: 100%;
+    padding: 8px 0 0;
   }
 
   .handwriting-colors {

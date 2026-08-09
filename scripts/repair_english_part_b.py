@@ -249,7 +249,7 @@ def repair_payload(payload: dict) -> tuple[int, int]:
 
 
 def main() -> None:
-    path = Path("默认题库/题库数据.json")
+    path = Path("数据/默认题库/题库数据.json")
     payload = json.loads(path.read_text(encoding="utf-8"))
     repaired_sections, removed_crops = repair_payload(payload)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

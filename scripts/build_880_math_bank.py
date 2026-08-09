@@ -17,7 +17,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 OCR_PAGES = Path("/private/tmp/880-math-answer-pages")
 SOURCE_PDF = ROOT / "TEMP" / "【A4紧凑版】李林880数二高数篇做题本（修改）.pdf"
-WORKSPACE = ROOT / "默认题库"
+WORKSPACE = ROOT / "数据/默认题库"
 BANK_NAME = "880高数"
 BANK_ID = "default-880-calculus"
 BANK_FOLDER = Path("数学/高数") / BANK_NAME

@@ -1,5 +1,4 @@
 import type { QuestionBank } from './types'
-import defaultManifestUrl from '../默认题库/题库数据.json?url'
 import { removeRetiredBanks } from './bankMigration'
 
 export let englishBanks: QuestionBank[] = []
@@ -13,12 +12,13 @@ export function initializeDefaultBanks(banks: QuestionBank[]) {
 
 export async function loadDefaultBanks() {
   if (builtInBanks.length) return builtInBanks
-  const response = await fetch(defaultManifestUrl)
+  const response = await fetch('/api/default-workspace/index')
   if (!response.ok) throw new Error(`默认题库加载失败（${response.status}）`)
   const payload: unknown = await response.json()
-  if (!payload || typeof payload !== 'object' || !Array.isArray((payload as { banks?: unknown }).banks))
+  const manifest = payload && typeof payload === 'object' ? (payload as { manifest?: { banks?: unknown } }).manifest : null
+  if (!manifest || !Array.isArray(manifest.banks))
     throw new Error('默认题库清单格式无效')
-  initializeDefaultBanks((payload as { banks: QuestionBank[] }).banks)
+  initializeDefaultBanks(manifest.banks as QuestionBank[])
   return builtInBanks
 }
 

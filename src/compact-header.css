@@ -752,3 +752,187 @@
     margin-bottom: 12px;
   }
 }
+
+/* Keep the countdown in the header flow so it cannot cover navigation. */
+@media screen and (min-width: 1181px) {
+  header {
+    gap: 12px;
+  }
+
+  .exam-countdown {
+    position: absolute;
+    left: 50%;
+    flex: 0 0 auto;
+    margin: 0;
+    transform: translateX(-50%);
+  }
+
+  .header-actions {
+    width: auto;
+    min-width: 0;
+    flex: 0 0 auto;
+  }
+}
+
+@media screen and (min-width: 1181px) and (max-width: 1400px) {
+  .exam-countdown {
+    gap: 4px;
+    padding: 6px 10px;
+  }
+
+  .exam-countdown > span {
+    font-size: 9px;
+  }
+
+  .exam-countdown > strong {
+    font-size: 25px;
+  }
+
+  .exam-countdown > small {
+    display: none;
+  }
+}
+
+/* Let short image-based questions keep a tighter, calmer vertical rhythm. */
+.question-content {
+  min-height: 112px;
+  padding: 24px 30px 26px;
+}
+
+@media screen and (max-width: 580px) {
+  .question-content {
+    min-height: 96px;
+    padding: 21px 18px 23px;
+  }
+}
+
+/* Use one quiet focus treatment across the interface so keyboard focus feels intentional. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(159, 46, 37, .42);
+  outline-offset: 2px;
+}
+
+/* Use the desktop canvas more evenly while keeping a deliberate outer frame. */
+@media screen and (min-width: 901px) {
+  main {
+    padding-left: clamp(30px, 3.5vw, 48px);
+    padding-right: clamp(18px, 2vw, 28px);
+  }
+
+  .page-head,
+  .filter-row,
+  .study-layout,
+  .passage-study-shell {
+    max-width: none;
+  }
+
+  .study-layout,
+  .passage-study-shell {
+    column-gap: clamp(30px, 3.5vw, 48px);
+  }
+}
+
+.settings-panel-shortcut-reference-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 15px;
+}
+
+.settings-panel-shortcut-group + .settings-panel-shortcut-group {
+  padding-top: 13px;
+  border-top: 1px solid #eee8e1;
+}
+
+.settings-panel-shortcut-group-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 5px;
+}
+
+.settings-panel-shortcut-group-heading strong {
+  color: #655e57;
+  font-size: 10px;
+}
+
+.settings-panel-shortcut-group-heading span {
+  color: #a19890;
+  font-size: 8px;
+  text-align: right;
+}
+
+.settings-panel-shortcut-reference-rows {
+  display: grid;
+}
+
+.settings-panel-shortcut-reference-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, auto);
+  gap: 10px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid #f0ebe6;
+}
+
+.settings-panel-shortcut-reference-row:last-child {
+  border-bottom: 0;
+}
+
+.settings-panel-shortcut-reference-row > span {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+}
+
+.settings-panel-shortcut-reference-row > span strong {
+  color: #655e57;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.settings-panel-shortcut-reference-row > span small {
+  color: #a19890;
+  font-size: 8px;
+}
+
+.settings-panel-shortcut-reference-row kbd {
+  justify-self: end;
+  min-width: 128px;
+  padding: 6px 8px;
+  border: 1px solid #e2d9d1;
+  border-radius: 7px;
+  background: #fcfaf8;
+  color: #8f3028;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media screen and (max-width: 700px) {
+  .settings-panel-shortcut-group-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .settings-panel-shortcut-group-heading span {
+    text-align: left;
+  }
+
+  .settings-panel-shortcut-reference-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .settings-panel-shortcut-reference-row kbd {
+    justify-self: start;
+  }
+}

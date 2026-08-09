@@ -14,7 +14,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "TEMP" / "Kira习题"
 OCR_PAGES = Path("/private/tmp/kira-answer-pages")
-WORKSPACE = ROOT / "默认题库"
+WORKSPACE = ROOT / "数据/默认题库"
 BANK_NAME = "Kira线代基础"
 BANK_ID = "default-kira-linear-basic"
 BANK_FOLDER = Path("数学/线代") / BANK_NAME

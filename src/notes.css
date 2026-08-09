@@ -177,6 +177,8 @@
 .notes-stream-edit, .notes-stream-open { display: inline-flex; align-items: center; gap: 5px; flex: 0 0 auto; min-height: 27px; padding: 0 8px; border: 1px solid #e3c9c3; border-radius: 7px; background: #fff8f6; color: #9f2e25; font-size: 8px; font-weight: 700; }
 .notes-stream-edit:hover, .notes-stream-open:hover { border-color: #bd837b; background: #f9ebe8; }
 .notes-stream-question { max-height: 76px; margin: 8px 0 0; overflow-y: auto; color: #80766e; font-size: 9px; line-height: 1.6; white-space: pre-wrap; }
+.notes-stream-tags { margin-top: 8px; }
+.notes-stream-tags .note-tag-chip { min-height: 21px; padding-left: 7px; background: #f1f6f7; color: #36788b; font-size: 8px; }
 .notes-stream-markdown { min-height: 0; margin-top: 9px; padding: 9px 11px; border-left: 2px solid #dfc3bd; background: #fcfaf8; color: #514840; font-size: 10px; line-height: 1.7; }
 .notes-stream-markdown h1 { font-size: 1.35em; }
 .notes-stream-markdown h2 { font-size: 1.2em; }
@@ -203,7 +205,8 @@
   .notes-dialog-actions button { font-size: 0; }
   .notes-dialog-actions button svg { width: 16px; height: 16px; }
   .notes-dialog-body { grid-template-columns: 1fr; grid-template-rows: minmax(0, 205px) minmax(0, 1fr); }
-  .notes-sidebar { padding: 9px 11px 10px; border-right: 0; border-bottom: 1px solid #eee7e0; }
+  /* The notes navigation is an in-dialog aside, not the app's off-canvas menu. */
+  .notes-sidebar { position: static; inset: auto; width: auto; height: auto; z-index: auto; transform: none; transition: none; padding: 9px 11px 10px; border-right: 0; border-bottom: 1px solid #eee7e0; }
   .notes-sidebar-tools { grid-template-columns: minmax(0, 1fr) 100px; align-items: center; margin: 7px 0 8px; }
   .notes-nav-label { display: none; }
   .notes-nav-groups { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }

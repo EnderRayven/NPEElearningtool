@@ -7,6 +7,7 @@ import react from '@vitejs/plugin-react'
 const MANIFEST = '题库数据.json'
 const USER_DATA = '用户数据.json'
 const NOTES_FOLDER = '用户笔记'
+const BUILD_ROOT = path.resolve(process.env.NPEE_BUILD_ROOT || path.join(process.cwd(), '构建'))
 const MAX_JSON_BODY_BYTES = 32 * 1024 * 1024
 const MAX_IMAGE_BODY_BYTES = 128 * 1024 * 1024
 const IMAGE_PATTERN = /\.(png|jpe?g|webp|gif|bmp|avif)$/i
@@ -89,8 +90,8 @@ function bankFoldersFromDirectoryPaths(directoryPaths: string[]) {
 }
 
 function defaultWorkspacePlugin(): Plugin {
-  const root = path.resolve(process.cwd(), '默认题库')
-  const userDataRoot = path.resolve(process.cwd(), '用户数据')
+  const root = path.resolve(process.env.NPEE_WORKSPACE_ROOT || path.join(process.cwd(), '数据', '默认题库'))
+  const userDataRoot = path.resolve(process.env.NPEE_USER_DATA_ROOT || path.join(path.dirname(root), '用户数据'))
   const pendingWrites = new Map<string, Promise<void>>()
   function queueAtomicWrite(target: string, data: string | Buffer) {
     const previous = pendingWrites.get(target) || Promise.resolve()
@@ -332,6 +333,10 @@ export default defineConfig({
     __VUE_OPTIONS_API__: true,
     __VUE_PROD_DEVTOOLS__: false,
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+  },
+  build: {
+    outDir: path.join(BUILD_ROOT, 'dist'),
+    emptyOutDir: true,
   },
   plugins: [react(), defaultWorkspacePlugin()],
 })

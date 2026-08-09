@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import payload from '../默认题库/题库数据.json'
+import payload from '../数据/默认题库/题库数据.json'
 import { englishSectionLabel, groupEnglishSections, groupEnglishTopicEntries } from './englishNavigation'
 import { orderedQuestionEntriesForBank } from './bankManagement'
 import type { QuestionBank } from './types'

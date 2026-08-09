@@ -5,7 +5,7 @@ const assetUrls = new Map<string, string>()
 const assetListeners = new Set<() => void>()
 let assetRevision = 0
 
-export interface AssetInput { key: string; file: File; url?: string }
+export interface AssetInput { key: string; file: File; url?: string; fileHandle?: FileSystemFileHandle }
 
 export function subscribeAssetChanges(listener: () => void) {
   assetListeners.add(listener)
@@ -62,12 +62,34 @@ function openDatabase(): Promise<IDBDatabase> {
   })
 }
 
+async function persistAssetFileHandles(inputs: Array<AssetInput & { fileHandle: FileSystemFileHandle }>) {
+  if (!inputs.length || typeof indexedDB === 'undefined') return
+  let database: IDBDatabase | undefined
+  try {
+    database = await openDatabase()
+    const activeDatabase = database
+    await new Promise<void>((resolve, reject) => {
+      const transaction = activeDatabase.transaction(STORE_NAME, 'readwrite')
+      const store = transaction.objectStore(STORE_NAME)
+      inputs.forEach(({ key, file, fileHandle }) => store.put({ key, fileHandle, name: file.name, type: file.type, updatedAt: Date.now() }))
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+      transaction.onabort = () => reject(transaction.error)
+    })
+  } catch {
+    // 文件句柄缓存只是刷新优化；本次连接仍使用内存中的图片 URL。
+  } finally {
+    database?.close()
+  }
+}
+
 export async function putAssets(inputs: AssetInput[]) {
   if (!inputs.length) return
   const urlInputs = inputs.filter((input): input is AssetInput & { url: string } => Boolean(input.url))
   urlInputs.forEach(input => registerAssetUrl(input.key, input.url))
   if (urlInputs.length) notifyAssetChanges()
-  void removeLegacyCachedAssets(urlInputs.map(input => input.key))
+  void removeLegacyCachedAssets(urlInputs.filter(input => !input.fileHandle).map(input => input.key))
+  await persistAssetFileHandles(urlInputs.filter((input): input is AssetInput & { url: string; fileHandle: FileSystemFileHandle } => Boolean(input.fileHandle)))
   const blobInputs = inputs.filter(input => !input.url)
   if (!blobInputs.length) return
   let database: IDBDatabase
@@ -88,12 +110,12 @@ export async function putAssets(inputs: AssetInput[]) {
 
 async function resolveAssetBlobs(keys: string[]): Promise<Array<Blob | null>> {
   if (!keys.length) return []
-  const records: Array<{ blob?: Blob; url?: string } | null> = keys.map(key => assetUrls.has(key) ? { url: assetUrls.get(key)! } : null)
+  const records: Array<{ blob?: Blob; url?: string; fileHandle?: FileSystemFileHandle } | null> = keys.map(key => assetUrls.has(key) ? { url: assetUrls.get(key)! } : null)
   const missing = keys.map((key, index) => ({ key, index })).filter(({ index }) => records[index] === null)
   if (missing.length) {
     const database = await openDatabase()
     try {
-      const stored = await Promise.all(missing.map(({ key }) => new Promise<{ blob?: Blob; url?: string } | null>((resolve, reject) => {
+      const stored = await Promise.all(missing.map(({ key }) => new Promise<{ blob?: Blob; url?: string; fileHandle?: FileSystemFileHandle } | null>((resolve, reject) => {
         const request = database.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(key)
         request.onsuccess = () => resolve(request.result || null)
         request.onerror = () => reject(request.error)
@@ -102,6 +124,10 @@ async function resolveAssetBlobs(keys: string[]): Promise<Array<Blob | null>> {
     } finally { database.close() }
   }
   return Promise.all(records.map(async record => {
+    if (record?.fileHandle) {
+      try { return await record.fileHandle.getFile() }
+      catch { return null }
+    }
     if (record?.blob instanceof Blob) return record.blob
     if (record?.url) { const response = await fetch(record.url); return response.ok ? response.blob() : null }
     return null

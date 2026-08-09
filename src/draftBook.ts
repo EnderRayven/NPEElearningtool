@@ -21,11 +21,19 @@ export interface DraftBookSize {
   height: number
 }
 
+export interface DraftBookIconAnchor {
+  horizontal: 'left' | 'right'
+  vertical: 'top' | 'bottom'
+  horizontalOffset: number
+  verticalOffset: number
+}
+
 export interface DraftBookData {
   strokes: DraftStroke[]
   color: string
   canvasView: DraftBookView
   iconPosition: DraftBookPoint
+  iconAnchor?: DraftBookIconAnchor
   windowPosition: DraftBookPoint
   size: DraftBookSize
 }
@@ -35,6 +43,7 @@ export const DEFAULT_DRAFT_BOOK: DraftBookData = {
   color: '#2f2b28',
   canvasView: { x: 0, y: 0, zoom: 1 },
   iconPosition: { x: -1, y: -1 },
+  iconAnchor: { horizontal: 'right', vertical: 'bottom', horizontalOffset: 20, verticalOffset: 104 },
   windowPosition: { x: -1, y: -1 },
   size: { width: 420, height: 440 },
 }
@@ -77,8 +86,21 @@ function viewOrFallback(value: unknown) {
   }
 }
 
+function iconAnchorOrFallback(value: unknown) {
+  if (!isRecord(value)) return undefined
+  const horizontal = value.horizontal === 'left' || value.horizontal === 'right' ? value.horizontal : null
+  const vertical = value.vertical === 'top' || value.vertical === 'bottom' ? value.vertical : null
+  if (!horizontal || !vertical) return undefined
+  return {
+    horizontal,
+    vertical,
+    horizontalOffset: numberOrFallback(value.horizontalOffset, 20, 0, 10000),
+    verticalOffset: numberOrFallback(value.verticalOffset, 104, 0, 10000),
+  } satisfies DraftBookIconAnchor
+}
+
 export function validateDraftBook(value: unknown): DraftBookData {
-  if (!isRecord(value)) return { ...DEFAULT_DRAFT_BOOK, strokes: [], canvasView: { ...DEFAULT_DRAFT_BOOK.canvasView }, iconPosition: { ...DEFAULT_DRAFT_BOOK.iconPosition }, windowPosition: { ...DEFAULT_DRAFT_BOOK.windowPosition }, size: { ...DEFAULT_DRAFT_BOOK.size } }
+  if (!isRecord(value)) return { ...DEFAULT_DRAFT_BOOK, strokes: [], canvasView: { ...DEFAULT_DRAFT_BOOK.canvasView }, iconPosition: { ...DEFAULT_DRAFT_BOOK.iconPosition }, iconAnchor: DEFAULT_DRAFT_BOOK.iconAnchor ? { ...DEFAULT_DRAFT_BOOK.iconAnchor } : undefined, windowPosition: { ...DEFAULT_DRAFT_BOOK.windowPosition }, size: { ...DEFAULT_DRAFT_BOOK.size } }
   const size = isRecord(value.size)
     ? {
         width: numberOrFallback(value.size.width, DEFAULT_DRAFT_BOOK.size.width, 320, 900),
@@ -95,6 +117,7 @@ export function validateDraftBook(value: unknown): DraftBookData {
     color,
     canvasView: hasCanvasView ? viewOrFallback(value.canvasView) : { ...DEFAULT_DRAFT_BOOK.canvasView },
     iconPosition: pointOrFallback(value.iconPosition, DEFAULT_DRAFT_BOOK.iconPosition),
+    iconAnchor: iconAnchorOrFallback(value.iconAnchor),
     windowPosition: pointOrFallback(value.windowPosition, DEFAULT_DRAFT_BOOK.windowPosition),
     size,
   }

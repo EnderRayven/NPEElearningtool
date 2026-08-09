@@ -1,8 +1,8 @@
 {
   "name": "npee-study-space",
-  "productName": "考研学习空间",
+  "productName": "NPEE Study Space",
   "private": true,
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "本地优先的考研题库、错题复盘与学习进度工具",
   "homepage": "https://github.com/EnderRayven/NPEElearningtool#readme",
   "repository": {
@@ -21,11 +21,14 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "electron:dev": "pnpm build && electron .",
+    "electron:pack": "pnpm build && electron-builder --dir",
+    "electron:dist": "pnpm build && electron-builder"
   },
   "dependencies": {
-    "@milkdown/kit": "7.22.0",
     "@milkdown/crepe": "^7.22.0",
+    "@milkdown/kit": "7.22.0",
     "@vitejs/plugin-react": "latest",
     "katex": "^0.18.1",
     "lucide-react": "latest",
@@ -41,6 +44,44 @@
   "devDependencies": {
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "electron": "^43.3.0",
+    "electron-builder": "^26.15.3",
     "vitest": "^4.1.10"
+  },
+  "main": "electron/main.mjs",
+  "build": {
+    "appId": "com.enderrayven.npee-study-space",
+    "productName": "NPEE Study Space",
+    "directories": {
+      "output": "构建/release/electron"
+    },
+    "files": [
+      {
+        "from": "构建/dist",
+        "to": "dist",
+        "filter": ["**/*"]
+      },
+      "electron/**/*",
+      "vite.config.ts",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "vite.config.ts"
+    ],
+    "asar": true,
+    "icon": "electron/icon.png",
+    "mac": {
+      "category": "public.app-category.education",
+      "target": ["dmg", "zip"]
+    },
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }

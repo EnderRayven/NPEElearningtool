@@ -5,7 +5,7 @@ import NotesDialog from './NotesDialog'
 
 describe('NotesDialog', () => {
   it('crops excess handwriting space in the notes summary while retaining the saved drawing', () => {
-    const question = { id: 'q-1', number: 1, type: '简答题', text: '测试题目', answer: '', analysis: '' }
+    const question = { id: 'q-1', number: 1, type: '简答题', text: '第 1 题', answer: '', analysis: '' }
     const banks = [{
       id: 'bank-1',
       name: '测试题库',
@@ -15,6 +15,7 @@ describe('NotesDialog', () => {
     const notes = {
       'q-1': {
         text: '',
+        tags: ['易错点', '重点'],
         updatedAt: '2026-07-30T00:00:00.000Z',
         drawing: {
           version: 1 as const,
@@ -38,6 +39,8 @@ describe('NotesDialog', () => {
     }))
     expect(markup).toContain('aria-label="完整手写笔记"')
     expect(markup).toContain('编辑第 1 题笔记')
+    expect(markup).toContain('笔记标签：易错点、重点')
+    expect(markup).not.toContain('class="notes-stream-question">第 1 题</p>')
     expect(markup).toContain('viewBox="0 0 1000 206"')
     expect(markup).not.toContain('viewBox="0 0 1000 600"')
   })

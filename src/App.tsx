@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, BookOpen, ChevronDown, ChevronRight, CircleHelp, Filter, FolderSync, Lock, Maximize2, Menu, Minimize2, NotebookPen, Pencil, Plus, RotateCcw, Search, Settings as SettingsIcon, Timer, Unlock, Wrench, X } from 'lucide-react'
 import type { MathModule, Question, QuestionBank, QuestionStatus, ReadingQuestionType, Section, Subject } from './types'
-import { loadBanks, loadNavigation, renameBank, renameChapter, saveBanks, saveNavigation, validateBanks } from './store'
+import { loadNavigation, renameBank, renameChapter, saveNavigation, validateBanks } from './store'
 import { deleteAssets, putAssets } from './assets'
 import AssetGallery from './AssetGallery'
 import ExportDialog, { ExportPage, waitForExportContent, type ExportJob, type ExportMode } from './ExportDialog'
 import SettingsDialog from './SettingsDialog'
 import StudyRecordManagerDialog from './StudyRecordManagerDialog'
 import { assetKeysForBank, clearQuestionStatuses, orderedQuestionEntriesForBank, questionIdsForBank, removeBank, resetBankData } from './bankManagement'
-import { builtInBanks, defaultBankIds, englishBanks } from './data'
+import { builtInBanks, defaultBankIds, englishBanks, initializeDefaultBanks, loadDefaultBanks } from './data'
 import { mergeImageEntries } from './imageImport'
-import { addDefaultWorkspaceImage, BUILTIN_ENGLISH_VERSION, chooseWorkspace, clearWorkspaceHandle, createBankFolder, defaultWorkspaceFileUrl, deleteDefaultWorkspaceImage, deleteDefaultWorkspaceImageByName, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, readWorkspaceNoteBuckets, readWorkspaceUserData, removeBankFolder, replaceDefaultWorkspaceImage, resolveWorkspaceUserData, safeFolderName, scanWorkspaceBankFolders, scanWorkspaceImages, workspaceBankName, writeDefaultWorkspaceImage, writeDefaultWorkspaceManifest, writeDefaultWorkspaceNoteBuckets, writeDefaultWorkspaceUserData, writeWorkspaceManifest, writeWorkspaceNoteBuckets, writeWorkspaceUserData } from './workspace'
+import { addDefaultWorkspaceImage, BUILTIN_ENGLISH_VERSION, chooseWorkspace, clearWorkspaceHandle, createBankFolder, createWorkspaceManifest, createWorkspaceMetadata, defaultWorkspaceFileUrl, deleteDefaultWorkspaceImage, deleteDefaultWorkspaceImageByName, hasWorkspacePermission, isMissingWorkspaceError, loadWorkspaceCache, loadWorkspaceHandle, readDefaultWorkspace, readWorkspaceManifest, readWorkspaceNoteBuckets, readWorkspaceUserData, removeBankFolder, replaceDefaultWorkspaceImage, resolveWorkspaceUserData, safeFolderName, saveWorkspaceCache, scanWorkspaceBankFolders, scanWorkspaceImages, type WorkspaceCache, type WorkspaceCacheImage, workspaceBankName, writeDefaultWorkspaceImage, writeDefaultWorkspaceManifest, writeDefaultWorkspaceNoteBuckets, writeDefaultWorkspaceUserData, writeWorkspaceManifest, writeWorkspaceNoteBuckets, writeWorkspaceUserData } from './workspace'
 import { formatPassageParagraphs } from './passageFormatting'
 import { isImageAnswerPlaceholder, isImageQuestionType } from './questionPresentation'
 import AdvancedQuestionFilter from './AdvancedQuestionFilter'
@@ -297,14 +297,12 @@ function groupMathExamQuestions(entries: BankQuestionEntry[]): MathExamKeyPointG
 }
 
 const protectedBankIds = new Set<string>(defaultBankIds)
+const emptyWorkspaceBank: QuestionBank = { id: '__empty-workspace__', name: '', description: '', subject: 'math', source: 'local', chapters: [] }
 const GitHubMark = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .7a11.5 11.5 0 0 0-3.64 22.4c.58.1.79-.25.79-.56v-2.22c-3.23.7-3.91-1.37-3.91-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.74-1.55-2.58-.29-5.29-1.29-5.29-5.68 0-1.25.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.16 1.18a10.96 10.96 0 0 1 5.75 0C17.03 5.02 18 5.33 18 5.33c.63 1.58.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.09 0 4.41-2.72 5.38-5.31 5.67.42.36.79 1.07.79 2.16v3.23c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z"/></svg>
 
 export default function App() {
-  const [banks, setBanks] = useState(loadBanks)
-  const [mathModule, setMathModule] = useState<MathModule>(() => {
-    const firstMathBank = loadBanks().find(item => bankSubject(item) === 'math')
-    return firstMathBank ? bankMathModule(firstMathBank) : 'calculus'
-  })
+  const [banks, setBanks] = useState<QuestionBank[]>([])
+  const [mathModule, setMathModule] = useState<MathModule>('calculus')
   const [userSettings, setUserSettings] = useState(loadUserSettings)
   const [studyRounds, setStudyRounds] = useState(loadStudyRounds)
   const initialRound = getStudyRound(studyRounds, userSettings.activeRound)
@@ -375,6 +373,10 @@ export default function App() {
   const dirtyLocalNoteBuckets = useRef(new Set<string>())
   const dirtyWorkspaceNoteBuckets = useRef(new Set<string>())
   const personalNotebooksDirty = useRef(false)
+  const workspaceImages = useRef<WorkspaceCacheImage[]>([])
+  const workspaceManifestSnapshot = useRef('')
+  const workspaceUserDataSnapshot = useRef('')
+  const workspaceNotesSnapshot = useRef('')
   const studyPositions = useRef<Partial<Record<Subject, SavedNavigation>>>({})
   const mathStudyPositions = useRef<Partial<Record<MathModule, SavedNavigation>>>({})
   const bankStudyPositions = useRef<Record<string, SavedNavigation>>({})
@@ -394,6 +396,40 @@ export default function App() {
   const mobileMenuButtonRef = useRef<HTMLButtonElement>(null)
   const sidebarCloseButtonRef = useRef<HTMLButtonElement>(null)
   const sidebarWasOpen = useRef(false)
+
+  function manifestSnapshot(nextBanks: QuestionBank[], folders: Record<string, string>) {
+    return JSON.stringify({ banks: nextBanks, folders })
+  }
+
+  function userDataSnapshot(rounds: ReturnType<typeof currentStudyRounds>, settings: typeof userSettings, errorRecords: QuestionErrorRecords, notebooks: PersonalNotebooks) {
+    return JSON.stringify({ rounds, settings, errorRecords, notebooks })
+  }
+
+  function notesSnapshot(nextBanks: QuestionBank[], notes: QuestionNotes) {
+    return JSON.stringify({ banks: nextBanks, notes })
+  }
+
+  function setWorkspaceStateBaseline(nextBanks: QuestionBank[], folders: Record<string, string>, rounds: ReturnType<typeof currentStudyRounds>, settings: typeof userSettings, notes: QuestionNotes, errorRecords: QuestionErrorRecords, notebooks: PersonalNotebooks) {
+    workspaceManifestSnapshot.current = manifestSnapshot(nextBanks, folders)
+    workspaceUserDataSnapshot.current = userDataSnapshot(rounds, settings, errorRecords, notebooks)
+    workspaceNotesSnapshot.current = notesSnapshot(nextBanks, notes)
+  }
+
+  function workspaceCachePayload(source: WorkspaceCache['source'], nextBanks: QuestionBank[], folders: Record<string, string>, rounds: ReturnType<typeof currentStudyRounds>, settings: typeof userSettings, notes: QuestionNotes, errorRecords: QuestionErrorRecords, notebooks: PersonalNotebooks): WorkspaceCache {
+    return {
+      version: 1,
+      source,
+      updatedAt: new Date().toISOString(),
+      manifest: createWorkspaceManifest(nextBanks, folders),
+      userData: createWorkspaceMetadata(rounds, settings, errorRecords, notebooks),
+      notes: structuredClone(notes),
+      images: structuredClone(workspaceImages.current),
+    }
+  }
+
+  async function persistWorkspaceCache(source: WorkspaceCache['source'], nextBanks: QuestionBank[], folders: Record<string, string>, rounds: ReturnType<typeof currentStudyRounds>, settings: typeof userSettings, notes: QuestionNotes, errorRecords: QuestionErrorRecords, notebooks: PersonalNotebooks) {
+    await saveWorkspaceCache(workspaceCachePayload(source, nextBanks, folders, rounds, settings, notes, errorRecords, notebooks))
+  }
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 900px)')
@@ -427,7 +463,6 @@ export default function App() {
     document.addEventListener('keydown', closeOnEscape)
     return () => document.removeEventListener('keydown', closeOnEscape)
   }, [compactLayout, sidebar])
-  useEffect(() => { if (!saveBanks(banks)) setToast('浏览器存储空间不足，题库修改尚未保存；请连接题库文件夹或先导出备份') }, [banks])
   useEffect(() => {
     const rounds = updateStudyRound(studyRounds, userSettings.activeRound, statuses, activities)
     if (!saveStudyRounds(rounds)) setToast('学习轮次保存失败，请先导出备份后检查浏览器存储空间')
@@ -547,35 +582,48 @@ export default function App() {
   }, [advancedFilterOpen])
   useEffect(() => {
     loadWorkspaceHandle().then(async handle => {
-      if (!handle) { await loadDefaultWorkspace(); return }
+      if (!handle) { setWorkspaceState('none'); return }
       setWorkspaceHandle(handle)
-      if (await hasWorkspacePermission(handle)) await loadWorkspace(handle)
+      if (await hasWorkspacePermission(handle)) {
+        if (await restoreWorkspaceCache(handle)) return
+        await loadWorkspace(handle)
+      }
       else setWorkspaceState('available')
     }).catch(async error => {
       if (isMissingWorkspaceError(error)) {
         await clearWorkspaceHandle().catch(() => {})
-        setWorkspaceHandle(null); await loadDefaultWorkspace()
+        setWorkspaceHandle(null); setWorkspaceState('none')
       } else setWorkspaceState('error')
     })
   }, [])
   useEffect(() => {
     if (workspaceState !== 'connected' || !workspaceReady) return
+    const snapshot = manifestSnapshot(banks, workspaceFolders)
+    if (snapshot === workspaceManifestSnapshot.current) return
     const timer = window.setTimeout(() => {
       const save = defaultWorkspaceConnected
         ? writeDefaultWorkspaceManifest(banks, workspaceFolders)
         : workspaceHandle ? writeWorkspaceManifest(workspaceHandle, banks, workspaceFolders) : Promise.resolve()
-      save.catch(() => setWorkspaceState('error'))
+      save.then(() => {
+        workspaceManifestSnapshot.current = snapshot
+        void persistWorkspaceCache(defaultWorkspaceConnected ? 'default' : 'directory', banks, workspaceFolders, currentStudyRounds(), userSettings, questionNotes, questionErrorRecords, personalNotebooks).catch(() => {})
+      }).catch(() => setWorkspaceState('error'))
     }, 450)
     return () => window.clearTimeout(timer)
   }, [banks, workspaceFolders, workspaceHandle, workspaceState, defaultWorkspaceConnected, workspaceReady])
   useEffect(() => {
     if (workspaceState !== 'connected' || !workspaceReady) return
+    const rounds = updateStudyRound(studyRounds, userSettings.activeRound, statuses, activities)
+    const snapshot = userDataSnapshot(rounds, userSettings, questionErrorRecords, personalNotebooks)
+    if (snapshot === workspaceUserDataSnapshot.current) return
     const timer = window.setTimeout(() => {
-      const rounds = updateStudyRound(studyRounds, userSettings.activeRound, statuses, activities)
       const save = defaultWorkspaceConnected
         ? writeDefaultWorkspaceUserData(rounds, userSettings, {}, questionErrorRecords, personalNotebooks)
         : workspaceHandle ? writeWorkspaceUserData(workspaceHandle, rounds, userSettings, {}, questionErrorRecords, personalNotebooks) : Promise.resolve()
-      save.catch(() => setWorkspaceState('error'))
+      save.then(() => {
+        workspaceUserDataSnapshot.current = snapshot
+        void persistWorkspaceCache(defaultWorkspaceConnected ? 'default' : 'directory', banks, workspaceFolders, rounds, userSettings, questionNotes, questionErrorRecords, personalNotebooks).catch(() => {})
+      }).catch(() => setWorkspaceState('error'))
     }, 450)
     return () => window.clearTimeout(timer)
   }, [studyRounds, statuses, activities, userSettings, questionErrorRecords, personalNotebooks, workspaceHandle, workspaceState, defaultWorkspaceConnected, workspaceReady])
@@ -583,12 +631,17 @@ export default function App() {
     if (workspaceState !== 'connected' || !workspaceReady) return
     const bucketKeys = new Set(dirtyWorkspaceNoteBuckets.current)
     if (!bucketKeys.size) return
+    const snapshot = notesSnapshot(banks, questionNotes)
+    if (snapshot === workspaceNotesSnapshot.current) return
     const timer = window.setTimeout(() => {
       dirtyWorkspaceNoteBuckets.current.clear()
       const save = defaultWorkspaceConnected
         ? writeDefaultWorkspaceNoteBuckets(questionNotes, banks, bucketKeys)
         : workspaceHandle ? writeWorkspaceNoteBuckets(workspaceHandle, questionNotes, banks, bucketKeys) : Promise.resolve()
-      save.catch(() => {
+      save.then(() => {
+        workspaceNotesSnapshot.current = snapshot
+        void persistWorkspaceCache(defaultWorkspaceConnected ? 'default' : 'directory', banks, workspaceFolders, currentStudyRounds(), userSettings, questionNotes, questionErrorRecords, personalNotebooks).catch(() => {})
+      }).catch(() => {
         bucketKeys.forEach(key => dirtyWorkspaceNoteBuckets.current.add(key))
         setWorkspaceState('error')
       })
@@ -646,7 +699,7 @@ export default function App() {
     return () => { cancelled = true }
   }, [printMode, printJob])
 
-  const bank = banks.find(b => b.id === bankId) || banks[0]
+  const bank = banks.find(b => b.id === bankId) || banks[0] || emptyWorkspaceBank
   const subject = bankSubject(bank)
   const notePreviewData = noteQuestionPreview ? (() => {
     const targetBank = banks.find(item => item.id === noteQuestionPreview.bankId)
@@ -1842,10 +1895,76 @@ export default function App() {
     }
   }
 
+  async function restoreWorkspaceCache(handle: FileSystemDirectoryHandle) {
+    const cache = await loadWorkspaceCache('directory').catch(() => null)
+    if (!cache?.manifest) return false
+    setWorkspaceState('syncing')
+    try {
+      const manifest = cache.manifest
+      const nextBanks = removeRetiredBanks(validateBanks(manifest))
+      const folders = { ...(manifest.folders || {}) }
+      const entries = cache.images.filter(item => item.url).map(item => {
+        const target = item.bankId
+          ? nextBanks.find(bank => bank.id === item.bankId)
+          : item.bankFolder ? nextBanks.find(bank => folders[bank.id] === item.bankFolder) : nextBanks[0]
+        if (!target) return null
+        return {
+          file: new File([], item.name),
+          relativePath: item.relativePath,
+          bankId: target.id,
+          ...(item.url ? { assetUrl: item.url } : {}),
+        }
+      }).filter((entry): entry is { file: File; relativePath: string; bankId: string; assetUrl?: string } => Boolean(entry))
+      const result = await mergeImageEntries(nextBanks, entries, { replaceExistingAssets: false })
+      const resolvedUserData = resolveWorkspaceUserData(cache.userData, manifest.statuses, currentStudyRounds(), userSettings, cache.notes || {}, {}, [])
+      const nextSettings = resolvedUserData.settings
+      const nextRounds = resolvedUserData.rounds
+      const nextNotes = resolvedUserData.notes
+      const nextPersonalNotebooks = resolvedUserData.personalNotebooks
+      const nextRound = getStudyRound(nextRounds, nextSettings.activeRound)
+      const nextStatuses = nextRound.statuses
+      const nextActivities = nextRound.activities
+      if (!restoreSavedNavigation(result.banks, nextStatuses)) {
+        const activeBank = result.banks.find(item => item.id === bankId) || result.banks[0]
+        const activeSections = activeBank?.chapters.flatMap(chapter => chapter.sections) || []
+        if (activeBank && !activeSections.some(item => item.id === sectionId)) {
+          setBankId(activeBank.id)
+          setSectionId(activeSections[0]?.id || '')
+          setQuestionIndex(0)
+        }
+      }
+      workspaceImages.current = structuredClone(cache.images)
+      setWorkspaceStateBaseline(result.banks, folders, nextRounds, nextSettings, nextNotes, resolvedUserData.errorRecords, nextPersonalNotebooks)
+      setWorkspaceReady(false)
+      notesLoaded.current = true
+      setNotesReady(true)
+      setErrorRecordsReady(true)
+      setBanks(result.banks)
+      setStudyRounds(nextRounds)
+      setStatuses(nextStatuses)
+      setActivities(nextActivities)
+      setQuestionNotes(nextNotes)
+      setPersonalNotebooks(nextPersonalNotebooks)
+      setUserSettings(nextSettings)
+      setWorkspaceFolders(folders)
+      setWorkspaceHandle(handle)
+      setDefaultWorkspaceConnected(false)
+      setQuestionErrorRecords(resolvedUserData.errorRecords)
+      setWorkspaceState('connected')
+      window.setTimeout(() => setWorkspaceReady(true), 0)
+      setToast('已从本地缓存恢复题库；点击右上角按钮可重新同步')
+      return true
+    } catch {
+      return false
+    }
+  }
+
   async function loadDefaultWorkspace() {
     setWorkspaceState('syncing')
     try {
+      await loadDefaultBanks().catch(() => {})
       const index = await readDefaultWorkspace()
+      if (!builtInBanks.length && index.manifest) initializeDefaultBanks(index.manifest.banks.filter(bank => defaultBankIds.includes(bank.id as typeof defaultBankIds[number])))
       let nextBanks = index.manifest ? removeRetiredBanks(validateBanks(index.manifest)) : structuredClone(banks)
       if (index.manifest && index.manifest.builtinEnglishVersion !== BUILTIN_ENGLISH_VERSION) {
         nextBanks = [...nextBanks.filter(bank => !bank.id.startsWith('english-')), ...structuredClone(englishBanks)]
@@ -1885,8 +2004,13 @@ export default function App() {
         return { file: new File([], item.name), relativePath: item.relativePath, bankId: target!.id, assetUrl: item.url }
       })
       const result = await mergeImageEntries(nextBanks, entries, { replaceExistingAssets: true })
+      workspaceImages.current = index.images.map(item => ({
+        ...item,
+        bankId: (item.bankFolder ? result.banks.find(bank => folders[bank.id] === item.bankFolder) : result.banks[0])?.id,
+      }))
       await writeDefaultWorkspaceNoteBuckets(nextNotes, result.banks)
       await writeDefaultWorkspaceUserData(nextRounds, nextSettings, {}, resolvedUserData.errorRecords, nextPersonalNotebooks)
+      await persistWorkspaceCache('default', result.banks, folders, nextRounds, nextSettings, nextNotes, resolvedUserData.errorRecords, nextPersonalNotebooks).catch(() => {})
       markAllNoteBucketsDirty(nextNotes, result.banks, false)
       if (!restoreSavedNavigation(result.banks, nextStatuses)) {
         const activeBank = result.banks.find(item => item.id === bankId) || result.banks[0]
@@ -1896,6 +2020,7 @@ export default function App() {
         }
       }
       setWorkspaceReady(false)
+      setWorkspaceStateBaseline(result.banks, folders, nextRounds, nextSettings, nextNotes, resolvedUserData.errorRecords, nextPersonalNotebooks)
       notesLoaded.current = true
       setNotesReady(true)
       setErrorRecordsReady(true)
@@ -1911,15 +2036,13 @@ export default function App() {
   }
 
   async function loadWorkspace(handle: FileSystemDirectoryHandle) {
-    if (handle.name === '默认题库') {
-      await clearWorkspaceHandle().catch(() => {})
-      setWorkspaceHandle(null)
-      return loadDefaultWorkspace()
-    }
     setWorkspaceState('syncing')
     try {
+      // 只在连接数据目录后读取题库清单，不参与未连接状态的展示。
+      await loadDefaultBanks().catch(() => {})
       if (!await hasWorkspacePermission(handle, true)) throw new Error('未获得题库文件夹读写权限')
       const [manifest, userData] = await Promise.all([readWorkspaceManifest(handle), readWorkspaceUserData(handle)])
+      if (!builtInBanks.length && manifest) initializeDefaultBanks(manifest.banks.filter(bank => defaultBankIds.includes(bank.id as typeof defaultBankIds[number])))
       let nextBanks = manifest ? removeRetiredBanks(validateBanks(manifest)) : structuredClone(banks)
       let seededEnglishCount = 0
       if (manifest && manifest.builtinEnglishVersion !== BUILTIN_ENGLISH_VERSION) {
@@ -1961,11 +2084,24 @@ export default function App() {
         const target = item.bankFolder
           ? nextBanks.find(bank => folders[bank.id] === item.bankFolder)
           : nextBanks.find(bank => bank.id === bankId) || nextBanks[0]
-        return { file: item.file, relativePath: item.relativePath, bankId: target!.id, assetUrl: URL.createObjectURL(item.file) }
+        return {
+          file: item.file,
+          relativePath: item.relativePath,
+          bankId: target!.id,
+          assetUrl: URL.createObjectURL(item.file),
+          fileHandle: item.fileHandle,
+        }
       })
       const result = await mergeImageEntries(nextBanks, entries, { replaceExistingAssets: true })
+      workspaceImages.current = images.map(item => ({
+        name: item.file.name,
+        relativePath: item.relativePath,
+        bankFolder: item.bankFolder,
+        bankId: (item.bankFolder ? result.banks.find(bank => folders[bank.id] === item.bankFolder) : result.banks.find(bank => bank.id === bankId) || result.banks[0])?.id,
+      }))
       await writeWorkspaceNoteBuckets(handle, nextNotes, result.banks)
       await writeWorkspaceUserData(handle, nextRounds, nextSettings, {}, resolvedUserData.errorRecords, nextPersonalNotebooks)
+      await persistWorkspaceCache('directory', result.banks, folders, nextRounds, nextSettings, nextNotes, resolvedUserData.errorRecords, nextPersonalNotebooks).catch(() => {})
       markAllNoteBucketsDirty(nextNotes, result.banks, false)
       if (!restoreSavedNavigation(result.banks, nextStatuses)) {
         const activeBank = result.banks.find(item => item.id === bankId) || result.banks[0]
@@ -1977,6 +2113,7 @@ export default function App() {
         }
       }
       setWorkspaceReady(false)
+      setWorkspaceStateBaseline(result.banks, folders, nextRounds, nextSettings, nextNotes, resolvedUserData.errorRecords, nextPersonalNotebooks)
       notesLoaded.current = true
       setNotesReady(true)
       setErrorRecordsReady(true)
@@ -1984,12 +2121,13 @@ export default function App() {
       setQuestionErrorRecords(resolvedUserData.errorRecords)
       setWorkspaceState('connected')
       window.setTimeout(() => setWorkspaceReady(true), 0)
-      setToast(`已连接“${handle.name}”${seededEnglishCount ? `，更新 ${seededEnglishCount} 个内置英语题库` : ''}${result.imported ? `，同步 ${result.imported} 张图片` : ''}`)
+      const userDataMessage = userData ? '已读取文件夹中的学习数据' : '已将本机学习数据写入文件夹'
+      setToast(`已连接“${handle.name}”，${userDataMessage}${seededEnglishCount ? `，更新 ${seededEnglishCount} 个内置英语题库` : ''}${result.imported ? `，同步 ${result.imported} 张图片` : ''}`)
       return true
     } catch (error) {
       if (isMissingWorkspaceError(error)) {
         await clearWorkspaceHandle().catch(() => {})
-        setWorkspaceHandle(null); await loadDefaultWorkspace()
+        setWorkspaceHandle(null); setWorkspaceState('none')
       } else {
         setWorkspaceState('error'); setToast(error instanceof Error ? error.message : '题库文件夹同步失败')
       }
@@ -2063,8 +2201,6 @@ export default function App() {
     setBanks(previous => renameTarget.kind === 'bank' ? renameBank(previous, renameTarget.id, name) : renameChapter(previous, bank.id, renameTarget.id, name))
     setRenameTarget(null); setToast(`已重命名为“${name}”`)
   }
-
-  if (!bank) return <div className="empty-app"><BookOpen size={42}/><h1>还没有题库</h1><button onClick={() => importRef.current?.click()}>导入题库</button><input ref={importRef} hidden type="file" accept=".json" onChange={e => importData(e.target.files?.[0])}/></div>
 
   const customExamDate = parseExamDateValue(userSettings.examDate || '')
   const markdownShortcuts = resolveMarkdownShortcutSettings(userSettings.markdownShortcuts)
@@ -2161,7 +2297,7 @@ export default function App() {
     return <nav className="question-nav passage-question-nav english-topic-passage-nav" aria-label="专题题号导航"><div className="question-nav-heading"><div><strong>专题题号导航</strong></div>{renderQuestionNavigationModeSwitch()}</div><div className="number-grid">{filteredQuestions.map((item, index) => { const itemStatus = effectiveQuestionStatus(item, statuses[item.id] || 'none', binaryFilterMode); return <button key={item.id} aria-current={index === questionIndex ? 'true' : undefined} title={questionNavigationTitle('本年度专题', item)} className={questionNavigationButtonClass(index === questionIndex, itemStatus)} style={questionNavigationButtonStyle(item)} onClick={() => jumpToPassageQuestion(item.id, index)}><span className="question-nav-number">{item.number}</span>{renderQuestionNavigationIndicator(item, itemStatus)}</button> })}</div>{renderQuestionNavigationLegend()}<div className="nav-accuracy"><span>本专题正确率</span><strong>{formatRate(currentNavigationStats.accuracy)}</strong><small>{currentNavigationStats.marked} 道题已标记</small></div></nav>
   }
 
-  return <div className="app-shell">
+  return <div className={subject === 'english' ? 'app-shell english-app' : 'app-shell'}>
     <header>
       {activePage === 'study' && <button ref={mobileMenuButtonRef} className="mobile-menu" onClick={() => setSidebar(true)} aria-label="打开菜单" aria-controls="question-bank-sidebar" aria-expanded={sidebar}><Menu/></button>}
       <div className="brand"><span className="brand-mark"><BookOpen size={20}/></span><div><strong>考研学习空间</strong><small>NPEE STUDY SPACE</small></div></div>
@@ -2175,8 +2311,8 @@ export default function App() {
       <div className="header-actions">
         <input ref={importRef} hidden type="file" accept=".json,application/json" onChange={e => importData(e.target.files?.[0])}/>
         <input ref={node => { imageImportRef.current = node; node?.setAttribute('webkitdirectory', '') }} hidden type="file" multiple accept="image/*" onChange={e => importImages(e.target.files)}/>
-        <div className="header-sync-status" title={workspaceState === 'connected' ? `已同步：${defaultWorkspaceConnected ? '默认题库' : workspaceHandle?.name}` : '数据与位置保存在本地'}><span className={`source-dot ${workspaceState === 'connected' ? 'workspace-on' : ''}`}/><span>{workspaceState === 'connected' ? '已同步' : workspaceState === 'syncing' ? '同步中' : '本地保存'}</span></div>
-        {workspaceState === 'connected' && <button className="workspace-sync-button" type="button" aria-label="重新同步题库" title="重新同步题库" onClick={connectWorkspace}><FolderSync/></button>}
+        <div className="header-sync-status" title={workspaceState === 'connected' ? `已同步：${defaultWorkspaceConnected ? '默认题库' : workspaceHandle?.name}` : workspaceState === 'error' ? '题库连接失败，请点击按钮重试' : '数据与位置保存在本地'}><span className={`source-dot ${workspaceState === 'connected' ? 'workspace-on' : ''}`}/><span>{workspaceState === 'connected' ? '已同步' : workspaceState === 'syncing' ? '同步中' : workspaceState === 'error' ? '连接失败' : '本地保存'}</span></div>
+        <button className="workspace-sync-button" type="button" aria-label={workspaceState === 'connected' ? '重新同步题库' : '连接题库'} title={workspaceState === 'connected' ? '重新同步题库' : '连接题库'} onClick={connectWorkspace} disabled={workspaceState === 'syncing'}><FolderSync/></button>
         <div className="toolbox-module" ref={toolboxRef}>
           <button className={toolboxOpen ? 'tool-button toolbox-trigger active' : 'tool-button toolbox-trigger'} type="button" aria-label="工具箱" aria-haspopup="menu" aria-expanded={toolboxOpen} onClick={() => setToolboxOpen(open => !open)}><Wrench/><span>工具箱</span><ChevronDown/></button>
           {toolboxOpen && <div className="toolbox-popover" role="menu">
@@ -2290,7 +2426,7 @@ export default function App() {
         {activePage === 'profile' ? (LoadedLearningDashboard ? <LoadedLearningDashboard banks={banks} statuses={statuses} activities={activities} notes={questionNotes} questionTags={questionTags} selectedBankId={profileBankId} onSelectedBankIdChange={setProfileBankId} onQuestionStatusChange={markDashboardQuestion} onQuestionReviewStatusChange={markDashboardReview} onQuestionReviewReset={resetDashboardReview} onQuestionReviewDelete={deleteDashboardReview} onQuestionNoteChange={updateQuestionNote} onQuestionTagChange={setQuestionTagIds}/> : <DeferredInterfaceFallback/>) : <>
         <div className="page-head"><div><span className="breadcrumb">{bank.name} <ChevronRight size={13}/>{view === 'section' && currentChapter && !isMathExamKeyPointMode && !isEnglishTopicMode && <>{currentChapter.name} <ChevronRight size={13}/></>}{view === 'section' && isEnglishTopicMode && englishTopicContextLabel ? <>{currentStudyLabel} <ChevronRight size={13}/>{englishTopicContextLabel}</> : view === 'wrong' ? '本题库不熟练题' : currentStudyLabel}</span><div className="page-head-title-row"><h1>{view === 'wrong' ? '本题库不熟练题' : currentStudyLabel === '未选择' ? '请选择具体节题目' : currentStudyLabel}</h1><p>{view === 'wrong' ? `按章节和小节分组 · 共 ${reviewQuestions.length} 道不熟练题` : isMathExamKeyPointMode ? `按考点归类 · 共 ${sourceQuestions.length} 道题` : isEnglishTopicMode ? `按专题归类 · ${englishTopicContextLabel ? `${englishTopicContextLabel} · ` : ''}共 ${sourceQuestions.length} 道题` : section ? `共 ${section.questions.length} 道题` : '从左侧选择一个章节开始学习'}</p></div></div>
           <div className="page-head-tools" ref={filterToolsRef}>
-            <div className="filter-row"><Filter size={16}/><button type="button" className={advancedFilterOpen ? 'chip advanced-filter-trigger active' : 'chip advanced-filter-trigger'} aria-expanded={advancedFilterOpen} aria-controls="question-filter-panel" onClick={() => setAdvancedFilterOpen(value => !value)}><span>筛选</span>{activeQuestionFilterCount > 0 && <b>{activeQuestionFilterCount}</b>}</button><label className="search" aria-label="搜索当前题目范围"><Search size={17}/><input value={query} onChange={e => { setQuery(e.target.value); setQuestionIndex(0) }} placeholder={view === 'wrong' ? '搜索不熟练题' : isMathExamKeyPointMode ? '搜索当前考点' : isEnglishTopicMode ? '搜索当前专题' : '搜索当前小节'}/></label></div>
+            <div className="filter-row"><button type="button" className={advancedFilterOpen ? 'chip advanced-filter-trigger active' : 'chip advanced-filter-trigger'} aria-label="筛选题目" title="筛选题目" aria-expanded={advancedFilterOpen} aria-controls="question-filter-panel" onClick={() => setAdvancedFilterOpen(value => !value)}><Filter size={16}/>{activeQuestionFilterCount > 0 && <b>{activeQuestionFilterCount}</b>}</button><label className="search" aria-label="搜索当前题目范围"><Search size={17}/><input value={query} onChange={e => { setQuery(e.target.value); setQuestionIndex(0) }} placeholder={view === 'wrong' ? '搜索不熟练题' : isMathExamKeyPointMode ? '搜索当前考点' : isEnglishTopicMode ? '搜索当前专题' : '搜索当前小节'}/></label></div>
             {advancedFilterOpen && <AdvancedQuestionFilter filter={advancedFilter} tags={questionTags} statusOptions={statusFilterOptions} typeOptions={availableQuestionTypes} onChange={nextFilter => { setAdvancedFilter(nextFilter); setQuestionIndex(0) }} onClear={() => { setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setQuestionIndex(0) }}/>}
           </div>
         </div>

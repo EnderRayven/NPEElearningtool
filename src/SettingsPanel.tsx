@@ -63,6 +63,50 @@ const sectionTitles: Record<SettingsSection, { eyebrow: string; title: string; d
   about: { eyebrow: 'ABOUT', title: '关于', description: '查看当前版本、项目地址和数据说明。' },
 }
 
+const fixedShortcutGroups: Array<{ title: string; description: string; items: Array<{ label: string; shortcut: string; note?: string }> }> = [
+  {
+    title: '列表编辑',
+    description: 'Markdown 文字笔记中的固定操作',
+    items: [
+      { label: '增加列表层级', shortcut: 'Tab' },
+      { label: '减少列表层级', shortcut: 'Shift+Tab' },
+      { label: '创建下一项', shortcut: 'Enter' },
+    ],
+  },
+  {
+    title: '手写工具',
+    description: '聚焦手写编辑器后使用',
+    items: [
+      { label: '橡皮擦 / 画笔 / 套索', shortcut: '1 / 2 / 3' },
+      { label: '插入或收缩空间', shortcut: '4', note: '仅题目笔记' },
+      { label: '图形工具', shortcut: '5', note: '仅题目笔记' },
+      { label: '复制 / 粘贴选中笔迹', shortcut: '⌘/Ctrl+C · ⌘/Ctrl+V' },
+      { label: '撤销', shortcut: '⌘/Ctrl+Z' },
+      { label: '重做', shortcut: '⌘/Ctrl+Shift+Z · ⌘/Ctrl+Y' },
+      { label: '删除选中笔迹', shortcut: 'Delete / Backspace', note: '套索选择时' },
+    ],
+  },
+  {
+    title: '公式与标签',
+    description: '编辑公式或题目标记时使用',
+    items: [
+      { label: '确认行内公式 / 取消编辑', shortcut: 'Enter / Esc' },
+      { label: '确认块公式 / 取消编辑', shortcut: '⌘/Ctrl+Enter / Esc' },
+      { label: '提交标签', shortcut: 'Enter · 逗号 · 中文逗号 · 顿号' },
+      { label: '删除上一个标签', shortcut: 'Backspace', note: '输入框为空时' },
+    ],
+  },
+  {
+    title: '弹窗与表单',
+    description: '界面层级中的通用键盘操作',
+    items: [
+      { label: '关闭当前弹窗或面板', shortcut: 'Esc' },
+      { label: '切换弹窗内焦点', shortcut: 'Tab / Shift+Tab' },
+      { label: '提交当前输入表单', shortcut: 'Enter', note: '新建、重命名、缩放等输入框' },
+    ],
+  },
+]
+
 function ActionCard(props: { icon: PanelIcon; title: string; description: string; onClick: () => void }) {
   const Icon = props.icon
   return <button className="settings-panel-action" type="button" onClick={props.onClick}>
@@ -144,7 +188,17 @@ export default function SettingsPanel(props: Props) {
         {shortcutError && <p className="settings-panel-shortcut-error" role="alert">{shortcutError}</p>}
         <div className="settings-panel-tag-actions"><button type="button" onClick={() => { setShortcutError(''); props.onResetShortcutSettings() }}><RotateCcw size={13}/>恢复默认快捷键</button><span>默认：{formatShortcut(DEFAULT_MARKDOWN_SHORTCUTS.bold)}、{formatShortcut(DEFAULT_MARKDOWN_SHORTCUTS.italic)}、{formatShortcut(DEFAULT_MARKDOWN_SHORTCUTS.inlineCode)}；列表为 {formatShortcut(DEFAULT_MARKDOWN_SHORTCUTS.orderedList)}、{formatShortcut(DEFAULT_MARKDOWN_SHORTCUTS.bulletList)}。</span></div>
       </section>
-      <section className="settings-panel-info-card"><strong>其他固定快捷键</strong><span>Tab / Shift+Tab 调整列表层级；Enter 创建下一项；手写工具 1–5 切换工具；Ctrl/⌘+Z 撤销，Ctrl/⌘+Shift+Z 或 Ctrl+Y 重做。</span></section>
+      <section className="settings-panel-card settings-panel-shortcut-reference-card">
+        <div className="settings-panel-card-heading"><span className="settings-panel-card-icon"><Keyboard size={18}/></span><div><strong>固定快捷键</strong><small>按使用场景分类，当前不可自定义</small></div></div>
+        <div className="settings-panel-shortcut-reference-list" aria-label="固定快捷键列表">
+          {fixedShortcutGroups.map(group => <section className="settings-panel-shortcut-group" key={group.title}>
+            <div className="settings-panel-shortcut-group-heading"><strong>{group.title}</strong><span>{group.description}</span></div>
+            <div className="settings-panel-shortcut-reference-rows">
+              {group.items.map(item => <div className="settings-panel-shortcut-reference-row" key={`${group.title}-${item.label}`}><span><strong>{item.label}</strong>{item.note && <small>{item.note}</small>}</span><kbd>{item.shortcut}</kbd></div>)}
+            </div>
+          </section>)}
+        </div>
+      </section>
     </div>
   }
 

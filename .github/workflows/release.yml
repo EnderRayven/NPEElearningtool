@@ -53,22 +53,21 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           package_root="NPEE-Study-Space-v${version}"
           archive="${package_root}-Software.zip"
-          mkdir -p "release/${package_root}"
-          rsync -a ./ "release/${package_root}/" \
+          mkdir -p "构建/release/${package_root}"
+          rsync -a ./ "构建/release/${package_root}/" \
             --exclude '.git/' \
             --exclude '.github/' \
             --exclude '.pnpm-store/' \
             --exclude 'node_modules/' \
-            --exclude 'dist/' \
-            --exclude '默认题库/' \
+            --exclude '构建/' \
+            --exclude '数据/' \
             --exclude '机械原理-教材习题/' \
             --exclude '数学真题题库-可访问数据.json' \
-            --exclude '用户数据/' \
             --exclude '.DS_Store' \
             --exclude 'release/'
-          cd release
-          zip -1 -q -r "../${archive}" "${package_root}"
-          cd ..
+          cd 构建/release
+          zip -1 -q -r "../../${archive}" "${package_root}"
+          cd ../..
           sha256sum "${archive}" > "${archive}.sha256"
           printf 'RELEASE_ARCHIVE=%s\n' "${archive}" >> "$GITHUB_ENV"
 
@@ -93,11 +92,11 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           package_root="NPEE-Study-Space-v${version}"
           archive="${package_root}-Question-Bank.zip"
-          mkdir -p "release/${package_root}"
-          rsync -a "默认题库/" "release/${package_root}/默认题库/"
-          cd release
-          zip -1 -q -r "../${archive}" "${package_root}/默认题库"
-          cd ..
+          mkdir -p "构建/release/${package_root}"
+          rsync -a "数据/" "构建/release/${package_root}/数据/"
+          cd 构建/release
+          zip -1 -q -r "../../${archive}" "${package_root}/数据"
+          cd ../..
           sha256sum "${archive}" > "${archive}.sha256"
           printf 'RELEASE_ARCHIVE=%s\n' "${archive}" >> "$GITHUB_ENV"
 
