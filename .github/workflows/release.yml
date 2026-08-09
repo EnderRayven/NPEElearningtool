@@ -189,13 +189,13 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           pnpm build
-          pnpm exec electron-builder --publish never --universal -c.mac.forceCodeSigning=true
+          pnpm exec electron-builder --publish never --arm64 -c.mac.forceCodeSigning=true
 
       - name: 生成未签名 macOS 备用包
         if: matrix.platform == 'macOS' && steps.macos_credentials.outputs.available != 'true'
         run: |
           pnpm build
-          pnpm exec electron-builder --publish never --universal
+          pnpm exec electron-builder --publish never --arm64
 
       - name: 生成 Windows 更新包
         if: matrix.platform == 'Windows'
