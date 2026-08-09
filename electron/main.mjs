@@ -1,11 +1,12 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
-import { autoUpdater } from 'electron-updater'
+import electronUpdater from 'electron-updater'
 import { preview } from 'vite'
 import { access, mkdir } from 'node:fs/promises'
 import Module from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+const { autoUpdater } = electronUpdater
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(__dirname, '..')
 const isDevelopment = !app.isPackaged
