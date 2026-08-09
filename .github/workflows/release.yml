@@ -214,11 +214,8 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -euo pipefail
-          shopt -s nullglob globstar
           if [[ -n "${MACOS_CSC_LINK//[[:space:]]/}" && -n "${MACOS_CSC_KEY_PASSWORD//[[:space:]]/}" && -n "${APPLE_ID//[[:space:]]/}" && -n "${APPLE_APP_SPECIFIC_PASSWORD//[[:space:]]/}" && -n "${APPLE_TEAM_ID//[[:space:]]/}" ]]; then
-            app_paths=(构建/release/electron/*.app)
-            app_paths+=(构建/release/electron/**/*.app)
-            app_path="${app_paths[0]:-}"
+            app_path="$(find '构建/release/electron' -type d -name '*.app' -print)"
             if [[ -z "$app_path" ]]; then
               echo '未找到 macOS 应用包，无法验证签名' >&2
               exit 1
@@ -226,8 +223,7 @@ jobs:
             codesign --verify --deep --strict --verbose=2 "$app_path"
             spctl --assess --type execute --verbose=4 "$app_path"
           else
-            dmg_paths=(构建/release/electron/*.dmg)
-            dmg_path="${dmg_paths[0]:-}"
+            dmg_path="$(find '构建/release/electron' -type f -name '*.dmg' -print)"
             if [[ -z "$dmg_path" ]]; then
               echo '未找到 macOS DMG 发布文件' >&2
               exit 1
