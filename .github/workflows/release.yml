@@ -229,7 +229,7 @@ jobs:
               exit 1
             fi
             test -x 'macOS-解除隔离并启动.command'
-            echo "未签名备用包已验证：$dmg_path，且包含可执行的 macOS 解除隔离启动脚本。"
+            echo "未签名备用包已验证：${dmg_path}，且包含可执行的 macOS 解除隔离启动脚本。"
           fi
 
       - name: 上传 Electron 更新包到 GitHub Release
