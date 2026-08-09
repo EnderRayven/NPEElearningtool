@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createCloudSyncFiles, DEFAULT_CLOUD_SYNC_SETTINGS, loadCloudSyncSettings, mergeCloudSyncUserData, saveCloudSyncSettings } from './cloudSync'
+import { createCloudSyncFiles, DEFAULT_CLOUD_SYNC_SETTINGS, hasOneDriveSession, loadCloudSyncSettings, mergeCloudSyncUserData, saveCloudSyncSettings, signOutOneDrive } from './cloudSync'
 import { createWorkspaceUserData } from './workspace'
 
 class MemoryStorage implements Storage {
@@ -43,5 +43,13 @@ describe('cloud sync data model', () => {
     const settings = { ...DEFAULT_CLOUD_SYNC_SETTINGS, clientId: 'client-id', redirectUri: 'https://example.test/' }
     expect(saveCloudSyncSettings(settings, storage)).toBe(true)
     expect(loadCloudSyncSettings(storage)).toMatchObject(settings)
+  })
+
+  it('keeps the browser login session until the user signs out', () => {
+    const storage = new MemoryStorage()
+    storage.setItem('npee:onedrive-sync-session:v1', JSON.stringify({ accessToken: 'token', refreshToken: 'refresh-token', expiresAt: Date.now() - 1 }))
+    expect(hasOneDriveSession(storage)).toBe(true)
+    signOutOneDrive(storage, null)
+    expect(hasOneDriveSession(storage)).toBe(false)
   })
 })

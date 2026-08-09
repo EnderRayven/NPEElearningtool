@@ -23,6 +23,7 @@ interface Props {
   cloudSyncState: CloudSyncState
   cloudSyncMessage: string
   oneDriveSignedIn: boolean
+  oneDriveAuthConfigured: boolean
   appVersion: string
   githubUrl: string
   roundMarkedCount: (round: number) => number
@@ -136,8 +137,8 @@ function WorkspaceStatus({ state }: { state: WorkspaceState }) {
   return <div className={`settings-panel-status ${state}`}><span className="source-dot"/><span>{text}</span></div>
 }
 
-function CloudSyncStatus({ state, signedIn, message }: { state: CloudSyncState; signedIn: boolean; message: string }) {
-  const text = message || (state === 'syncing' ? '正在连接 OneDrive…' : signedIn ? 'OneDrive 已登录' : '尚未登录 OneDrive')
+function CloudSyncStatus({ state, signedIn, authConfigured, message }: { state: CloudSyncState; signedIn: boolean; authConfigured: boolean; message: string }) {
+  const text = message || (state === 'syncing' ? '正在连接 OneDrive…' : signedIn ? 'OneDrive 已登录' : authConfigured ? '尚未登录 OneDrive' : '网页授权尚未配置')
   return <div className={`settings-panel-status ${state === 'error' ? 'error' : state === 'syncing' ? 'syncing' : signedIn ? '' : 'idle'}`}><span className="source-dot"/><span>{text}</span></div>
 }
 
@@ -316,18 +317,16 @@ export default function SettingsPanel(props: Props) {
     return <div className="settings-panel-stack">
       <section className="settings-panel-group settings-panel-cloud-sync-group">
         <GroupHeading title="OneDrive 同步" description="跨设备同步学习数据与题目笔记"/>
-        <CloudSyncStatus state={props.cloudSyncState} signedIn={props.oneDriveSignedIn} message={props.cloudSyncMessage}/>
+        <CloudSyncStatus state={props.cloudSyncState} signedIn={props.oneDriveSignedIn} authConfigured={props.oneDriveAuthConfigured} message={props.cloudSyncMessage}/>
         <div className="settings-panel-sync-fields">
-          <label><span>Microsoft Entra 客户端 ID</span><input value={props.cloudSyncSettings.clientId} onChange={event => props.onUpdateCloudSyncSettings({ ...props.cloudSyncSettings, clientId: event.currentTarget.value })} placeholder="例如：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autoComplete="off"/></label>
-          <label><span>重定向地址</span><input value={props.cloudSyncSettings.redirectUri} onChange={event => props.onUpdateCloudSyncSettings({ ...props.cloudSyncSettings, redirectUri: event.currentTarget.value })} placeholder="应用注册中的 SPA 重定向地址" autoComplete="url"/></label>
           <label><span>OneDrive 应用目录</span><input value={props.cloudSyncSettings.remotePath} onChange={event => props.onUpdateCloudSyncSettings({ ...props.cloudSyncSettings, remotePath: event.currentTarget.value })} placeholder="npee-study-space" autoComplete="off"/></label>
           <label className="settings-panel-sync-check"><input type="checkbox" checked={props.cloudSyncSettings.includeBanks} onChange={event => props.onUpdateCloudSyncSettings({ ...props.cloudSyncSettings, includeBanks: event.currentTarget.checked })}/><span>同步题库结构（暂不包含图片）</span></label>
         </div>
         <div className="settings-panel-sync-actions">
-          <button type="button" onClick={props.oneDriveSignedIn ? props.onCloudSync : props.onSignInOneDrive}>{props.oneDriveSignedIn ? <RefreshCcw size={14}/> : <LogIn size={14}/>}<span>{props.oneDriveSignedIn ? '立即同步' : '登录 OneDrive'}</span></button>
+          <button type="button" disabled={!props.oneDriveSignedIn && !props.oneDriveAuthConfigured} onClick={props.oneDriveSignedIn ? props.onCloudSync : props.onSignInOneDrive}>{props.oneDriveSignedIn ? <RefreshCcw size={14}/> : <LogIn size={14}/>}<span>{props.oneDriveSignedIn ? '立即同步' : '网页登录 OneDrive'}</span></button>
           {props.oneDriveSignedIn && <button type="button" onClick={props.onSignOutOneDrive}><LogOut size={14}/>退出登录</button>}
         </div>
-        <p className="settings-panel-sync-help"><Cloud size={13}/>首次使用需在 Microsoft Entra 注册 SPA 应用，并授予委托权限 <code>Files.ReadWrite.AppFolder</code>。登录令牌只保存在当前浏览器会话；应用密码不会写入本地。</p>
+        <p className="settings-panel-sync-help"><Cloud size={13}/>点击后将在网页中打开 Microsoft 登录，授权完成会自动返回本页。应用使用 OneDrive App Folder 和 <code>Files.ReadWrite.AppFolder</code> 权限；登录令牌保存在本机浏览器，可随时退出登录清除。</p>
       </section>
       <section className="settings-panel-info-card"><strong>同步范围</strong><span>默认同步学习轮次、熟练度、复习记录、考试日期和笔记；开启题库结构后会额外同步题库 JSON，但当前版本不包含图片。</span></section>
     </div>

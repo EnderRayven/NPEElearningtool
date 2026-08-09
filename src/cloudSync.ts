@@ -22,8 +22,9 @@ const INDEX_PATH = 'sync/index.json'
 const USER_DATA_PATH = '用户数据/用户数据.json'
 const MANIFEST_PATH = '默认题库/题库数据.json'
 const GRAPH_ROOT = 'https://graph.microsoft.com/v1.0'
-const AUTH_ROOT = 'https://login.microsoftonline.com/consumers/oauth2/v2.0'
-const GRAPH_SCOPES = 'openid profile offline_access Files.ReadWrite.AppFolder'
+const AUTH_ROOT = (import.meta.env.VITE_ONEDRIVE_AUTHORITY || 'https://login.microsoftonline.com/consumers/oauth2/v2.0').replace(/\/+$/, '')
+const BUILT_IN_CLIENT_ID = (import.meta.env.VITE_ONEDRIVE_CLIENT_ID || '').trim()
+const GRAPH_SCOPES = 'openid profile offline_access User.Read Files.ReadWrite.AppFolder'
 
 export interface CloudSyncSettings {
   clientId: string
@@ -70,10 +71,22 @@ export interface CloudSyncResult {
 }
 
 export const DEFAULT_CLOUD_SYNC_SETTINGS: CloudSyncSettings = {
-  clientId: '',
+  clientId: BUILT_IN_CLIENT_ID,
   redirectUri: '',
   remotePath: 'npee-study-space',
   includeBanks: false,
+}
+
+export function oneDriveClientId(settings: CloudSyncSettings) {
+  return BUILT_IN_CLIENT_ID || settings.clientId.trim()
+}
+
+export function oneDriveRedirectUri(settings: CloudSyncSettings) {
+  return settings.redirectUri.trim() || defaultRedirectUri()
+}
+
+export function isOneDriveWebAuthConfigured(settings: CloudSyncSettings) {
+  return Boolean(oneDriveClientId(settings) && oneDriveRedirectUri(settings))
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -86,9 +99,10 @@ function defaultRedirectUri() {
 
 function cleanSettings(value: unknown): CloudSyncSettings {
   if (!isRecord(value)) return { ...DEFAULT_CLOUD_SYNC_SETTINGS, redirectUri: defaultRedirectUri() }
+  const runtimeRedirectUri = defaultRedirectUri()
   return {
-    clientId: typeof value.clientId === 'string' ? value.clientId.trim() : '',
-    redirectUri: typeof value.redirectUri === 'string' && value.redirectUri.trim() ? value.redirectUri.trim() : defaultRedirectUri(),
+    clientId: BUILT_IN_CLIENT_ID || (typeof value.clientId === 'string' ? value.clientId.trim() : ''),
+    redirectUri: runtimeRedirectUri || (typeof value.redirectUri === 'string' ? value.redirectUri.trim() : ''),
     remotePath: typeof value.remotePath === 'string' && value.remotePath.trim() ? value.remotePath.trim().replace(/^\/+|\/+$/g, '') : DEFAULT_CLOUD_SYNC_SETTINGS.remotePath,
     includeBanks: value.includeBanks === true,
   }
@@ -106,18 +120,21 @@ export function saveCloudSyncSettings(settings: CloudSyncSettings, storage: Stor
   catch { return false }
 }
 
-export function hasOneDriveSession(storage: Storage | null = typeof window === 'undefined' ? null : window.sessionStorage) {
+export function hasOneDriveSession(storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage) {
   if (!storage) return false
   try {
     const value = JSON.parse(storage.getItem(SESSION_KEY) || 'null') as Partial<OneDriveSession> | null
-    return Boolean(value?.accessToken && typeof value.expiresAt === 'number' && value.expiresAt > Date.now() + 30_000)
+    return Boolean(value?.accessToken && ((typeof value.expiresAt === 'number' && value.expiresAt > Date.now() + 30_000) || value.refreshToken))
   } catch { return false }
 }
 
-export function signOutOneDrive(storage: Storage | null = typeof window === 'undefined' ? null : window.sessionStorage) {
+export function signOutOneDrive(
+  storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage,
+  transientStorage: Storage | null = typeof window === 'undefined' ? null : window.sessionStorage,
+) {
   storage?.removeItem(SESSION_KEY)
-  storage?.removeItem(PKCE_VERIFIER_KEY)
-  storage?.removeItem(PKCE_STATE_KEY)
+  transientStorage?.removeItem(PKCE_VERIFIER_KEY)
+  transientStorage?.removeItem(PKCE_STATE_KEY)
 }
 
 function deviceId(storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage) {
@@ -132,7 +149,7 @@ function deviceId(storage: Storage | null = typeof window === 'undefined' ? null
 }
 
 function stateKey(settings: CloudSyncSettings) {
-  return `${STATE_PREFIX}${settings.clientId}|${settings.remotePath}`
+  return `${STATE_PREFIX}${oneDriveClientId(settings)}|${settings.remotePath}`
 }
 
 function readLocalIndex(settings: CloudSyncSettings, storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage): CloudSyncIndex | null {
@@ -202,8 +219,10 @@ function oauthError(value: unknown) {
 }
 
 export async function startOneDriveSignIn(settings: CloudSyncSettings, storage: Storage | null = typeof window === 'undefined' ? null : window.sessionStorage) {
-  if (!settings.clientId.trim()) throw new Error('请先填写 Microsoft Entra 应用客户端 ID')
-  if (!settings.redirectUri.trim()) throw new Error('请先填写 OneDrive 重定向地址')
+  const clientId = oneDriveClientId(settings)
+  const redirectUri = oneDriveRedirectUri(settings)
+  if (!clientId) throw new Error('当前版本尚未配置 OneDrive 网页授权应用，请联系应用维护者')
+  if (!redirectUri) throw new Error('当前页面没有可用的 OneDrive 回调地址')
   if (!storage) throw new Error('当前环境不支持 OneDrive 登录会话')
   const verifier = randomUrlToken(48)
   const state = randomUrlToken(24)
@@ -211,7 +230,7 @@ export async function startOneDriveSignIn(settings: CloudSyncSettings, storage: 
   storage.setItem(PKCE_STATE_KEY, state)
   const challenge = await pkceChallenge(verifier)
   const url = new URL(`${AUTH_ROOT}/authorize`)
-  url.search = new URLSearchParams({ client_id: settings.clientId, response_type: 'code', redirect_uri: settings.redirectUri, response_mode: 'query', scope: GRAPH_SCOPES, state, code_challenge: challenge, code_challenge_method: 'S256' }).toString()
+  url.search = new URLSearchParams({ client_id: clientId, response_type: 'code', redirect_uri: redirectUri, response_mode: 'query', scope: GRAPH_SCOPES, state, code_challenge: challenge, code_challenge_method: 'S256' }).toString()
   window.location.assign(url.toString())
 }
 
@@ -222,8 +241,15 @@ async function tokenRequest(body: URLSearchParams) {
   return payload as { access_token: string; refresh_token?: string; expires_in?: number }
 }
 
-export async function completeOneDriveSignIn(settings: CloudSyncSettings, storage: Storage | null = typeof window === 'undefined' ? null : window.sessionStorage) {
-  if (typeof window === 'undefined' || !storage) return false
+export async function completeOneDriveSignIn(
+  settings: CloudSyncSettings,
+  storage: Storage | null = typeof window === 'undefined' ? null : window.sessionStorage,
+  tokenStorage: Storage | null = typeof window === 'undefined' ? null : window.localStorage,
+) {
+  if (typeof window === 'undefined' || !storage || !tokenStorage) return false
+  const clientId = oneDriveClientId(settings)
+  const redirectUri = oneDriveRedirectUri(settings)
+  if (!clientId || !redirectUri) throw new Error('当前版本尚未配置 OneDrive 网页授权应用，请联系应用维护者')
   const params = new URLSearchParams(window.location.search)
   const code = params.get('code')
   const returnedState = params.get('state')
@@ -235,21 +261,21 @@ export async function completeOneDriveSignIn(settings: CloudSyncSettings, storag
   const expectedState = storage.getItem(PKCE_STATE_KEY)
   const verifier = storage.getItem(PKCE_VERIFIER_KEY)
   if (!expectedState || expectedState !== returnedState || !verifier) throw new Error('OneDrive 授权状态校验失败，请重新登录')
-  const payload = await tokenRequest(new URLSearchParams({ client_id: settings.clientId, grant_type: 'authorization_code', code, redirect_uri: settings.redirectUri, scope: GRAPH_SCOPES, code_verifier: verifier }))
-  storage.setItem(SESSION_KEY, JSON.stringify({ accessToken: payload.access_token, refreshToken: payload.refresh_token, expiresAt: Date.now() + Math.max(60, payload.expires_in || 3600) * 1000 }))
+  const payload = await tokenRequest(new URLSearchParams({ client_id: clientId, grant_type: 'authorization_code', code, redirect_uri: redirectUri, scope: GRAPH_SCOPES, code_verifier: verifier }))
+  tokenStorage.setItem(SESSION_KEY, JSON.stringify({ accessToken: payload.access_token, refreshToken: payload.refresh_token, expiresAt: Date.now() + Math.max(60, payload.expires_in || 3600) * 1000 }))
   storage.removeItem(PKCE_STATE_KEY)
   storage.removeItem(PKCE_VERIFIER_KEY)
   return true
 }
 
-async function accessToken(settings: CloudSyncSettings, storage: Storage | null = typeof window === 'undefined' ? null : window.sessionStorage) {
+async function accessToken(settings: CloudSyncSettings, storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage) {
   if (!storage) throw new Error('当前环境不支持 OneDrive 登录会话')
   let session: OneDriveSession | null = null
   try { session = JSON.parse(storage.getItem(SESSION_KEY) || 'null') as OneDriveSession | null } catch {}
   if (!session?.accessToken) throw new Error('请先登录 OneDrive')
   if (session.expiresAt > Date.now() + 60_000) return session.accessToken
   if (!session.refreshToken) throw new Error('OneDrive 登录已过期，请重新登录')
-  const payload = await tokenRequest(new URLSearchParams({ client_id: settings.clientId, grant_type: 'refresh_token', refresh_token: session.refreshToken, scope: GRAPH_SCOPES }))
+  const payload = await tokenRequest(new URLSearchParams({ client_id: oneDriveClientId(settings), grant_type: 'refresh_token', refresh_token: session.refreshToken, scope: GRAPH_SCOPES }))
   storage.setItem(SESSION_KEY, JSON.stringify({ accessToken: payload.access_token, refreshToken: payload.refresh_token || session.refreshToken, expiresAt: Date.now() + Math.max(60, payload.expires_in || 3600) * 1000 }))
   return payload.access_token
 }
@@ -385,7 +411,7 @@ function conflictPath(path: string) {
 }
 
 export async function syncCloudFiles(settings: CloudSyncSettings, files: CloudSyncFile[], storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage): Promise<CloudSyncResult> {
-  if (!settings.clientId.trim() || !settings.redirectUri.trim()) throw new Error('请先完成 OneDrive 应用配置')
+  if (!isOneDriveWebAuthConfigured(settings)) throw new Error('当前版本尚未配置 OneDrive 网页授权应用，请联系应用维护者')
   const client = new OneDriveClient(settings)
   const id = deviceId(storage)
   const previous = readLocalIndex(settings, storage)
