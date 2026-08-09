@@ -143,4 +143,17 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" 构建/release/electron/* --clobber
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=()
+          for file in 构建/release/electron/*; do
+            if [[ -f "$file" ]]; then
+              files+=("$file")
+            fi
+          done
+          if (( ${#files[@]} == 0 )); then
+            echo '未找到 Electron 发布文件' >&2
+            exit 1
+          fi
+          gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
