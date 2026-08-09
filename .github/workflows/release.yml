@@ -3,14 +3,23 @@ name: 发布 Release 包
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 要构建并上传的 Release 标签
+        required: true
+        type: string
 
 permissions:
   contents: write
 
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
 jobs:
   validate:
     name: 发布前测试与构建
-    if: startsWith(github.ref_name, 'v')
+    if: startsWith(github.ref_name, 'v') || (github.event_name == 'workflow_dispatch' && startsWith(inputs.tag, 'v'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -39,7 +48,7 @@ jobs:
 
   package-software:
     name: 生成软件包
-    if: startsWith(github.ref_name, 'v')
+    if: startsWith(github.ref_name, 'v') || (github.event_name == 'workflow_dispatch' && startsWith(inputs.tag, 'v'))
     needs: validate
     runs-on: ubuntu-latest
     steps:
@@ -50,7 +59,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="${GITHUB_REF_NAME#v}"
+          version="${RELEASE_TAG#v}"
           package_root="NPEE-Study-Space-v${version}"
           archive="${package_root}-Software.zip"
           mkdir -p "构建/release/${package_root}"
@@ -74,11 +83,11 @@ jobs:
       - name: 上传软件包到 GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" "$RELEASE_ARCHIVE" "$RELEASE_ARCHIVE.sha256" --clobber
+        run: gh release upload "$RELEASE_TAG" "$RELEASE_ARCHIVE" "$RELEASE_ARCHIVE.sha256" --clobber
 
   package-question-bank:
     name: 生成题库数据包
-    if: startsWith(github.ref_name, 'v')
+    if: startsWith(github.ref_name, 'v') || (github.event_name == 'workflow_dispatch' && startsWith(inputs.tag, 'v'))
     needs: validate
     runs-on: ubuntu-latest
     steps:
@@ -89,7 +98,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="${GITHUB_REF_NAME#v}"
+          version="${RELEASE_TAG#v}"
           package_root="NPEE-Study-Space-v${version}"
           archive="${package_root}-Question-Bank.zip"
           mkdir -p "构建/release/${package_root}"
@@ -103,11 +112,11 @@ jobs:
       - name: 上传题库数据包到 GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" "$RELEASE_ARCHIVE" "$RELEASE_ARCHIVE.sha256" --clobber
+        run: gh release upload "$RELEASE_TAG" "$RELEASE_ARCHIVE" "$RELEASE_ARCHIVE.sha256" --clobber
 
   package-electron:
     name: 生成 ${{ matrix.platform }} 封装更新包
-    if: startsWith(github.ref_name, 'v')
+    if: startsWith(github.ref_name, 'v') || (github.event_name == 'workflow_dispatch' && startsWith(inputs.tag, 'v'))
     needs: validate
     strategy:
       fail-fast: false
@@ -156,4 +165,4 @@ jobs:
             echo '未找到 Electron 发布文件' >&2
             exit 1
           fi
-          gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
+          gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
