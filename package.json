@@ -2,7 +2,7 @@
   "name": "npee-study-space",
   "productName": "NPEE Study Space",
   "private": true,
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "本地优先的考研题库、错题复盘与学习进度工具",
   "homepage": "https://github.com/EnderRayven/NPEElearningtool#readme",
   "repository": {
@@ -79,7 +79,24 @@
     "icon": "electron/icon.png",
     "mac": {
       "category": "public.app-category.education",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "electron/entitlements.mac.plist",
+      "entitlementsInherit": "electron/entitlements.mac.plist",
       "target": ["dmg", "zip"]
+    },
+    "dmg": {
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" },
+        {
+          "x": 270,
+          "y": 340,
+          "type": "file",
+          "path": "macOS-解除隔离并启动.command",
+          "name": "解除隔离并启动.command"
+        }
+      ]
     },
     "win": {
       "target": ["nsis", "portable"]

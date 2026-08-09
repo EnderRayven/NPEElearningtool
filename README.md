@@ -8,9 +8,9 @@
 
 当前默认内置 **22 个题库、7212 道题**。英语真题按“年份 → 题型”组织，数学和专业课图片题按“章节 → 小节 → 题号”组织；题库内容与个人学习记录分开存储，更新题库不会覆盖熟练度和复习历史。
 
-> 当前正式版：**v0.4.6** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
+> 当前正式版：**v0.4.7** · 本地优先 · 无需注册 · 支持 macOS / Windows · 推荐 Chrome / Edge
 
-[**下载 v0.4.6 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.6/NPEE-Study-Space-v0.4.6-Software.zip) · [下载 v0.4.6 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.6/NPEE-Study-Space-v0.4.6-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.6) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
+[**下载 v0.4.7 软件包**](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.7/NPEE-Study-Space-v0.4.7-Software.zip) · [下载 v0.4.7 题库数据](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.4.7/NPEE-Study-Space-v0.4.7-Question-Bank.zip) · [查看 Release 说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.7) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
 
 软件包与题库数据分开发布：软件包包含应用源码、启动脚本和运行所需配置，不包含默认题库图片；题库数据包包含 `数据/` 目录，其中集中放置题库和用户数据。首次使用时，将两个压缩包解压到同一个目录，再运行对应系统的一键启动脚本；后续更新软件或题库时可以单独替换对应包。无需安装 Git 或克隆仓库。
 
@@ -219,13 +219,19 @@ flowchart LR
 
 ### 一键启动
 
-1. 在同一个 [v0.4.6 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.6) 中分别下载 `NPEE-Study-Space-v0.4.6-Software.zip` 和 `NPEE-Study-Space-v0.4.6-Question-Bank.zip`。
+1. 在同一个 [v0.4.7 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.4.7) 中分别下载 `NPEE-Study-Space-v0.4.7-Software.zip` 和 `NPEE-Study-Space-v0.4.7-Question-Bank.zip`。
 2. 将两个压缩包解压到同一个可长期保存的目录，使 `数据/` 与 `一键启动.command` 或 `一键启动.bat` 位于同一级；不要直接在压缩包预览中运行。
 3. 按系统启动：
-   - macOS：双击 `一键启动.command`，自动配置 Homebrew、Node.js、pnpm 和项目依赖。
+   - macOS：优先打开 Release 中带有 `.dmg` 的已签名封装版；如果下载的是未签名备用 `.dmg`，先拖入 `Applications`，再双击其中的 `解除隔离并启动.command`；如果使用软件源码包，双击 `一键启动.command`，自动配置 Homebrew、Node.js、pnpm 和项目依赖。
    - Windows：双击 `一键启动.bat`，通过 winget 自动配置 Node.js、pnpm 和项目依赖。
 
 软件包首次启动需要联网安装 Node.js 22.13+、pnpm 和项目依赖；macOS 安装 Homebrew 时可能要求输入系统密码。配置完成后会自动打开浏览器；以后双击通常可以直接启动。也可以使用命令行：
+
+如果 macOS 弹出“应用已损坏，无法打开”，通常是旧版未签名封装包被 Chrome 隔离，并非题库损坏。请确认应用来自本项目 Release，然后按以下顺序操作：先把 `.dmg` 中的 `NPEE Study Space.app` 拖到 `Applications`，再双击 DMG 中的 `解除隔离并启动.command`。脚本会优先处理 `/Applications` 中的可写副本，移除下载隔离并启动应用。只需执行一次，之后通常可以直接打开应用。
+
+如果你只下载了 `.dmg` 或 `.app`，也可以从软件源码包中取出这个 `.command` 文件，与应用放在同一目录后双击。该命令只适用于确认来自官方 Release 的应用，不会修复真正损坏或被篡改的文件。
+
+如果 macOS 第一次阻止打开这个命令文件，请在 Finder 中右键点击它，选择“打开”，再在提示框中确认“打开”。
 
 ```bash
 pnpm install
@@ -390,7 +396,7 @@ flowchart TD
 │       ├── 用户数据.json
 │       └── 用户笔记/
 │           └── 题库编码/章节编码.json
-└── 一键启动.command / 一键启动.bat
+└── 一键启动.command / macOS-解除隔离并启动.command / 一键启动.bat
 ```
 
 - 数学下固定保留“高数、线代、真题”三个板块目录；英语和专业课目录下直接放具体题库。应用会根据实际文件夹自动识别题库，具体目录映射同步写入 `题库数据.json`。
@@ -486,6 +492,8 @@ Electron 版与网页版共用 React 界面、题库格式和用户数据格式�
 ## 应用内更新
 
 打开 **设置 → 关于 → 检查更新** 即可从应用内检查 GitHub Releases。网页版会在当前页面下载软件更新包；受浏览器安全边界限制，下载完成后仍需解压替换网页程序文件。macOS / Windows 封装版会在应用内下载更新，下载完成后可直接重启安装，题库和用户数据目录不会被覆盖；macOS 正式自动更新包需要 Developer ID 签名。Linux 封装版请从发布页下载新包。
+
+macOS Electron 发布支持两种模式：配置 `MACOS_CSC_LINK`（Developer ID Application `.p12` 证书的 base64 内容）、`MACOS_CSC_KEY_PASSWORD`、`APPLE_ID`、`APPLE_APP_SPECIFIC_PASSWORD` 和 `APPLE_TEAM_ID` 五个 Secrets 时生成正式签名/公证包；暂未配置时生成包含 `解除隔离并启动.command` 的未签名备用包。未签名包首次必须按上面的步骤启动，配置 Apple Developer 凭据后重新运行发布即可切换为正式签名包。
 
 发布前建议至少运行 `pnpm test` 与 `pnpm build`，并在桌面和手机宽度下检查题目学习、答案展开、熟练度撤销、学习看板和复习弹窗；生成桌面安装包后，还要分别验证默认题库连接、外部工作区选择、图片显示、题库编辑保存和完整备份。
 

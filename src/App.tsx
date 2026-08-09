@@ -387,6 +387,7 @@ export default function App() {
   const workspaceManifestSnapshot = useRef('')
   const workspaceUserDataSnapshot = useRef('')
   const workspaceNotesSnapshot = useRef('')
+  const workspaceBootstrapStarted = useRef(false)
   const studyPositions = useRef<Partial<Record<Subject, SavedNavigation>>>({})
   const mathStudyPositions = useRef<Partial<Record<MathModule, SavedNavigation>>>({})
   const bankStudyPositions = useRef<Record<string, SavedNavigation>>({})
@@ -591,8 +592,13 @@ export default function App() {
     return () => { document.removeEventListener('pointerdown', closeOnOutside); document.removeEventListener('keydown', closeOnEscape) }
   }, [advancedFilterOpen])
   useEffect(() => {
+    if (workspaceBootstrapStarted.current) return
+    workspaceBootstrapStarted.current = true
     loadWorkspaceHandle().then(async handle => {
-      if (!handle) { setWorkspaceState('none'); return }
+      if (!handle) {
+        await loadDefaultWorkspace()
+        return
+      }
       setWorkspaceHandle(handle)
       if (await hasWorkspacePermission(handle)) {
         if (await restoreWorkspaceCache(handle)) return
@@ -2008,7 +2014,6 @@ export default function App() {
   async function loadDefaultWorkspace() {
     setWorkspaceState('syncing')
     try {
-      await loadDefaultBanks().catch(() => {})
       const index = await readDefaultWorkspace()
       if (!builtInBanks.length && index.manifest) initializeDefaultBanks(index.manifest.banks.filter(bank => defaultBankIds.includes(bank.id as typeof defaultBankIds[number])))
       let nextBanks = index.manifest ? removeRetiredBanks(validateBanks(index.manifest)) : structuredClone(banks)
@@ -2077,6 +2082,7 @@ export default function App() {
       return true
     } catch {
       setDefaultWorkspaceConnected(false); setWorkspaceState('none')
+      setToast('默认题库读取失败，请点击右上角按钮重试')
       return false
     }
   }

@@ -25,6 +25,8 @@ jobs:
     steps:
       - name: 检出正式版源码
         uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
@@ -54,6 +56,8 @@ jobs:
     steps:
       - name: 检出正式版源码
         uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: 组装软件包
         shell: bash
@@ -93,6 +97,8 @@ jobs:
     steps:
       - name: 检出正式版题库数据
         uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: 组装题库数据包
         shell: bash
@@ -130,6 +136,8 @@ jobs:
     steps:
       - name: 检出正式版源码
         uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
@@ -145,8 +153,68 @@ jobs:
       - name: 安装依赖
         run: pnpm install --frozen-lockfile
 
+      - name: 检查 macOS 签名与公证凭据
+        if: matrix.platform == 'macOS'
+        shell: bash
+        env:
+          MACOS_CSC_LINK: ${{ secrets.MACOS_CSC_LINK }}
+          MACOS_CSC_KEY_PASSWORD: ${{ secrets.MACOS_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          missing=()
+          [[ -n "${MACOS_CSC_LINK//[[:space:]]/}" ]] || missing+=(MACOS_CSC_LINK)
+          [[ -n "${MACOS_CSC_KEY_PASSWORD//[[:space:]]/}" ]] || missing+=(MACOS_CSC_KEY_PASSWORD)
+          [[ -n "${APPLE_ID//[[:space:]]/}" ]] || missing+=(APPLE_ID)
+          [[ -n "${APPLE_APP_SPECIFIC_PASSWORD//[[:space:]]/}" ]] || missing+=(APPLE_APP_SPECIFIC_PASSWORD)
+          [[ -n "${APPLE_TEAM_ID//[[:space:]]/}" ]] || missing+=(APPLE_TEAM_ID)
+          if (( ${#missing[@]} > 0 )); then
+            echo "::warning::未配置完整的 macOS 发布凭据：${missing[*]}。本次将生成包含解除隔离脚本的未签名备用包；配置凭据后重新运行可生成正式签名包。"
+          else
+            echo '已检测到完整的 macOS 签名与公证凭据，将生成正式签名包。'
+          fi
+
       - name: 生成 Electron 更新包
-        run: pnpm build && pnpm exec electron-builder --publish never
+        env:
+          CSC_LINK: ${{ matrix.platform == 'macOS' && secrets.MACOS_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.platform == 'macOS' && secrets.MACOS_CSC_KEY_PASSWORD || '' }}
+          APPLE_ID: ${{ matrix.platform == 'macOS' && secrets.APPLE_ID || '' }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.platform == 'macOS' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ matrix.platform == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
+        run: |
+          set -euo pipefail
+          pnpm build
+          if [[ "${{ matrix.platform }}" == "macOS" && -n "${CSC_LINK//[[:space:]]/}" && -n "${CSC_KEY_PASSWORD//[[:space:]]/}" && -n "${APPLE_ID//[[:space:]]/}" && -n "${APPLE_APP_SPECIFIC_PASSWORD//[[:space:]]/}" && -n "${APPLE_TEAM_ID//[[:space:]]/}" ]]; then
+            pnpm exec electron-builder --publish never --universal -c.mac.forceCodeSigning=true
+          else
+            pnpm exec electron-builder --publish never
+          fi
+
+      - name: 验证 macOS 安装包
+        if: matrix.platform == 'macOS'
+        shell: bash
+        env:
+          MACOS_CSC_LINK: ${{ secrets.MACOS_CSC_LINK }}
+          MACOS_CSC_KEY_PASSWORD: ${{ secrets.MACOS_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          app_path="$(find '构建/release/electron' -type d -name '*.app' -print -quit)"
+          if [[ -z "$app_path" ]]; then
+            echo '未找到 macOS 应用包' >&2
+            exit 1
+          fi
+          if [[ -n "${MACOS_CSC_LINK//[[:space:]]/}" && -n "${MACOS_CSC_KEY_PASSWORD//[[:space:]]/}" && -n "${APPLE_ID//[[:space:]]/}" && -n "${APPLE_APP_SPECIFIC_PASSWORD//[[:space:]]/}" && -n "${APPLE_TEAM_ID//[[:space:]]/}" ]]; then
+            codesign --verify --deep --strict --verbose=2 "$app_path"
+            spctl --assess --type execute --verbose=4 "$app_path"
+          else
+            test -x 'macOS-解除隔离并启动.command'
+            echo '未签名备用包已验证包含可执行的 macOS 解除隔离启动脚本。'
+          fi
 
       - name: 上传 Electron 更新包到 GitHub Release
         shell: bash

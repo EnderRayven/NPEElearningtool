@@ -21,5 +21,5 @@ function renderPage(content: React.ReactNode) {
   root.render(<React.StrictMode><><PenScrollController/>{content}<DraftBook/></></React.StrictMode>)
 }
 
-// 题库必须在用户明确选择文件夹后读取；未连接时只显示本地设置入口。
+// 首次启动自动载入默认题库；用户仍可从设置中切换到自己的数据目录。
 renderPage(<App/>)

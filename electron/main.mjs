@@ -171,6 +171,7 @@ function createMainWindow(url) {
     height: 920,
     minWidth: 960,
     minHeight: 640,
+    autoHideMenuBar: process.platform !== 'darwin',
     show: false,
     backgroundColor: '#f8f6f2',
     webPreferences: {
@@ -180,6 +181,7 @@ function createMainWindow(url) {
       sandbox: true,
     },
   })
+  if (process.platform !== 'darwin') mainWindow.setMenuBarVisibility(false)
 
   mainWindow.once('ready-to-show', () => mainWindow.show())
   mainWindow.webContents.on('did-finish-load', () => publishUpdaterState(updaterState))
