@@ -82,7 +82,7 @@ async function startPreviewServer() {
     configFile: runtimeConfigFile,
     preview: { host: DESKTOP_HOST, port: DESKTOP_PORT, strictPort: true },
   })
-  return `http://${DESKTOP_HOST}:${DESKTOP_PORT}`
+  return `http://localhost:${DESKTOP_PORT}`
 }
 
 function createMainWindow(url) {

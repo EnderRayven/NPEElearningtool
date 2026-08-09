@@ -10,6 +10,8 @@ const NOTES_FOLDER = '用户笔记'
 const BUILD_ROOT = path.resolve(process.env.NPEE_BUILD_ROOT || path.join(process.cwd(), '构建'))
 const MAX_JSON_BODY_BYTES = 32 * 1024 * 1024
 const MAX_IMAGE_BODY_BYTES = 128 * 1024 * 1024
+const LOCAL_WEB_HOST = 'localhost'
+const LOCAL_WEB_PORT = 45217
 const IMAGE_PATTERN = /\.(png|jpe?g|webp|gif|bmp|avif)$/i
 const STRUCTURED_IMAGE_PATTERN = /^(?:Q|A)-\d+-\d+-\d+(?:\.\d+)?\.(?:png|jpe?g|webp|gif|bmp|avif)$/i
 const IMAGE_CONTENT_TYPES: Record<string, string> = {
@@ -333,6 +335,16 @@ export default defineConfig({
     __VUE_OPTIONS_API__: true,
     __VUE_PROD_DEVTOOLS__: false,
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+  },
+  server: {
+    host: LOCAL_WEB_HOST,
+    port: LOCAL_WEB_PORT,
+    strictPort: true,
+  },
+  preview: {
+    host: LOCAL_WEB_HOST,
+    port: LOCAL_WEB_PORT,
+    strictPort: true,
   },
   build: {
     outDir: path.join(BUILD_ROOT, 'dist'),

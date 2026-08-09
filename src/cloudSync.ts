@@ -94,7 +94,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function defaultRedirectUri() {
-  return typeof window === 'undefined' ? '' : `${window.location.origin}${window.location.pathname}`
+  if (typeof window === 'undefined') return ''
+  const url = new URL(window.location.href)
+  if (url.protocol === 'http:' && url.hostname === '127.0.0.1') url.hostname = 'localhost'
+  return `${url.origin}${url.pathname}`
 }
 
 function cleanSettings(value: unknown): CloudSyncSettings {

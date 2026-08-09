@@ -7,7 +7,7 @@ import path from 'node:path'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const viteCli = path.join(projectRoot, 'node_modules', 'vite', 'bin', 'vite.js')
-const viteArgs = ['--host', '127.0.0.1', '--clearScreen', 'false', ...process.argv.slice(2)]
+const viteArgs = ['--host', 'localhost', '--port', '45217', '--strictPort', '--clearScreen', 'false', ...process.argv.slice(2)]
 
 let server = null
 let stopping = false

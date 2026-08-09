@@ -232,6 +232,8 @@ pnpm install
 pnpm start
 ```
 
+本地网页版固定使用 `http://localhost:45217/`，与 Electron 版共用 OneDrive 回调地址；正式部署到公网时使用部署后的 HTTPS 地址。
+
 启动后可在终端输入 `R` 并回车重启服务，输入 `Q` 并回车安全关闭服务。开发时仍可使用 `pnpm dev` 直接运行 Vite。
 
 生产构建：
