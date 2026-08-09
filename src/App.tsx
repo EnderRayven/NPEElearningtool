@@ -38,6 +38,7 @@ import { navigationScrollTop, shouldScrollSectionChangeToTop } from './navigatio
 import { scheduleDeferredPreloads } from './deferredPreload'
 import { useModalScrollLock } from './useModalScrollLock'
 import { resolveMarkdownShortcutSettings, type MarkdownShortcutSettings } from './shortcutSettings'
+import { cloudSyncManifestPath, cloudSyncUserDataPath, completeOneDriveSignIn, createCloudSyncFiles, hasOneDriveSession, loadCloudSyncSettings, saveCloudSyncSettings, signOutOneDrive, startOneDriveSignIn, syncCloudFiles, type CloudSyncSettings, type CloudSyncState } from './cloudSync'
 
 type DeferredModules = {
   SettingsPanel?: (typeof import('./SettingsPanel'))['default']
@@ -365,6 +366,10 @@ export default function App() {
   const [workspaceFolders, setWorkspaceFolders] = useState<Record<string, string>>({})
   const [defaultWorkspaceConnected, setDefaultWorkspaceConnected] = useState(false)
   const [workspaceReady, setWorkspaceReady] = useState(false)
+  const [cloudSyncSettings, setCloudSyncSettings] = useState(loadCloudSyncSettings)
+  const [cloudSyncState, setCloudSyncState] = useState<CloudSyncState>(() => hasOneDriveSession() ? 'connected' : 'idle')
+  const [cloudSyncMessage, setCloudSyncMessage] = useState('')
+  const [oneDriveSignedIn, setOneDriveSignedIn] = useState(hasOneDriveSession)
   useModalScrollLock(newBankOpen || Boolean(renameTarget) || Boolean(questionZoomTarget))
   const screenWakeLockSupported = isScreenWakeLockSupported()
   const questionTags = userSettings.questionTags?.length ? userSettings.questionTags : DEFAULT_QUESTION_TAGS
@@ -595,6 +600,20 @@ export default function App() {
         setWorkspaceHandle(null); setWorkspaceState('none')
       } else setWorkspaceState('error')
     })
+  }, [])
+  useEffect(() => {
+    let cancelled = false
+    completeOneDriveSignIn(cloudSyncSettings).then(completed => {
+      if (cancelled || !completed) return
+      setOneDriveSignedIn(true)
+      setCloudSyncState('connected')
+      setCloudSyncMessage('OneDrive 已登录，可以开始同步')
+    }).catch(error => {
+      if (cancelled) return
+      setCloudSyncState('error')
+      setCloudSyncMessage(error instanceof Error ? error.message : 'OneDrive 登录失败')
+    })
+    return () => { cancelled = true }
   }, [])
   useEffect(() => {
     if (workspaceState !== 'connected' || !workspaceReady) return
@@ -2170,6 +2189,75 @@ export default function App() {
       setToast(error instanceof Error ? error.message : '无法切换本地题库')
     }
   }
+  function updateCloudSyncSettings(next: CloudSyncSettings) {
+    setCloudSyncSettings(next)
+    if (!saveCloudSyncSettings(next)) setCloudSyncMessage('OneDrive 配置保存失败，请检查浏览器存储空间')
+  }
+  async function signInOneDrive() {
+    try {
+      updateCloudSyncSettings(cloudSyncSettings)
+      setCloudSyncState('syncing')
+      await startOneDriveSignIn(cloudSyncSettings)
+    } catch (error) {
+      setCloudSyncState('error')
+      setCloudSyncMessage(error instanceof Error ? error.message : 'OneDrive 登录失败')
+    }
+  }
+  function signOutCloudSync() {
+    signOutOneDrive()
+    setOneDriveSignedIn(false)
+    setCloudSyncState('idle')
+    setCloudSyncMessage('已退出 OneDrive')
+  }
+  async function syncOneDrive() {
+    if (!oneDriveSignedIn) {
+      setCloudSyncMessage('请先登录 OneDrive')
+      return
+    }
+    setCloudSyncState('syncing')
+    try {
+      const files = createCloudSyncFiles(banks, workspaceFolders, currentStudyRounds(), userSettings, questionNotes, questionErrorRecords, personalNotebooks, cloudSyncSettings.includeBanks)
+      const result = await syncCloudFiles(cloudSyncSettings, files)
+      let syncedStatuses = statuses
+      const userDataFile = result.files.find(file => file.path === cloudSyncUserDataPath())
+      if (userDataFile) {
+        const parsed = JSON.parse(userDataFile.content)
+        const resolved = resolveWorkspaceUserData(parsed, undefined, currentStudyRounds(), userSettings, questionNotes, questionErrorRecords, personalNotebooks)
+        const nextRound = getStudyRound(resolved.rounds, resolved.settings.activeRound)
+        syncedStatuses = nextRound.statuses
+        notesLoaded.current = true
+        setNotesReady(true)
+        setErrorRecordsReady(true)
+        setStudyRounds(resolved.rounds)
+        setStatuses(nextRound.statuses)
+        setActivities(nextRound.activities)
+        setUserSettings(resolved.settings)
+        setQuestionNotes(resolved.notes)
+        setQuestionErrorRecords(resolved.errorRecords)
+        setPersonalNotebooks(resolved.personalNotebooks)
+      }
+      if (cloudSyncSettings.includeBanks) {
+        const manifestFile = result.files.find(file => file.path === cloudSyncManifestPath())
+        if (manifestFile) {
+          const manifest = JSON.parse(manifestFile.content)
+          const nextBanks = removeRetiredBanks(validateBanks(manifest))
+          const folders = { ...(manifest.folders || {}) }
+          setBanks(nextBanks)
+          setWorkspaceFolders(folders)
+          restoreSavedNavigation(nextBanks, syncedStatuses)
+        }
+      }
+      setOneDriveSignedIn(true)
+      setCloudSyncState('connected')
+      const conflictMessage = result.conflicts.length ? `，已保留 ${result.conflicts.length} 个冲突副本` : ''
+      setCloudSyncMessage(`已同步 ${result.uploaded + result.downloaded} 个文件${conflictMessage}`)
+      setToast(`OneDrive 同步完成${conflictMessage}`)
+    } catch (error) {
+      setCloudSyncState('error')
+      setCloudSyncMessage(error instanceof Error ? error.message : 'OneDrive 同步失败')
+      setToast(error instanceof Error ? error.message : 'OneDrive 同步失败')
+    }
+  }
   function openNewBank(targetSubject: Subject = subject) {
     setNewBankSubject(targetSubject)
     if (targetSubject === 'math') setNewBankMathModule(mathModule)
@@ -2497,7 +2585,7 @@ export default function App() {
     {toast && <div className="toast">{toast}</div>}
     {newBankOpen && <div className="modal-backdrop" onClick={() => setNewBankOpen(false)}><section className="modal-card new-bank-dialog" role="dialog" aria-modal="true" aria-labelledby="new-bank-title" onClick={event => event.stopPropagation()}><button className="modal-close" aria-label="关闭" onClick={() => setNewBankOpen(false)}><X/></button><div className="new-bank-heading"><span className="modal-icon"><BookOpen/></span><div><span>QUESTION BANK</span><h2 id="new-bank-title">新建题库</h2></div></div><p className="new-bank-description">连接工作区后会同步建立对应文件夹。</p><div className="new-bank-field"><div className="new-bank-field-heading"><strong>所属学科</strong><small>决定目录位置</small></div><div className="new-bank-subject-options">{([{ value: 'math', label: '数学', hint: '高数 / 线代' }, { value: 'english', label: '英语', hint: '英语一 / 英语二' }, { value: 'professional', label: '专业课', hint: '自定义课程' }] as Array<{ value: Subject; label: string; hint: string }>).map(option => <button key={option.value} type="button" className={newBankSubject === option.value ? 'active' : ''} onClick={() => setNewBankSubject(option.value)}><strong>{option.label}</strong><small>{option.hint}</small></button>)}</div></div>{newBankSubject === 'math' && <div className="new-bank-field"><div className="new-bank-field-heading"><strong>数学板块</strong></div><div className="new-bank-module-options">{mathModuleOrder.map(module => <button key={module} type="button" className={newBankMathModule === module ? 'active' : ''} onClick={() => setNewBankMathModule(module)}><strong>{mathModuleLabels[module]}</strong><small>{module === 'exams' ? '历年考研数学二真题' : module === 'calculus' ? '微积分与高数' : '矩阵与线性代数'}</small></button>)}</div></div>}<label className="new-bank-name-field"><span>题库名称</span><input autoFocus value={newBankName} onChange={event => setNewBankName(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') createBank() }} placeholder={newBankSubject === 'professional' ? '例如：机械原理强化题' : newBankSubject === 'english' ? '例如：英语一阅读专项' : '例如：线代强化题'}/></label><div className="new-bank-folder-preview"><span>目录预览</span><code>{newBankFolderPreview}</code></div><button className="primary-button" onClick={createBank} disabled={!newBankName.trim()}>创建题库</button></section></div>}
     {exportOpen && <ExportDialog banks={banks} statuses={statuses} notes={questionNotes} defaultBankId={bank.id} defaultSectionId={sectionId} mode={exportMode} onClose={() => setExportOpen(false)} onPdf={printExport} onNotice={setToast}/>}
-    {settingsPanelOpen && (LoadedSettingsPanel ? <LoadedSettingsPanel userSettings={userSettings} questionTags={questionTags} screenWakeLockSupported={screenWakeLockSupported} examDate={formatExamDateValue(examCountdown.target)} minExamDate={formatExamDateValue(countdownNow)} customExamDate={Boolean(customExamDate)} workspaceState={workspaceState} appVersion={appVersion} githubUrl={githubRepositoryUrl} roundMarkedCount={round => countMarkedQuestions(displayedStudyRound(round))} onClose={() => setSettingsPanelOpen(false)} onSwitchRound={switchStudyRound} onAddRound={addStudyRound} onUpdateExamDate={updateExamDate} onResetExamDate={resetExamDate} onToggleScreenAwake={toggleScreenAwake} onUpdateQuestionTags={updateQuestionTags} onResetQuestionTags={resetQuestionTags} onOpenNewBank={() => { setSettingsPanelOpen(false); openNewBank(newBankSubject) }} onOpenEditor={() => { setSettingsPanelOpen(false); setEditorOpen(true) }} onOpenStudyRecords={() => { setSettingsPanelOpen(false); setStudyRecordManagerOpen(true) }} onOpenDataManager={() => { setSettingsPanelOpen(false); setSettingsOpen(true) }} onConnectWorkspace={() => { setSettingsPanelOpen(false); void connectWorkspace() }} onSwitchWorkspace={() => { setSettingsPanelOpen(false); void switchWorkspace() }} onImportData={() => { setSettingsPanelOpen(false); importRef.current?.click() }} onImportImages={() => { setSettingsPanelOpen(false); imageImportRef.current?.click() }} onOpenExport={() => { setSettingsPanelOpen(false); setExportMode('questions'); setExportOpen(true) }} onOpenNotesExport={() => { setSettingsPanelOpen(false); setExportMode('notes'); setExportOpen(true) }} onExportData={() => { setSettingsPanelOpen(false); exportData() }} shortcutSettings={markdownShortcuts} onUpdateShortcutSettings={updateMarkdownShortcutSettings} onResetShortcutSettings={resetMarkdownShortcutSettings}/>: <DeferredInterfaceFallback/>)}
+    {settingsPanelOpen && (LoadedSettingsPanel ? <LoadedSettingsPanel userSettings={userSettings} questionTags={questionTags} screenWakeLockSupported={screenWakeLockSupported} examDate={formatExamDateValue(examCountdown.target)} minExamDate={formatExamDateValue(countdownNow)} customExamDate={Boolean(customExamDate)} workspaceState={workspaceState} cloudSyncSettings={cloudSyncSettings} cloudSyncState={cloudSyncState} cloudSyncMessage={cloudSyncMessage} oneDriveSignedIn={oneDriveSignedIn} appVersion={appVersion} githubUrl={githubRepositoryUrl} roundMarkedCount={round => countMarkedQuestions(displayedStudyRound(round))} onClose={() => setSettingsPanelOpen(false)} onSwitchRound={switchStudyRound} onAddRound={addStudyRound} onUpdateExamDate={updateExamDate} onResetExamDate={resetExamDate} onToggleScreenAwake={toggleScreenAwake} onUpdateQuestionTags={updateQuestionTags} onResetQuestionTags={resetQuestionTags} onOpenNewBank={() => { setSettingsPanelOpen(false); openNewBank(newBankSubject) }} onOpenEditor={() => { setSettingsPanelOpen(false); setEditorOpen(true) }} onOpenStudyRecords={() => { setSettingsPanelOpen(false); setStudyRecordManagerOpen(true) }} onOpenDataManager={() => { setSettingsPanelOpen(false); setSettingsOpen(true) }} onConnectWorkspace={() => { setSettingsPanelOpen(false); void connectWorkspace() }} onSwitchWorkspace={() => { setSettingsPanelOpen(false); void switchWorkspace() }} onUpdateCloudSyncSettings={updateCloudSyncSettings} onSignInOneDrive={signInOneDrive} onSignOutOneDrive={signOutCloudSync} onCloudSync={syncOneDrive} onImportData={() => { setSettingsPanelOpen(false); importRef.current?.click() }} onImportImages={() => { setSettingsPanelOpen(false); imageImportRef.current?.click() }} onOpenExport={() => { setSettingsPanelOpen(false); setExportMode('questions'); setExportOpen(true) }} onOpenNotesExport={() => { setSettingsPanelOpen(false); setExportMode('notes'); setExportOpen(true) }} onExportData={() => { setSettingsPanelOpen(false); exportData() }} shortcutSettings={markdownShortcuts} onUpdateShortcutSettings={updateMarkdownShortcutSettings} onResetShortcutSettings={resetMarkdownShortcutSettings}/>: <DeferredInterfaceFallback/>)}
     {studyRecordManagerOpen && <StudyRecordManagerDialog banks={banks} activities={activities} statuses={statuses} activeBankId={bank.id} activeSectionId={sectionId} onClose={() => setStudyRecordManagerOpen(false)} onSave={(result, changedCount) => { setActivities(result.activities); setStatuses(result.statuses); setToast(`已保存 ${changedCount} 条学习记录修改`) }}/>}
     {editorOpen && (LoadedQuestionBankEditor ? <LoadedQuestionBankEditor banks={banks} activeBankId={bank.id} activeQuestionId={question?.id} onClose={() => setEditorOpen(false)} onSave={saveQuestionEditorChange}/> : <DeferredInterfaceFallback/>)}
     {notesOpen && !notePreviewData && !noteEditData && (LoadedNotesDialog ? <LoadedNotesDialog banks={banks} notes={questionNotes} personalNotebooks={personalNotebooks} onClose={() => setNotesOpen(false)} onOpenQuestion={openNoteQuestionPreview} onEditQuestion={openNoteQuestionEditor} onCreateNotebook={createPersonalNotebook} onCreateNote={createPersonalNote} onPersonalNoteChange={updatePersonalNote} onDeletePersonalNote={deletePersonalNote} onDeleteNotebook={deletePersonalNotebook}/> : <DeferredInterfaceFallback/>)}

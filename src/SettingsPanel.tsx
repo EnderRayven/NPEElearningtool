@@ -1,12 +1,13 @@
 import { useState, type ComponentType, type KeyboardEvent } from 'react'
-import { CalendarDays, ChevronRight, CircleHelp, Download, ExternalLink, FileImage, FileText, FileUp, FolderOpen, FolderSync, GripVertical, HardDrive, History, Info, Keyboard, NotebookPen, Pencil, Plus, RotateCcw, Settings as SettingsIcon, SunMedium, Tag, X } from 'lucide-react'
+import { CalendarDays, ChevronRight, CircleHelp, Cloud, Download, ExternalLink, FileImage, FileText, FileUp, FolderOpen, FolderSync, GripVertical, HardDrive, History, Info, Keyboard, LogIn, LogOut, NotebookPen, Pencil, Plus, RefreshCcw, RotateCcw, Settings as SettingsIcon, SunMedium, Tag, X } from 'lucide-react'
 import type { UserSettings } from './userSettings'
 import type { QuestionTagDefinition } from './questionTags'
+import type { CloudSyncSettings, CloudSyncState } from './cloudSync'
 import { DEFAULT_MARKDOWN_SHORTCUTS, formatShortcut, MARKDOWN_SHORTCUT_ACTIONS, sameShortcut, shortcutFromKeyboardEvent, type MarkdownShortcutAction, type MarkdownShortcutSettings } from './shortcutSettings'
 import { useDialogFocus } from './useDialogFocus'
 import { useModalScrollLock } from './useModalScrollLock'
 
-type SettingsSection = 'study' | 'tags' | 'focus' | 'shortcuts' | 'data' | 'about'
+type SettingsSection = 'study' | 'tags' | 'focus' | 'shortcuts' | 'data' | 'sync' | 'about'
 type WorkspaceState = 'none' | 'available' | 'syncing' | 'connected' | 'error'
 type PanelIcon = ComponentType<{ size?: number; strokeWidth?: number }>
 
@@ -18,6 +19,10 @@ interface Props {
   minExamDate: string
   customExamDate: boolean
   workspaceState: WorkspaceState
+  cloudSyncSettings: CloudSyncSettings
+  cloudSyncState: CloudSyncState
+  cloudSyncMessage: string
+  oneDriveSignedIn: boolean
   appVersion: string
   githubUrl: string
   roundMarkedCount: (round: number) => number
@@ -35,6 +40,10 @@ interface Props {
   onOpenDataManager: () => void
   onConnectWorkspace: () => void
   onSwitchWorkspace: () => void
+  onUpdateCloudSyncSettings: (settings: CloudSyncSettings) => void
+  onSignInOneDrive: () => void
+  onSignOutOneDrive: () => void
+  onCloudSync: () => void
   onImportData: () => void
   onImportImages: () => void
   onOpenExport: () => void
@@ -47,6 +56,7 @@ interface Props {
 
 const sectionItems: Array<{ id: SettingsSection; label: string; description: string; icon: PanelIcon }> = [
   { id: 'data', label: '题库与数据', description: '题库、导入导出与备份', icon: HardDrive },
+  { id: 'sync', label: '同步', description: 'OneDrive 多端数据同步', icon: Cloud },
   { id: 'study', label: '学习设置', description: '轮次与考试日期', icon: RotateCcw },
   { id: 'tags', label: '题目标记', description: '标签名称与颜色', icon: Tag },
   { id: 'focus', label: '专注模式', description: '不熄屏与学习状态', icon: SunMedium },
@@ -60,6 +70,7 @@ const sectionTitles: Record<SettingsSection, { eyebrow: string; title: string; d
   focus: { eyebrow: 'FOCUS', title: '专注模式', description: '让学习页面更适合长时间使用。' },
   shortcuts: { eyebrow: 'SHORTCUTS', title: '快捷键', description: '集中查看并自定义常用操作。' },
   data: { eyebrow: 'QUESTION BANKS & DATA', title: '题库与数据', description: '集中管理题库、导入导出、备份与重置。' },
+  sync: { eyebrow: 'SYNC', title: '同步', description: '配置 OneDrive，让学习数据在多台设备间保持一致。' },
   about: { eyebrow: 'ABOUT', title: '关于', description: '查看当前版本、项目地址和数据说明。' },
 }
 
@@ -123,6 +134,11 @@ function GroupHeading(props: { title: string; description: string }) {
 function WorkspaceStatus({ state }: { state: WorkspaceState }) {
   const text = state === 'connected' ? '已连接本地题库文件夹' : state === 'syncing' ? '正在同步题库…' : state === 'error' ? '题库连接异常' : '当前使用浏览器本地保存'
   return <div className={`settings-panel-status ${state}`}><span className="source-dot"/><span>{text}</span></div>
+}
+
+function CloudSyncStatus({ state, signedIn, message }: { state: CloudSyncState; signedIn: boolean; message: string }) {
+  const text = message || (state === 'syncing' ? '正在连接 OneDrive…' : signedIn ? 'OneDrive 已登录' : '尚未登录 OneDrive')
+  return <div className={`settings-panel-status ${state === 'error' ? 'error' : state === 'syncing' ? 'syncing' : signedIn ? '' : 'idle'}`}><span className="source-dot"/><span>{text}</span></div>
 }
 
 function GitHubMark({ size = 19 }: { size?: number }) {
@@ -296,6 +312,27 @@ export default function SettingsPanel(props: Props) {
     </div>
   }
 
+  function renderSyncSettings() {
+    return <div className="settings-panel-stack">
+      <section className="settings-panel-group settings-panel-cloud-sync-group">
+        <GroupHeading title="OneDrive 同步" description="跨设备同步学习数据与题目笔记"/>
+        <CloudSyncStatus state={props.cloudSyncState} signedIn={props.oneDriveSignedIn} message={props.cloudSyncMessage}/>
+        <div className="settings-panel-sync-fields">
+          <label><span>Microsoft Entra 客户端 ID</span><input value={props.cloudSyncSettings.clientId} onChange={event => props.onUpdateCloudSyncSettings({ ...props.cloudSyncSettings, clientId: event.currentTarget.value })} placeholder="例如：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autoComplete="off"/></label>
+          <label><span>重定向地址</span><input value={props.cloudSyncSettings.redirectUri} onChange={event => props.onUpdateCloudSyncSettings({ ...props.cloudSyncSettings, redirectUri: event.currentTarget.value })} placeholder="应用注册中的 SPA 重定向地址" autoComplete="url"/></label>
+          <label><span>OneDrive 应用目录</span><input value={props.cloudSyncSettings.remotePath} onChange={event => props.onUpdateCloudSyncSettings({ ...props.cloudSyncSettings, remotePath: event.currentTarget.value })} placeholder="npee-study-space" autoComplete="off"/></label>
+          <label className="settings-panel-sync-check"><input type="checkbox" checked={props.cloudSyncSettings.includeBanks} onChange={event => props.onUpdateCloudSyncSettings({ ...props.cloudSyncSettings, includeBanks: event.currentTarget.checked })}/><span>同步题库结构（暂不包含图片）</span></label>
+        </div>
+        <div className="settings-panel-sync-actions">
+          <button type="button" onClick={props.oneDriveSignedIn ? props.onCloudSync : props.onSignInOneDrive}>{props.oneDriveSignedIn ? <RefreshCcw size={14}/> : <LogIn size={14}/>}<span>{props.oneDriveSignedIn ? '立即同步' : '登录 OneDrive'}</span></button>
+          {props.oneDriveSignedIn && <button type="button" onClick={props.onSignOutOneDrive}><LogOut size={14}/>退出登录</button>}
+        </div>
+        <p className="settings-panel-sync-help"><Cloud size={13}/>首次使用需在 Microsoft Entra 注册 SPA 应用，并授予委托权限 <code>Files.ReadWrite.AppFolder</code>。登录令牌只保存在当前浏览器会话；应用密码不会写入本地。</p>
+      </section>
+      <section className="settings-panel-info-card"><strong>同步范围</strong><span>默认同步学习轮次、熟练度、复习记录、考试日期和笔记；开启题库结构后会额外同步题库 JSON，但当前版本不包含图片。</span></section>
+    </div>
+  }
+
   function renderAboutSettings() {
     return <div className="settings-panel-stack">
       <section className="settings-panel-about-card">
@@ -319,6 +356,7 @@ export default function SettingsPanel(props: Props) {
     if (activeSection === 'focus') return renderFocusSettings()
     if (activeSection === 'shortcuts') return renderShortcutSettings()
     if (activeSection === 'data') return renderDataSettings()
+    if (activeSection === 'sync') return renderSyncSettings()
     return renderAboutSettings()
   }
 
