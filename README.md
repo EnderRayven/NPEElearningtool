@@ -407,7 +407,7 @@ flowchart TD
 
 配置步骤：
 
-1. 创建 Microsoft Entra 应用注册，选择 **Single-page application (SPA)** 平台，并添加网页部署地址和桌面版 `http://127.0.0.1:45217/` 重定向地址。
+1. 创建 Microsoft Entra 应用注册，选择 **Single-page application (SPA)** 平台，并添加网页部署地址和桌面版 `http://localhost:45217/` 重定向地址。
 2. 将客户端 ID 写入构建环境变量 `VITE_ONEDRIVE_CLIENT_ID`（可参考 `.env.example`）；用户不需要在设置页面手动填写。
 3. 构建并打开应用，在“设置 → 同步”点击“网页登录 OneDrive”，完成 Microsoft 授权后点击“立即同步”；另一台设备打开同一版本应用并登录同一个 Microsoft 账号即可读取数据。
 

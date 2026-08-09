@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(__dirname, '..')
 const isDevelopment = !app.isPackaged
+const DESKTOP_HOST = 'localhost'
 const DESKTOP_PORT = 45217
 const WORKSPACE_MANIFEST = '题库数据.json'
 const WORKSPACE_GROUPS = ['数学', '英语', '专业课']
@@ -79,9 +80,9 @@ async function startPreviewServer() {
   previewServer = await preview({
     root: projectRoot,
     configFile: runtimeConfigFile,
-    preview: { host: '127.0.0.1', port: DESKTOP_PORT, strictPort: true },
+    preview: { host: DESKTOP_HOST, port: DESKTOP_PORT, strictPort: true },
   })
-  return `http://127.0.0.1:${DESKTOP_PORT}`
+  return `http://${DESKTOP_HOST}:${DESKTOP_PORT}`
 }
 
 function createMainWindow(url) {
