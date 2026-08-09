@@ -214,17 +214,22 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -euo pipefail
-          app_path="$(find '构建/release/electron' -type d -name '*.app' -print -quit)"
-          if [[ -z "$app_path" ]]; then
-            echo '未找到 macOS 应用包' >&2
-            exit 1
-          fi
           if [[ -n "${MACOS_CSC_LINK//[[:space:]]/}" && -n "${MACOS_CSC_KEY_PASSWORD//[[:space:]]/}" && -n "${APPLE_ID//[[:space:]]/}" && -n "${APPLE_APP_SPECIFIC_PASSWORD//[[:space:]]/}" && -n "${APPLE_TEAM_ID//[[:space:]]/}" ]]; then
+            app_path="$(find '构建/release/electron' -type d -name '*.app' -print -quit)"
+            if [[ -z "$app_path" ]]; then
+              echo '未找到 macOS 应用包，无法验证签名' >&2
+              exit 1
+            fi
             codesign --verify --deep --strict --verbose=2 "$app_path"
             spctl --assess --type execute --verbose=4 "$app_path"
           else
+            dmg_path="$(find '构建/release/electron' -type f -name '*.dmg' -print -quit)"
+            if [[ -z "$dmg_path" ]]; then
+              echo '未找到 macOS DMG 发布文件' >&2
+              exit 1
+            fi
             test -x 'macOS-解除隔离并启动.command'
-            echo '未签名备用包已验证包含可执行的 macOS 解除隔离启动脚本。'
+            echo "未签名备用包已验证：$dmg_path，且包含可执行的 macOS 解除隔离启动脚本。"
           fi
 
       - name: 上传 Electron 更新包到 GitHub Release
