@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import DraftBook from './DraftBookPanel'
 import PenScrollController from './PenScrollController'
-import { loadDefaultBanks } from './data'
+import { initializeDefaultBanks, loadDefaultBanks } from './data'
 import './styles.css'
 import './scrollbars.css'
 import './compact-header.css'
@@ -28,4 +28,8 @@ renderPage(<div className="empty-app"><h1>正在加载题库…</h1></div>)
 
 loadDefaultBanks()
   .then(() => renderPage(<App/>))
-  .catch(error => renderPage(<div className="empty-app"><h1>题库加载失败</h1><p>{error instanceof Error ? error.message : '请刷新页面重试'}</p><button onClick={() => location.reload()}>重新加载</button></div>))
+  .catch(error => {
+    console.error('默认题库未加载，进入空工作区', error)
+    initializeDefaultBanks([])
+    renderPage(<App/>)
+  })

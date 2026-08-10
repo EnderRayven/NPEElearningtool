@@ -140,7 +140,14 @@ function defaultWorkspacePlugin(): Plugin {
   }
   async function scan(bankFolders: string[], directory = root, prefix = ''): Promise<Array<{ name: string; relativePath: string; bankFolder: string; url: string }>> {
     const output: Array<{ name: string; relativePath: string; bankFolder: string; url: string }> = []
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
+    let entries
+    try {
+      entries = await readdir(directory, { withFileTypes: true })
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return output
+      throw error
+    }
+    for (const entry of entries) {
       if (entry.name.startsWith('.') || entry.name === MANIFEST || entry.name === NOTES_FOLDER) continue
       const absolute = path.join(directory, entry.name)
       const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name
@@ -155,7 +162,14 @@ function defaultWorkspacePlugin(): Plugin {
   }
   async function collectDirectories(directory = root, prefix = ''): Promise<string[]> {
     const output: string[] = []
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
+    let entries
+    try {
+      entries = await readdir(directory, { withFileTypes: true })
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return output
+      throw error
+    }
+    for (const entry of entries) {
       if (entry.name.startsWith('.') || entry.name === MANIFEST || entry.name === NOTES_FOLDER || !entry.isDirectory()) continue
       const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name
       output.push(relativePath, ...await collectDirectories(path.join(directory, entry.name), relativePath))

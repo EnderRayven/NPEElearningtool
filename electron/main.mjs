@@ -1,11 +1,11 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import electronUpdater from 'electron-updater'
 import { preview } from 'vite'
-import { access, mkdir } from 'node:fs/promises'
 import Module from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { isAllowedDesktopNavigation } from './navigation.mjs'
+import { isUsableDataRoot } from './workspaceRoot.mjs'
 
 const { autoUpdater } = electronUpdater
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -13,8 +13,6 @@ const projectRoot = path.resolve(__dirname, '..')
 const isDevelopment = !app.isPackaged
 const DESKTOP_HOST = 'localhost'
 const DESKTOP_PORT = 45217
-const WORKSPACE_MANIFEST = '题库数据.json'
-const WORKSPACE_GROUPS = ['数学', '英语', '专业课']
 const runtimeConfigFile = isDevelopment
   ? path.join(projectRoot, 'vite.config.ts')
   : path.join(process.resourcesPath, 'app.asar.unpacked', 'vite.config.ts')
@@ -109,41 +107,26 @@ function configurePackagedModuleResolution() {
   }
 }
 
-async function pathExists(target) {
-  try {
-    await access(target)
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function isUsableDataRoot(candidate) {
-  const workspaceRoot = path.join(candidate, '默认题库')
-  if (!await pathExists(path.join(workspaceRoot, WORKSPACE_MANIFEST))) return false
-  const groupResults = await Promise.all(WORKSPACE_GROUPS.map(group => pathExists(path.join(workspaceRoot, group))))
-  return groupResults.some(Boolean)
-}
-
 async function findAvailableDataRoot() {
   const bundledOrPortableCandidates = [
     process.env.NPEE_DATA_ROOT,
     isDevelopment ? path.join(projectRoot, '数据') : null,
-    !isDevelopment ? path.join(app.getPath('userData'), '数据') : null,
-    !isDevelopment ? path.join(process.resourcesPath, '数据') : null,
     path.join(path.dirname(process.execPath), '数据'),
     path.resolve(path.dirname(process.execPath), '../../../数据'),
     path.join(process.cwd(), '数据'),
     path.join(app.getPath('documents'), '考研学习空间', '数据'),
+    !isDevelopment ? path.join(app.getPath('userData'), '数据') : null,
+    !isDevelopment ? path.join(process.resourcesPath, '数据') : null,
   ].filter(Boolean)
 
   for (const candidate of bundledOrPortableCandidates) {
     const resolved = path.resolve(candidate)
-    if (process.env.NPEE_DATA_ROOT === candidate && await pathExists(resolved)) return resolved
     if (await isUsableDataRoot(resolved)) return resolved
   }
 
-  return path.resolve(app.getPath('documents'), '考研学习空间', '数据')
+  return isDevelopment
+    ? path.resolve(app.getPath('documents'), '考研学习空间', '数据')
+    : path.resolve(app.getPath('userData'), '数据')
 }
 
 async function startPreviewServer() {
@@ -152,10 +135,6 @@ async function startPreviewServer() {
   const dataRoot = await findAvailableDataRoot()
   const workspaceRoot = path.join(dataRoot, '默认题库')
   const userDataRoot = path.join(dataRoot, '用户数据')
-  await mkdir(dataRoot, { recursive: true })
-  await mkdir(workspaceRoot, { recursive: true })
-  await mkdir(userDataRoot, { recursive: true })
-
   process.env.NPEE_DATA_ROOT = dataRoot
   process.env.NPEE_WORKSPACE_ROOT = workspaceRoot
   process.env.NPEE_USER_DATA_ROOT = userDataRoot

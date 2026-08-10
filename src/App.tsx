@@ -2145,14 +2145,17 @@ export default function App() {
         return { file: new File([], item.name), relativePath: item.relativePath, bankId: target!.id, assetUrl: item.url }
       })
       const result = await mergeImageEntries(nextBanks, entries, { replaceExistingAssets: true, preserveExistingCustomSources: true })
+      const hasDefaultWorkspaceData = Boolean(index.manifest && (index.manifest.banks.length > 0 || index.bankFolders?.length || index.images.length))
       workspaceImages.current = activeImages.map(item => ({
         ...item,
         bankId: (item.bankFolder ? result.banks.find(bank => folders[bank.id] === item.bankFolder) : result.banks[0])?.id,
       }))
       // Persisting the existing notes and study record can involve tens of MB
       // of local data. Schedule it after the question bank becomes usable.
-      void writeDefaultWorkspaceNoteBuckets(nextNotes, result.banks).catch(() => {})
-      void writeDefaultWorkspaceUserData(nextRounds, nextSettings, {}, resolvedUserData.errorRecords, nextPersonalNotebooks).catch(() => {})
+      if (hasDefaultWorkspaceData) {
+        void writeDefaultWorkspaceNoteBuckets(nextNotes, result.banks).catch(() => {})
+        void writeDefaultWorkspaceUserData(nextRounds, nextSettings, {}, resolvedUserData.errorRecords, nextPersonalNotebooks).catch(() => {})
+      }
       // The cache contains metadata for every image and can be large on the
       // built-in workspace. It must not block the first usable desktop view.
       void persistWorkspaceCache('default', result.banks, folders, nextRounds, nextSettings, nextNotes, resolvedUserData.errorRecords, nextPersonalNotebooks, nextDeletedBankIds).catch(() => {})
@@ -2169,7 +2172,7 @@ export default function App() {
       notesLoaded.current = true
       setNotesReady(true)
       setErrorRecordsReady(true)
-      setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setPersonalNotebooks(nextPersonalNotebooks); setUserSettings(nextSettings); setWorkspaceFolders(folders); setDeletedBankIds(nextDeletedBankIds); setWorkspaceHandle(null); setDefaultWorkspaceConnected(true); setWorkspaceState('connected')
+      setBanks(result.banks); setStudyRounds(nextRounds); setStatuses(nextStatuses); setActivities(nextActivities); setQuestionNotes(nextNotes); setPersonalNotebooks(nextPersonalNotebooks); setUserSettings(nextSettings); setWorkspaceFolders(folders); setDeletedBankIds(nextDeletedBankIds); setWorkspaceHandle(null); setDefaultWorkspaceConnected(Boolean(index.manifest)); setWorkspaceState(index.manifest ? 'connected' : 'none')
       setQuestionErrorRecords(resolvedUserData.errorRecords)
       window.setTimeout(() => setWorkspaceReady(true), 0)
       setToast(`已自动连接“${index.name}”${result.imported ? `，识别 ${result.imported} 张图片` : ''}`)
@@ -2542,15 +2545,25 @@ export default function App() {
       workspaceFolder = await createBankFolder(workspaceHandle, Object.values(workspaceFolders).includes(baseFolderName) ? `${baseFolderName}-${Date.now()}` : baseFolderName)
     }
     const created: QuestionBank = { id: `local-${Date.now()}`, name, description: '自建本地题库', subject: newBankSubject, source: 'local', chapters: [], ...(workspaceFolder ? { workspaceFolder } : {}) }
-    if (workspaceFolder) setWorkspaceFolders(previous => ({ ...previous, [created.id]: workspaceFolder! }))
+    const nextDeletedBankIds = { ...deletedBankIds }
+    delete nextDeletedBankIds[created.id]
+    const nextBanks = [...banks, created]
+    const nextFolders = workspaceFolder ? { ...workspaceFolders, [created.id]: workspaceFolder } : workspaceFolders
+    const shouldCreateDesktopWorkspace = isDesktopApp() && !defaultWorkspaceConnected && !workspaceHandle
+    if (shouldCreateDesktopWorkspace) {
+      try {
+        await writeDefaultWorkspaceManifest(nextBanks, nextFolders, nextDeletedBankIds)
+      } catch (error) {
+        setToast(error instanceof Error ? `题库创建失败：${error.message}` : '题库创建失败')
+        return
+      }
+      setDefaultWorkspaceConnected(true)
+      setWorkspaceState('connected')
+    }
+    if (workspaceFolder) setWorkspaceFolders(nextFolders)
     if (newBankSubject === 'math') setMathModule(newBankMathModule)
-    setDeletedBankIds(previous => {
-      if (!previous[created.id]) return previous
-      const next = { ...previous }
-      delete next[created.id]
-      return next
-    })
-    setBanks(previous => [...previous, created]); setBankId(created.id); setSectionId(''); setView('section'); setActivePage('study'); setNewBankName(''); setNewBankOpen(false); setToast(`已新建“${name}”，现在可以批量导入图片`)
+    setDeletedBankIds(nextDeletedBankIds)
+    setBanks(nextBanks); setBankId(created.id); setSectionId(''); setView('section'); setActivePage('study'); setNewBankName(''); setNewBankOpen(false); setToast(`已新建“${name}”，现在可以批量导入图片`)
   }
   function openRename(kind: 'bank' | 'chapter', id: string, name: string) { setRenameTarget({ kind, id, name }); setRenameValue(name) }
   function applyRename() {

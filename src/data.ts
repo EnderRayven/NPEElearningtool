@@ -16,7 +16,11 @@ export async function loadDefaultBanks() {
   if (!response.ok) throw new Error(`默认题库加载失败（${response.status}）`)
   const payload: unknown = await response.json()
   const manifest = payload && typeof payload === 'object' ? (payload as { manifest?: { banks?: unknown } }).manifest : null
-  if (!manifest || !Array.isArray(manifest.banks))
+  if (!manifest) {
+    initializeDefaultBanks([])
+    return builtInBanks
+  }
+  if (!Array.isArray(manifest.banks))
     throw new Error('默认题库清单格式无效')
   initializeDefaultBanks(manifest.banks as QuestionBank[])
   return builtInBanks
