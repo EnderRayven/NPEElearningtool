@@ -329,6 +329,7 @@ export default function App() {
   const [questionErrorRecords, setQuestionErrorRecords] = useState<QuestionErrorRecords>({})
   const [notesReady, setNotesReady] = useState(false)
   const [errorRecordsReady, setErrorRecordsReady] = useState(false)
+  const [emptyWorkspaceSubject, setEmptyWorkspaceSubject] = useState<Subject>('math')
   const [bankId, setBankId] = useState(banks[0]?.id || '')
   const [sectionId, setSectionId] = useState(banks[0]?.chapters[0]?.sections[0]?.id || '')
   const [mathExamNavigationMode, setMathExamNavigationMode] = useState<MathExamNavigationMode>('paper')
@@ -785,7 +786,11 @@ export default function App() {
     return () => { cancelled = true }
   }, [printMode, printJob])
 
-  const bank = banks.find(b => b.id === bankId) || banks[0] || emptyWorkspaceBank
+  const emptyBank = useMemo(() => ({ ...emptyWorkspaceBank, subject: emptyWorkspaceSubject }), [emptyWorkspaceSubject])
+  const bank = banks.find(item => item.id === bankId)
+    || (bankId === emptyWorkspaceBank.id
+      ? banks.find(item => bankSubject(item) === emptyWorkspaceSubject) || emptyBank
+      : banks[0] || emptyBank)
   const subject = bankSubject(bank)
   const notePreviewData = noteQuestionPreview ? (() => {
     const targetBank = banks.find(item => item.id === noteQuestionPreview.bankId)
@@ -1083,7 +1088,7 @@ export default function App() {
   }, [activePage, isMathExamKeyPointMode, isEnglishTopicMode, currentNavigationChapterId, currentNavigationSectionId, currentNavigationKeyPointId])
 
   useEffect(() => {
-    if (!navigationReady) return
+    if (!navigationReady || bank.id === emptyWorkspaceBank.id) return
     const currentPosition: SavedNavigation = {
       bankId: bank?.id || '',
       sectionId,
@@ -1253,14 +1258,34 @@ export default function App() {
     return true
   }
   function selectSubject(nextSubject: Subject) {
-    if (bankSubject(bank) === nextSubject) {
+    const nextSubjectBanks = banks.filter(item => bankSubject(item) === nextSubject)
+    if (bankSubject(bank) === nextSubject && bank.id !== emptyWorkspaceBank.id) {
       setActivePage('study'); setSidebar(false)
+      return
+    }
+    if (!nextSubjectBanks.length) {
+      setEmptyWorkspaceSubject(nextSubject)
+      setBankId(emptyWorkspaceBank.id)
+      setSectionId('')
+      setExpandedChapterIds(new Set())
+      setQuestionIndex(0)
+      setView('section')
+      setMathExamNavigationMode('paper')
+      setMathExamKeyPoint('')
+      setEnglishNavigationMode('paper')
+      setEnglishTopic('cloze')
+      collapseAnswerUnlessLocked()
+      setExpandedPassageAnswers(new Set())
+      setAdvancedFilter(createEmptyAdvancedQuestionFilter())
+      setQuery('')
+      setActivePage('study')
+      setSidebar(false)
       return
     }
     const savedPosition = nextSubject === 'math'
       ? mathStudyPositions.current[mathModule] || studyPositions.current.math || null
       : studyPositions.current[nextSubject] || null
-    const restored = resolveNavigation(banks.filter(item => bankSubject(item) === nextSubject), statuses, savedPosition)
+    const restored = resolveNavigation(nextSubjectBanks, statuses, savedPosition)
     if (restored) {
       const restoredBank = banks.find(item => item.id === restored.bankId)
       let restoredChapterId = restored.chapterId
@@ -1285,7 +1310,7 @@ export default function App() {
       collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setQuery(''); setActivePage('study'); setSidebar(false)
       return
     }
-    const nextBank = sortBanksForDisplay(banks.filter(item => bankSubject(item) === nextSubject))[0]
+    const nextBank = sortBanksForDisplay(nextSubjectBanks)[0]
     if (nextBank) { setActivePage('study'); selectBank(nextBank) }
     else {
       setNewBankSubject(nextSubject)
@@ -1302,6 +1327,13 @@ export default function App() {
       if (restoredBank) setBankId(restoredBank.id)
       setSectionId(restored.sectionId); setExpandedChapterIds(new Set([restored.chapterId])); setQuestionIndex(restored.questionIndex); setView(restored.view)
       collapseAnswerUnlessLocked(); setExpandedPassageAnswers(new Set()); setAdvancedFilter(createEmptyAdvancedQuestionFilter()); setQuery(''); setActivePage('study'); setSidebar(false)
+      return
+    }
+    if (!mathBanks.length && bank.id === emptyWorkspaceBank.id) {
+      setEmptyWorkspaceSubject('math')
+      setMathModule(nextModule)
+      setActivePage('study')
+      setSidebar(false)
       return
     }
     setMathModule(nextModule)
@@ -2709,9 +2741,9 @@ export default function App() {
           </button>)}
         </div>}
         <p className="eyebrow">题库类型</p>
-        <div className="bank-select-row"><span className="bank-select-icon"><BookOpen size={17}/></span><select aria-label="选择题库" value={bank.id} onChange={event => { const selected = banks.find(item => item.id === event.target.value); if (selected) selectBank(selected) }}>{subjectBanks.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button className="rename-button" aria-label={`重命名题库 ${bank.name}`} onClick={() => openRename('bank', bank.id, bank.name)}><Pencil size={13}/></button></div>
-        <div className="selected-bank-meta">{protectedBankIds.has(bank.id) ? '默认题库' : bank.source === 'local' ? '自建题库' : '远程题库'} · {bank.chapters.length} 章 · {bankQuestionEntries.length} 道题</div>
-        <button className={view === 'wrong' ? 'wrong-book active' : 'wrong-book'} onClick={showReviewBook}><AlertCircle size={17}/><span><strong>{view === 'wrong' ? '返回当前学习' : '本题库不熟练题'}</strong><small>{view === 'wrong' ? '退出复盘并返回上次位置' : binaryFilterMode ? '当前题库中的错误题' : '包含模糊和错题'}</small></span><em>{binaryFilterMode ? counts.wrong : counts.vague + counts.wrong}</em></button>
+        <div className="bank-select-row"><span className="bank-select-icon"><BookOpen size={17}/></span><select aria-label="选择题库" value={bank.id} onChange={event => { const selected = banks.find(item => item.id === event.target.value); if (selected) selectBank(selected) }}>{subjectBanks.length ? subjectBanks.map(item => <option key={item.id} value={item.id}>{item.name}</option>) : <option value={bank.id}>{subjectLabels[subject]}暂无题库</option>}</select><button className="rename-button" aria-label={`重命名题库 ${bank.name || subjectLabels[subject]}`} disabled={!subjectBanks.length} onClick={() => openRename('bank', bank.id, bank.name)}><Pencil size={13}/></button></div>
+        <div className="selected-bank-meta">{bank.id === emptyWorkspaceBank.id ? `暂无${subjectLabels[subject]}题库 · 可在设置中创建` : `${protectedBankIds.has(bank.id) ? '默认题库' : bank.source === 'local' ? '自建题库' : '远程题库'} · ${bank.chapters.length} 章 · ${bankQuestionEntries.length} 道题`}</div>
+        <button className={view === 'wrong' ? 'wrong-book active' : 'wrong-book'} disabled={!subjectBanks.length} onClick={showReviewBook}><AlertCircle size={17}/><span><strong>{view === 'wrong' ? '返回当前学习' : '本题库不熟练题'}</strong><small>{view === 'wrong' ? '退出复盘并返回上次位置' : binaryFilterMode ? '当前题库中的错误题' : '包含模糊和错题'}</small></span><em>{binaryFilterMode ? counts.wrong : counts.vague + counts.wrong}</em></button>
         {isMathExamBank && <div className="exam-navigation-switch" role="group" aria-label="真题目录模式">
           <button type="button" className={mathExamNavigationMode === 'paper' ? 'active' : ''} aria-pressed={mathExamNavigationMode === 'paper'} onClick={() => selectMathExamNavigationMode('paper')}><span>整卷</span><small>按年份</small></button>
           <button type="button" className={mathExamNavigationMode === 'keyPoint' ? 'active' : ''} aria-pressed={mathExamNavigationMode === 'keyPoint'} onClick={() => selectMathExamNavigationMode('keyPoint')}><span>考点目录</span><small>{examKeyPointGroups.length} 个考点</small></button>
@@ -2728,7 +2760,7 @@ export default function App() {
         </div>}
         <div className="divider"/>
         <p className="eyebrow">{isMathExamKeyPointMode ? '考点导航' : isEnglishTopicMode ? '年份导航' : '章节导航'}</p>
-        <div className="chapter-scroll" ref={chapterScrollRef}>{isMathExamKeyPointMode ? <div className="exam-keypoint-tree catalog-tree">{examKeyPointCatalogTree.map(module => <section className="exam-keypoint-module catalog-level-1-branch" key={module.key}>
+        <div className="chapter-scroll" ref={chapterScrollRef}>{bank.id === emptyWorkspaceBank.id ? <div className="empty-chapters">还没有{subjectLabels[subject]}题库<br/><small>请在右上角“设置”中创建题库</small></div> : isMathExamKeyPointMode ? <div className="exam-keypoint-tree catalog-tree">{examKeyPointCatalogTree.map(module => <section className="exam-keypoint-module catalog-level-1-branch" key={module.key}>
           <div className="exam-keypoint-module-title catalog-level-1-heading"><strong>{module.label}</strong><small>{module.sections.reduce((count, sectionItem) => count + sectionItem.groups.length, 0)} 个考点</small></div>
           {module.sections.map(sectionItem => <div className="exam-keypoint-section catalog-level-2-branch" key={sectionItem.key}>
             <div className="exam-keypoint-section-title catalog-level-2-heading">{sectionItem.label}</div>

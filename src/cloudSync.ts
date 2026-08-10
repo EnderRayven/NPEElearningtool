@@ -25,7 +25,10 @@ const IMAGE_PREFIX = '题库图片/'
 const LAST_SUCCESS_PREFIX = 'npee:onedrive-sync-last-success:v1:'
 const GRAPH_ROOT = 'https://graph.microsoft.com/v1.0'
 const AUTH_ROOT = (import.meta.env.VITE_ONEDRIVE_AUTHORITY || 'https://login.microsoftonline.com/consumers/oauth2/v2.0').replace(/\/+$/, '')
-const BUILT_IN_CLIENT_ID = (import.meta.env.VITE_ONEDRIVE_CLIENT_ID || '').trim()
+// This is a public SPA client ID, not a secret. Keep it in the app so Web and
+// packaged builds behave the same when the release environment has no .env file.
+export const PUBLIC_ONEDRIVE_CLIENT_ID = '00bda445-7ce9-447d-947b-f2ccb7b4948e'
+const BUILT_IN_CLIENT_ID = (import.meta.env.VITE_ONEDRIVE_CLIENT_ID || '').trim() || PUBLIC_ONEDRIVE_CLIENT_ID
 const GRAPH_SCOPES = 'openid profile offline_access User.Read Files.ReadWrite.AppFolder'
 
 export interface CloudSyncSettings {

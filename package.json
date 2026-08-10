@@ -2,7 +2,7 @@
   "name": "npee-study-space",
   "productName": "NPEE Study Space",
   "private": true,
-  "version": "0.4.8",
+  "version": "0.4.9",
   "description": "本地优先的考研题库、错题复盘与学习进度工具",
   "homepage": "https://github.com/EnderRayven/NPEElearningtool#readme",
   "repository": {

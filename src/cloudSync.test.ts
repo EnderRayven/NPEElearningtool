@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createCloudSyncFiles, DEFAULT_CLOUD_SYNC_SETTINGS, hasOneDriveSession, loadCloudSyncSettings, loadLastSuccessfulSyncAt, mergeCloudSyncManifest, mergeCloudSyncUserData, oneDriveClientId, resetLastSuccessfulSyncAt, saveCloudSyncSettings, signOutOneDrive, syncCloudFiles } from './cloudSync'
+import { createCloudSyncFiles, DEFAULT_CLOUD_SYNC_SETTINGS, hasOneDriveSession, loadCloudSyncSettings, loadLastSuccessfulSyncAt, mergeCloudSyncManifest, mergeCloudSyncUserData, oneDriveClientId, PUBLIC_ONEDRIVE_CLIENT_ID, resetLastSuccessfulSyncAt, saveCloudSyncSettings, signOutOneDrive, syncCloudFiles } from './cloudSync'
 import { createWorkspaceManifest, createWorkspaceUserData } from './workspace'
 
 class MemoryStorage implements Storage {
@@ -16,6 +16,11 @@ const emptyDrawing = { version: 1 as const, aspectRatio: 5 / 3, strokes: [] }
 const note = (updatedAt: string, text: string) => ({ text, drawing: emptyDrawing, updatedAt })
 
 describe('cloud sync data model', () => {
+  it('keeps a public OneDrive client ID available in every build variant', () => {
+    expect(PUBLIC_ONEDRIVE_CLIENT_ID).toMatch(/^[0-9a-f-]{36}$/i)
+    expect(oneDriveClientId(DEFAULT_CLOUD_SYNC_SETTINGS)).toMatch(/^[0-9a-f-]{36}$/i)
+  })
+
   it('stores the user data file by default and adds the manifest on request', () => {
     const files = createCloudSyncFiles([], {}, { '1': { statuses: {}, activities: [] } }, { activeRound: 1, roundCount: 5 }, {}, {}, [], false)
     expect(files.map(file => file.path)).toEqual(['用户数据/用户数据.json'])

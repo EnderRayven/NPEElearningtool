@@ -2,6 +2,12 @@
 
 本项目遵循语义化版本号。完整下载包和每个版本的说明见 [GitHub Releases](https://github.com/EnderRayven/NPEElearningtool/releases)。
 
+## v0.4.9 · Web、Electron 与空题库体验统一
+
+- 没有某一学科题库时，数学、英语和专业课都可以正常进入空白学习页，并可直接在设置中创建题库。
+- OneDrive 使用内置的公开 SPA 客户端 ID，Web、Electron、Windows 和 macOS 发布构建不再依赖本机 `.env.local` 才能显示网页登录入口。
+- 保留 `VITE_ONEDRIVE_CLIENT_ID` 环境变量作为维护者更换 Microsoft Entra 应用时的覆盖配置。
+
 ## v0.4.2 · 题库连接与教材图片修复
 
 - 修复默认题库中存在空文字解析时无法连接工作区的问题，同时保留字段类型校验。
