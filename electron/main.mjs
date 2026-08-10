@@ -5,6 +5,7 @@ import { access, mkdir } from 'node:fs/promises'
 import Module from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { isAllowedDesktopNavigation } from './navigation.mjs'
 
 const { autoUpdater } = electronUpdater
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -128,6 +129,8 @@ async function findAvailableDataRoot() {
   const bundledOrPortableCandidates = [
     process.env.NPEE_DATA_ROOT,
     isDevelopment ? path.join(projectRoot, '数据') : null,
+    !isDevelopment ? path.join(app.getPath('userData'), '数据') : null,
+    !isDevelopment ? path.join(process.resourcesPath, '数据') : null,
     path.join(path.dirname(process.execPath), '数据'),
     path.resolve(path.dirname(process.execPath), '../../../数据'),
     path.join(process.cwd(), '数据'),
@@ -190,7 +193,7 @@ function createMainWindow(url) {
     return { action: 'deny' }
   })
   mainWindow.webContents.on('will-navigate', (event, target) => {
-    if (!target.startsWith(url)) {
+    if (!isAllowedDesktopNavigation(target, url)) {
       event.preventDefault()
       if (/^https?:\/\//i.test(target)) void shell.openExternal(target)
     }

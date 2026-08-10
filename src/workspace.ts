@@ -38,6 +38,8 @@ export interface WorkspaceManifest {
   /** 清单只保存题库结构、重命名和目录映射。 */
   statuses?: Record<string, QuestionStatus>
   folders?: Record<string, string>
+  /** 题库删除墓碑，避免多设备合并时被旧清单复活。 */
+  deletedBankIds?: Record<string, string>
 }
 
 export interface WorkspaceUserData {
@@ -149,8 +151,15 @@ export async function readDefaultWorkspace(): Promise<DefaultWorkspaceIndex> {
   return response.json() as Promise<DefaultWorkspaceIndex>
 }
 
-export function createWorkspaceManifest(banks: QuestionBank[], folders: Record<string, string> = {}): WorkspaceManifest {
-  return { version: 2, builtinEnglishVersion: BUILTIN_ENGLISH_VERSION, updatedAt: new Date().toISOString(), banks, folders }
+export function createWorkspaceManifest(banks: QuestionBank[], folders: Record<string, string> = {}, deletedBankIds: Record<string, string> = {}): WorkspaceManifest {
+  return {
+    version: 2,
+    builtinEnglishVersion: BUILTIN_ENGLISH_VERSION,
+    updatedAt: new Date().toISOString(),
+    banks,
+    folders,
+    ...(Object.keys(deletedBankIds).length ? { deletedBankIds } : {}),
+  }
 }
 
 export function createWorkspaceUserData(rounds: StudyRounds, settings: UserSettings = DEFAULT_USER_SETTINGS, notes: QuestionNotes = {}, errorRecords: QuestionErrorRecords = {}, personalNotebooks: PersonalNotebooks = []): WorkspaceUserData {
@@ -173,8 +182,8 @@ export function resolveWorkspaceUserData(userData: WorkspaceUserData | null | un
   return { rounds, settings, notes, personalNotebooks, errorRecords }
 }
 
-export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], folders: Record<string, string> = {}) {
-  const manifest = createWorkspaceManifest(banks, folders)
+export async function writeDefaultWorkspaceManifest(banks: QuestionBank[], folders: Record<string, string> = {}, deletedBankIds: Record<string, string> = {}) {
+  const manifest = createWorkspaceManifest(banks, folders, deletedBankIds)
   const response = await fetch('/api/default-workspace/manifest', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(manifest, null, 2) })
   if (!response.ok) throw new Error('默认题库数据写入失败')
 }
@@ -424,12 +433,12 @@ export async function chooseWorkspace() {
   return handle
 }
 
-export async function writeWorkspaceManifest(handle: FileSystemDirectoryHandle, banks: QuestionBank[], folders: Record<string, string> = {}) {
+export async function writeWorkspaceManifest(handle: FileSystemDirectoryHandle, banks: QuestionBank[], folders: Record<string, string> = {}, deletedBankIds: Record<string, string> = {}) {
   const layout = await resolveWorkspaceLayout(handle, true)
   await queueWorkspaceWrite(handle, WORKSPACE_MANIFEST, async () => {
     const fileHandle = await layout.bankRoot.getFileHandle(WORKSPACE_MANIFEST, { create: true })
     const writable = await fileHandle.createWritable()
-    await writable.write(JSON.stringify(createWorkspaceManifest(banks, folders), null, 2))
+    await writable.write(JSON.stringify(createWorkspaceManifest(banks, folders, deletedBankIds), null, 2))
     await writable.close()
   })
 }
@@ -553,4 +562,18 @@ export async function createBankFolder(handle: FileSystemDirectoryHandle, name: 
 export async function removeBankFolder(handle: FileSystemDirectoryHandle, folderName: string) {
   const layout = await resolveWorkspaceLayout(handle, true)
   await layout.bankRoot.removeEntry(folderName, { recursive: true })
+}
+
+export async function deleteWorkspaceImage(handle: FileSystemDirectoryHandle, relativePath: string) {
+  const normalized = normalizeWorkspacePath(relativePath)
+  const segments = normalized.split('/').filter(Boolean)
+  if (!segments.length) return
+  try {
+    const layout = await resolveWorkspaceLayout(handle, true)
+    let parent = layout.bankRoot
+    for (const segment of segments.slice(0, -1)) parent = await parent.getDirectoryHandle(segment)
+    await parent.removeEntry(segments.at(-1)!)
+  } catch (error) {
+    if (!(error instanceof DOMException && error.name === 'NotFoundError')) throw error
+  }
 }

@@ -408,6 +408,7 @@ export default function QuestionZoomDialog({ question, imageSource, onClose }: Q
         <div className="question-zoom-actions">
           <div className="question-zoom-scale" role="group" aria-label="查看缩放"><button type="button" onClick={() => setZoom(value => clamp(value - QUESTION_ZOOM_STEP, QUESTION_ZOOM_MIN, QUESTION_ZOOM_MAX))} disabled={zoom <= QUESTION_ZOOM_MIN} aria-label="缩小"><ZoomOut size={14}/></button><input className="question-zoom-range" type="range" min={QUESTION_ZOOM_MIN} max={QUESTION_ZOOM_MAX} step={QUESTION_ZOOM_STEP} value={zoom} onChange={event => setZoom(clamp(Number(event.target.value), QUESTION_ZOOM_MIN, QUESTION_ZOOM_MAX))} aria-label="题目缩放"/><span>{Math.round(zoom * 100)}%</span><button type="button" onClick={() => setZoom(value => clamp(value + QUESTION_ZOOM_STEP, QUESTION_ZOOM_MIN, QUESTION_ZOOM_MAX))} disabled={zoom >= QUESTION_ZOOM_MAX} aria-label="放大"><ZoomIn size={14}/></button></div>
           <button className={protractorOpen ? 'question-zoom-tool active' : 'question-zoom-tool'} type="button" aria-pressed={protractorOpen} onClick={() => setProtractorOpen(value => !value)}><Ruler size={15}/>量角器</button>
+          <button className="question-zoom-close" type="button" onClick={onClose} aria-label="关闭放大查看" data-dialog-initial-focus><X size={19}/></button>
         </div>
       </header>
       <div className="question-zoom-toolbar">
@@ -422,6 +423,5 @@ export default function QuestionZoomDialog({ question, imageSource, onClose }: Q
       </div>
       <footer className="question-zoom-footer"><span><RotateCw size={13}/>量角器状态仅保留在本次查看中</span><button type="button" onClick={onClose}>完成查看</button></footer>
     </section>
-    <button className="dashboard-question-dialog-close" type="button" onClick={onClose} aria-label="关闭放大查看" data-dialog-initial-focus><X size={19}/></button>
   </div>
 }

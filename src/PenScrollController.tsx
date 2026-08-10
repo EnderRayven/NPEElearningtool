@@ -18,6 +18,14 @@ const PEN_SCROLL_MODAL_BACKDROP_SELECTOR = [
   '.timer-modal-backdrop',
   '.dashboard-question-backdrop',
   '.confirm-dialog-backdrop',
+  '.handwriting-dialog-backdrop',
+  '.question-zoom-backdrop',
+  '.record-manager-backdrop',
+  '.settings-panel-backdrop',
+  '.settings-backdrop',
+  '.update-dialog-backdrop',
+  '.notes-create-backdrop',
+  '.editor-exit-prompt-backdrop',
 ].join(',')
 
 type PenScrollState = {
@@ -45,6 +53,7 @@ function findScrollTarget(target: EventTarget | null) {
   if (!element || element.closest(PEN_SCROLL_IGNORE_SELECTOR)) return null
 
   const modalBackdrop = element.closest(PEN_SCROLL_MODAL_BACKDROP_SELECTOR)
+  if (!modalBackdrop && document.querySelector(PEN_SCROLL_MODAL_BACKDROP_SELECTOR)) return null
   if (modalBackdrop) {
     let modalCandidate: HTMLElement | null = element instanceof HTMLElement ? element : element.parentElement
     while (modalCandidate && modalCandidate !== modalBackdrop) {

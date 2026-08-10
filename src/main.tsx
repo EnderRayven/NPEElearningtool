@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import DraftBook from './DraftBookPanel'
 import PenScrollController from './PenScrollController'
+import { loadDefaultBanks } from './data'
 import './styles.css'
 import './scrollbars.css'
 import './compact-header.css'
@@ -21,5 +22,10 @@ function renderPage(content: React.ReactNode) {
   root.render(<React.StrictMode><><PenScrollController/>{content}<DraftBook/></></React.StrictMode>)
 }
 
-// 首次启动自动载入默认题库；用户仍可从设置中切换到自己的数据目录。
-renderPage(<App/>)
+// 先完成默认题库清单加载，再挂载主界面。这样刷新期间不会让用户打开依赖
+// 题库数据的弹窗，也不会把“空题库”写入导航恢复位置。
+renderPage(<div className="empty-app"><h1>正在加载题库…</h1></div>)
+
+loadDefaultBanks()
+  .then(() => renderPage(<App/>))
+  .catch(error => renderPage(<div className="empty-app"><h1>题库加载失败</h1><p>{error instanceof Error ? error.message : '请刷新页面重试'}</p><button onClick={() => location.reload()}>重新加载</button></div>))

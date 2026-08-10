@@ -15,6 +15,11 @@ permissions:
 
 env:
   RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  # The OneDrive client ID is a public SPA identifier. Keep it in a repository
+  # variable (or secret for existing setups) so release builds retain the same
+  # sign-in capability as local Web/Electron builds.
+  VITE_ONEDRIVE_CLIENT_ID: ${{ vars.VITE_ONEDRIVE_CLIENT_ID || secrets.VITE_ONEDRIVE_CLIENT_ID }}
+  VITE_ONEDRIVE_AUTHORITY: ${{ vars.VITE_ONEDRIVE_AUTHORITY || secrets.VITE_ONEDRIVE_AUTHORITY || 'https://login.microsoftonline.com/consumers/oauth2/v2.0' }}
 
 jobs:
   validate:

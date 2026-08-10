@@ -3,6 +3,17 @@ import type { Question } from './types'
 export type QuestionImageKind = 'question' | 'answer'
 export interface QuestionImageSource { key?: string; url?: string }
 
+const structuredWorkspaceImageKeyPattern = /\/(?:question|answer)\/\d+-(?:Q|A)-\d{2}-\d+-\d{2,}\.\d+\.(?:png|jpe?g|webp|gif|bmp|avif)$/i
+
+/** Structured keys point to an existing image in a bank folder. Editor keys do not. */
+export function isStructuredWorkspaceImageKey(key?: string) {
+  return Boolean(key && structuredWorkspaceImageKeyPattern.test(key))
+}
+
+export function hasCustomImageSources(question: Question, kind: QuestionImageKind) {
+  return questionImageSources(question, kind).some(source => Boolean(source.url) || Boolean(source.key && !isStructuredWorkspaceImageKey(source.key)))
+}
+
 export function questionImageSources(question: Question, kind: QuestionImageKind): QuestionImageSource[] {
   const keys = kind === 'question' ? question.imageKeys || [] : question.answerImageKeys || []
   const urls = kind === 'question' ? question.imageUrls : question.answerImageUrls

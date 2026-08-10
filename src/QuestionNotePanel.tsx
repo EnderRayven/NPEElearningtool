@@ -8,6 +8,7 @@ import { loadHandwritingPreferences, saveHandwritingPreferences, type Handwritin
 import { MarkdownNoteEditor } from './MarkdownNote'
 import NoteTagEditor from './NoteTagEditor'
 import type { MarkdownShortcutSettings } from './shortcutSettings'
+import { useModalScrollLock } from './useModalScrollLock'
 
 interface QuestionNotePanelProps {
   questionId: string
@@ -63,6 +64,7 @@ const COMMON_INK_COLORS = [
   { value: '#765b9e', label: '紫色' },
 ]
 const INK_WIDTH_LEVELS = [.44, .59, .74, .89, 1.04, 1.19, 1.34, 1.49, 1.64]
+const MOUSE_INK_WIDTH_FACTOR = 1.34
 // Chrome's current SVG non-scaling-stroke rasterization differs from Safari's
 // for this pressure-layered handwriting. Keep Safari unchanged and omit that
 // property in Chromium so saved and newly drawn strokes use the same base width.
@@ -455,10 +457,35 @@ function widthFactorForStrokePoint(stroke: HandwritingStroke, index: number) {
   return (stroke.input === 'pen' ? .42 + pressure * 1.18 : .5 + pressure) * taper
 }
 
-export function pathsForStroke(stroke: HandwritingStroke) {
+interface InkPath {
+  d: string
+  width: number
+  dashArray?: string
+  fill?: string
+  fillOpacity?: number
+}
+
+function smoothInkPathForStroke(stroke: HandwritingStroke): InkPath {
+  const points = stroke.points.map(drawingPoint)
+  if (points.length === 1) return { d: `M ${points[0].x} ${points[0].y} l .01 0`, width: stroke.size * MOUSE_INK_WIDTH_FACTOR }
+  if (points.length === 2) return { d: `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`, width: stroke.size * MOUSE_INK_WIDTH_FACTOR }
+  let d = `M ${points[0].x} ${points[0].y}`
+  for (let index = 1; index < points.length; index += 1) {
+    const current = points[index]
+    const next = points[index + 1]
+    if (!next) {
+      d += ` Q ${current.x} ${current.y} ${current.x} ${current.y}`
+      break
+    }
+    d += ` Q ${current.x} ${current.y} ${(current.x + next.x) / 2} ${(current.y + next.y) / 2}`
+  }
+  return { d, width: stroke.size * MOUSE_INK_WIDTH_FACTOR }
+}
+
+export function pathsForStroke(stroke: HandwritingStroke): InkPath[] {
   if (stroke.points.length < 2) {
     const point = drawingPoint(stroke.points[0])
-    return [{ d: `M ${point.x} ${point.y} l .01 0`, width: stroke.size }]
+    return [{ d: `M ${point.x} ${point.y} l .01 0`, width: stroke.size * (stroke.input === 'pen' ? 1 : MOUSE_INK_WIDTH_FACTOR) }]
   }
   if (stroke.shape) {
     const points = stroke.points.map(drawingPoint)
@@ -479,6 +506,7 @@ export function pathsForStroke(stroke: HandwritingStroke) {
       } : {}),
     }]
   }
+  if (stroke.input !== 'pen') return [smoothInkPathForStroke(stroke)]
   const paths = INK_WIDTH_LEVELS.map(() => '')
   const lastIndex = stroke.points.length - 1
   for (let index = 0; index <= lastIndex; index++) {
@@ -494,6 +522,31 @@ export function pathsForStroke(stroke: HandwritingStroke) {
     paths[level] += `M ${start.x} ${start.y} Q ${control.x} ${control.y} ${end.x} ${end.y} `
   }
   return paths.map((d, index) => ({ d, width: stroke.size * INK_WIDTH_LEVELS[index] })).filter(path => path.d)
+}
+
+/**
+ * Keep the active stroke cheap to redraw while the pointer is moving. The
+ * committed stroke is still rendered with the pressure-aware layered paths
+ * above; the live preview only needs one smooth path and is replaced by the
+ * full rendering as soon as the gesture commits.
+ */
+export function previewPathForStroke(stroke: HandwritingStroke) {
+  if (!stroke.points.length) return null
+  if (stroke.input !== 'pen') return smoothInkPathForStroke(stroke)
+  const points = stroke.points.map(drawingPoint)
+  if (points.length === 1) return { d: `M ${points[0].x} ${points[0].y} l .01 0`, width: stroke.size }
+  if (points.length === 2) return { d: `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`, width: stroke.size }
+  let d = `M ${points[0].x} ${points[0].y}`
+  for (let index = 1; index < points.length; index += 1) {
+    const current = points[index]
+    const next = points[index + 1]
+    if (!next) {
+      d += ` Q ${current.x} ${current.y} ${current.x} ${current.y}`
+      break
+    }
+    d += ` Q ${current.x} ${current.y} ${(current.x + next.x) / 2} ${(current.y + next.y) / 2}`
+  }
+  return { d, width: stroke.size }
 }
 
 interface StrokeLayerProps {
@@ -538,6 +591,11 @@ interface SpacePointerBounds {
   height: number
 }
 
+type HandwritingPointerEvent = ReactPointerEvent<SVGElement> | PointerEvent
+
+const nativePointerEvent = (event: HandwritingPointerEvent): PointerEvent =>
+  'nativeEvent' in event ? event.nativeEvent : event
+
 function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, shapeFillColor, shapeFillOpacity, color, size, expanded, selectedStrokeIds, onCommit, onSelectionChange, onDeleteSelection, interactionActiveRef }: HandwritingCanvasProps) {
   const [currentStroke, setCurrentStroke] = useState<HandwritingStroke | null>(null)
   const [shapePreview, setShapePreview] = useState<HandwritingStroke[]>([])
@@ -570,7 +628,7 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
   const pointerCanvasHeightRef = useRef(canvasHeightForDrawing(drawing))
   const activePointerRef = useRef<number | null>(null)
   const activePointerBoundsRef = useRef<SpacePointerBounds | null>(null)
-  const activePointerCoordinateRef = useRef<{ clientX: number; clientY: number; point: HandwritingPoint } | null>(null)
+  const lastPointerSampleRef = useRef<{ timeStamp: number; clientX: number; clientY: number } | null>(null)
   const activeInteractionRef = useRef<HandwritingInteraction | null>(null)
   const autoExtendedDuringInteractionRef = useRef(false)
   const canvasResizeTopRef = useRef<number | null>(null)
@@ -578,6 +636,9 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
   const smoothedPressureRef = useRef<number | null>(null)
   const previewFrameRef = useRef<number | null>(null)
   const svgRef = useRef<SVGSVGElement | null>(null)
+  const currentStrokePathRef = useRef<SVGPathElement | null>(null)
+  const moveRef = useRef<(event: PointerEvent) => void>(() => {})
+  const finishRef = useRef<(event: PointerEvent) => void>(() => {})
 
   const clearLineSnapTimer = () => {
     if (lineSnapTimerRef.current !== null) window.clearTimeout(lineSnapTimerRef.current)
@@ -643,7 +704,7 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
     activePointerRef.current = null
     interactionActiveRef.current = false
     activePointerBoundsRef.current = null
-    activePointerCoordinateRef.current = null
+    lastPointerSampleRef.current = null
     activeInteractionRef.current = null
     autoExtendedDuringInteractionRef.current = false
     canvasResizeTopRef.current = null
@@ -678,18 +739,34 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
     if (tool !== 'space') setSpaceHoverY(null)
   }, [tool])
 
-  const pointsFromEvent = (event: ReactPointerEvent<SVGElement>): HandwritingPoint[] => {
+  const pointsFromEvent = (event: PointerEvent): HandwritingPoint[] => {
     const liveBounds = svgRef.current?.getBoundingClientRect()
     const bounds = spaceStartRef.current && spacePointerBoundsRef.current
       ? spacePointerBoundsRef.current
       : activePointerBoundsRef.current || liveBounds
     if (!bounds || !bounds.width || !bounds.height) return []
-    const coalescedEvents = event.nativeEvent.getCoalescedEvents?.()
-    const nativeEvents = coalescedEvents?.length ? coalescedEvents : [event.nativeEvent]
-    let activeCoordinate = activePointerCoordinateRef.current
-    const points = nativeEvents.map(pointerEvent => {
+    // Electron and Chrome expose different coalesced-event batches for a mouse.
+    // Mouse/touch already arrive as sufficiently sparse pointer events; using
+    // their coalesced batch can replay stale samples and produce large loops.
+    // Keep coalescing for a real pen, where the extra samples carry pressure.
+    const coalescedEvents = event.pointerType === 'pen' ? event.getCoalescedEvents?.() || [] : []
+    const nativeEvents = [...coalescedEvents, event]
+    const lastSample = lastPointerSampleRef.current
+    const freshEvents = nativeEvents.filter(pointerEvent => {
+      if (!Number.isFinite(pointerEvent.clientX) || !Number.isFinite(pointerEvent.clientY)) return false
+      if (!lastSample) return true
+      const sameCoordinates = pointerEvent.clientX === lastSample.clientX && pointerEvent.clientY === lastSample.clientY
+      if (sameCoordinates) return false
+      return !Number.isFinite(pointerEvent.timeStamp) || !Number.isFinite(lastSample.timeStamp)
+        || pointerEvent.timeStamp >= lastSample.timeStamp
+    })
+    const orderedEvents = freshEvents.length > 1 && freshEvents.every(pointerEvent => Number.isFinite(pointerEvent.timeStamp))
+      ? [...freshEvents].sort((left, right) => left.timeStamp - right.timeStamp)
+      : freshEvents
+    const pointerHeight = spaceStartRef.current ? spacePointerHeightRef.current : pointerCanvasHeightRef.current
+    const points = orderedEvents.map(pointerEvent => {
       let pressure = pointerEvent.pressure || .5
-      if (event.pointerType === 'pen') {
+      if (pointerEvent.pointerType === 'pen') {
         const rawPressure = pointerEvent.pressure > 0 ? pointerEvent.pressure : smoothedPressureRef.current ?? .06
         const curvedPressure = Math.pow(Math.min(1, Math.max(.01, rawPressure)), 1 / 1.15)
         pressure = smoothedPressureRef.current === null
@@ -697,29 +774,17 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
           : smoothedPressureRef.current * .24 + curvedPressure * .76
         smoothedPressureRef.current = pressure
       }
-      const pointerHeight = spaceStartRef.current ? spacePointerHeightRef.current : pointerCanvasHeightRef.current
-      const point = activeCoordinate
-        ? handwritingPointFromClientDelta(
-            activeCoordinate.point,
-            { x: activeCoordinate.clientX, y: activeCoordinate.clientY },
-            { x: pointerEvent.clientX, y: pointerEvent.clientY },
-            bounds.width,
-          )
-        : {
-            x: Math.min(1, Math.max(0, (pointerEvent.clientX - bounds.left) / bounds.width)),
-            y: Math.max(0, (pointerEvent.clientY - bounds.top) / bounds.height) * (pointerHeight / DRAWING_BASE_HEIGHT),
-          }
-      const nextPoint = { ...point, pressure }
-      if (activeCoordinate) {
-        activeCoordinate = {
-          clientX: pointerEvent.clientX,
-          clientY: pointerEvent.clientY,
-          point: nextPoint,
-        }
+      lastPointerSampleRef.current = {
+        timeStamp: pointerEvent.timeStamp,
+        clientX: pointerEvent.clientX,
+        clientY: pointerEvent.clientY,
       }
-      return nextPoint
+      return {
+        x: clamp((pointerEvent.clientX - bounds.left) / bounds.width, 0, 1),
+        y: Math.max(0, (pointerEvent.clientY - bounds.top) / bounds.height) * (pointerHeight / DRAWING_BASE_HEIGHT),
+        pressure,
+      }
     })
-    if (activeCoordinate) activePointerCoordinateRef.current = activeCoordinate
     return points
   }
 
@@ -745,11 +810,21 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
   }
 
   const eraseAt = (point: HandwritingPoint, strokes: HandwritingStroke[]) => eraseHandwritingStrokes(strokes, point, Math.max(.012, size / 420))
+  const updateCurrentStrokePath = (stroke: HandwritingStroke) => {
+    const element = currentStrokePathRef.current
+    const path = previewPathForStroke(stroke)
+    if (!element || !path) return false
+    element.setAttribute('d', path.d)
+    element.setAttribute('stroke-width', String(renderedInkStrokeWidth(path.width)))
+    return true
+  }
+
   const updatePreviewOnNextFrame = () => {
     if (previewFrameRef.current !== null) return
     previewFrameRef.current = requestAnimationFrame(() => {
       previewFrameRef.current = null
-      setCurrentStroke(currentStrokeRef.current)
+      const stroke = currentStrokeRef.current
+      if (stroke && !updateCurrentStrokePath(stroke)) setCurrentStroke(stroke)
       setErasingStrokes(erasingStrokesRef.current)
     })
   }
@@ -757,7 +832,8 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
   const beginTransform = (event: ReactPointerEvent<SVGElement>, handle?: SelectionHandle) => {
     const selectedStrokes = drawing.strokes.filter(stroke => selectedStrokeIds.includes(stroke.id))
     const bounds = selectionBoundsForStrokes(selectedStrokes)
-    const point = pointsFromEvent(event).at(-1)
+    lastPointerSampleRef.current = null
+    const point = pointsFromEvent(event.nativeEvent).at(-1)
     const svg = svgRef.current
     if (!bounds || !point || !svg || !selectedStrokes.length) return
     event.preventDefault()
@@ -794,23 +870,18 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
       width: pointerBounds.width,
       height: pointerBounds.height,
     }
-    activePointerCoordinateRef.current = null
+    lastPointerSampleRef.current = null
     autoExtendedDuringInteractionRef.current = false
     smoothedPressureRef.current = null
     svgRef.current?.focus({ preventScroll: true })
-    const point = pointsFromEvent(event).at(-1)
+    const point = pointsFromEvent(event.nativeEvent).at(-1)
     if (!point) {
       if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
       activePointerRef.current = null
       interactionActiveRef.current = false
       activePointerBoundsRef.current = null
-      activePointerCoordinateRef.current = null
+      lastPointerSampleRef.current = null
       return
-    }
-    activePointerCoordinateRef.current = {
-      clientX: event.nativeEvent.clientX,
-      clientY: event.nativeEvent.clientY,
-      point,
     }
     const eventTool: HandwritingTool = event.pointerType === 'pen' && (event.button === 5 || (event.buttons & 32) !== 0) ? 'eraser' : tool
     if (eventTool === 'lasso') {
@@ -863,16 +934,21 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
     setCurrentStroke(stroke)
   }
 
-  const move = (event: ReactPointerEvent<SVGSVGElement>) => {
-    if (activePointerRef.current === null && tool === 'space' && (event.pointerType === 'mouse' || event.pointerType === 'pen')) {
-      const point = pointsFromEvent(event).at(-1)
+  const move = (event: HandwritingPointerEvent) => {
+    const nativeEvent = nativePointerEvent(event)
+    if (activePointerRef.current === null && tool === 'space' && (nativeEvent.pointerType === 'mouse' || nativeEvent.pointerType === 'pen')) {
+      const point = pointsFromEvent(nativeEvent).at(-1)
       if (point) setSpaceHoverY(point.y)
       return
     }
-    if (activePointerRef.current !== event.pointerId) return
-    if (event.pointerType === 'pen') penDetectedRef.current = true
-    event.preventDefault()
-    const points = pointsFromEvent(event)
+    if (activePointerRef.current !== nativeEvent.pointerId) return
+    // A captured pointer can still emit a final hover move in Electron after
+    // the button has been released. Never turn that post-release movement into
+    // a new handwriting sample.
+    if (nativeEvent.type === 'pointermove' && nativeEvent.buttons === 0) return
+    if (nativeEvent.pointerType === 'pen') penDetectedRef.current = true
+    nativeEvent.preventDefault()
+    const points = pointsFromEvent(nativeEvent)
     const interaction = activeInteractionRef.current
     if (interaction === 'lasso') {
       const previous = lassoPointsRef.current.at(-1)
@@ -1020,13 +1096,14 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
     updatePreviewOnNextFrame()
   }
 
-  const finish = (event: ReactPointerEvent<SVGSVGElement>) => {
-    if (activePointerRef.current !== event.pointerId) return
+  const finish = (event: HandwritingPointerEvent) => {
+    const nativeEvent = nativePointerEvent(event)
+    if (activePointerRef.current !== nativeEvent.pointerId) return
     // The last pointermove is not guaranteed to be dispatched before
     // pointerup/pointercancel. Consume the ending event first so its final
     // coordinate (and any coalesced samples) is not dropped from the stroke.
-    move(event)
-    event.preventDefault()
+    move(nativeEvent)
+    nativeEvent.preventDefault()
     if (previewFrameRef.current !== null) cancelAnimationFrame(previewFrameRef.current)
     previewFrameRef.current = null
     const svg = svgRef.current
@@ -1034,9 +1111,9 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
     interactionActiveRef.current = false
     // Clear the active id before releasing capture so the resulting
     // lostpointercapture event cannot finish and commit the same gesture twice.
-    if (svg?.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId)
+    if (svg?.hasPointerCapture(nativeEvent.pointerId)) svg.releasePointerCapture(nativeEvent.pointerId)
     activePointerBoundsRef.current = null
-    activePointerCoordinateRef.current = null
+    lastPointerSampleRef.current = null
     smoothedPressureRef.current = null
     const interaction = activeInteractionRef.current
     activeInteractionRef.current = null
@@ -1135,6 +1212,63 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
     setCurrentStroke(null)
   }
 
+  moveRef.current = move
+  finishRef.current = finish
+
+  // Keep drawing events on the captured SVG itself. Pointer capture routes
+  // outside-canvas moves back to this element, while avoiding a global window
+  // listener that can consume or reinterpret background-page pointer input.
+  useEffect(() => {
+    const svg = svgRef.current
+    if (!svg) return
+    const handleMove = (event: PointerEvent) => {
+      moveRef.current(event)
+    }
+    const handleFinish = (event: PointerEvent) => finishRef.current(event)
+    const cancelActiveGesture = () => {
+      const pointerId = activePointerRef.current
+      if (pointerId === null) return
+      if (svg.hasPointerCapture(pointerId)) svg.releasePointerCapture(pointerId)
+      if (previewFrameRef.current !== null) cancelAnimationFrame(previewFrameRef.current)
+      previewFrameRef.current = null
+      currentStrokeRef.current = null
+      shapePreviewRef.current = []
+      shapeStartRef.current = null
+      shapeEndRef.current = null
+      shapeStrokeIdsRef.current = []
+      lassoPointsRef.current = []
+      spaceStartRef.current = null
+      spacePointerBoundsRef.current = null
+      spacePreviewRef.current = null
+      erasingStrokesRef.current = null
+      transformPreviewRef.current = null
+      transformStateRef.current = null
+      activePointerRef.current = null
+      activePointerBoundsRef.current = null
+      lastPointerSampleRef.current = null
+      activeInteractionRef.current = null
+      interactionActiveRef.current = false
+      setCurrentStroke(null)
+      setShapePreview([])
+      setErasingStrokes(null)
+      setTransformPreview(null)
+      setLassoPoints([])
+      setSpacePreview(null)
+    }
+    svg.addEventListener('pointermove', handleMove, { passive: false })
+    svg.addEventListener('pointerup', handleFinish, { passive: false })
+    svg.addEventListener('pointercancel', handleFinish, { passive: false })
+    window.addEventListener('blur', cancelActiveGesture)
+    document.addEventListener('visibilitychange', cancelActiveGesture)
+    return () => {
+      svg.removeEventListener('pointermove', handleMove)
+      svg.removeEventListener('pointerup', handleFinish)
+      svg.removeEventListener('pointercancel', handleFinish)
+      window.removeEventListener('blur', cancelActiveGesture)
+      document.removeEventListener('visibilitychange', cancelActiveGesture)
+    }
+  }, [])
+
   const handleKeyDown = (event: ReactKeyboardEvent<SVGSVGElement>) => {
     if ((event.key === 'Delete' || event.key === 'Backspace') && selectedStrokeIds.length && tool === 'lasso') {
       event.preventDefault()
@@ -1165,6 +1299,7 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
     height: `${Math.max(.8, spaceRangeHeight / previewCanvasHeightUnits * 100)}%`,
   } : undefined
   const handlePoints = selectionBox ? selectionHandlePointsForBounds(selectionBox) : []
+  const currentStrokePath = currentStroke ? previewPathForStroke(currentStroke) : null
   const canvasStyle = { '--handwriting-aspect-ratio': String(DRAWING_WIDTH / previewCanvasHeightUnits) } as CSSProperties
   return <div className={expanded ? 'handwriting-canvas expanded' : 'handwriting-canvas'} style={canvasStyle}>
     <div className="handwriting-sheet">
@@ -1176,9 +1311,6 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
         viewBox={`0 0 ${DRAWING_WIDTH} ${previewCanvasHeightUnits}`}
         preserveAspectRatio="none"
         onPointerDown={start}
-        onPointerMove={move}
-        onPointerUp={finish}
-        onPointerCancel={finish}
         onLostPointerCapture={finish}
         onPointerLeave={() => { if (activePointerRef.current === null) setSpaceHoverY(null) }}
         onKeyDown={handleKeyDown}
@@ -1202,19 +1334,19 @@ function HandwritingCanvas({ drawing, tool, shape, shapeLineStyle, shapeFill, sh
           />
         </g>}
         <StrokeLayer strokes={shapePreview} selectedStrokeIds={[]}/>
-        {currentStroke && pathsForStroke(currentStroke).map((path, index) => (
+        {currentStrokePath && currentStroke && (
           <path
-            key={`${currentStroke.id}-current-${index}`}
-            d={path.d}
+            ref={currentStrokePathRef}
+            key={`${currentStroke?.id}-current`}
+            d={currentStrokePath.d}
             fill="none"
             stroke={currentStroke.color}
-            strokeWidth={renderedInkStrokeWidth(path.width)}
-            strokeDasharray={path.dashArray}
+            strokeWidth={renderedInkStrokeWidth(currentStrokePath.width)}
             strokeLinecap="round"
             strokeLinejoin="round"
             vectorEffect={renderedInkVectorEffect}
           />
-        ))}
+        )}
         {tool === 'space' && spaceHoverY !== null && !spacePreview && (
           <line className="handwriting-space-guide" x1="0" x2={DRAWING_WIDTH} y1={spaceHoverY * DRAWING_BASE_HEIGHT} y2={spaceHoverY * DRAWING_BASE_HEIGHT}/>
         )}
@@ -1619,8 +1751,8 @@ function HandwritingEditor(props: HandwritingEditorProps) {
 }
 
 function ExpandedHandwritingDialog({ title, tags, editor, onTagsChange, onClose }: { title: string; tags?: string[]; editor: ReactNode; onTagsChange: (tags: string[]) => void; onClose: () => void }) {
+  useModalScrollLock()
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
       if (event.target instanceof Element && event.target.closest('[data-confirm-dialog]')) return
@@ -1628,16 +1760,14 @@ function ExpandedHandwritingDialog({ title, tags, editor, onTagsChange, onClose 
       event.stopPropagation()
       onClose()
     }
-    document.body.style.overflow = 'hidden'
     document.addEventListener('keydown', closeOnEscape, true)
     return () => {
-      document.body.style.overflow = previousOverflow
       document.removeEventListener('keydown', closeOnEscape, true)
     }
   }, [onClose])
 
   return <div className="handwriting-dialog-backdrop" role="presentation" onPointerDown={event => { if (event.target === event.currentTarget) onClose() }}>
-    <section className="handwriting-dialog" role="dialog" aria-modal="true" aria-labelledby="handwriting-dialog-title">
+    <section className="handwriting-dialog" role="dialog" aria-modal="true" aria-labelledby="handwriting-dialog-title" onPointerDown={event => event.stopPropagation()}>
       <header><div className="handwriting-dialog-title"><span>{title === '手写笔记' ? 'HANDWRITING NOTE' : 'MARKDOWN NOTE'}</span><h2 id="handwriting-dialog-title">{title}</h2></div><NoteTagEditor className="handwriting-dialog-tags" tags={tags} onChange={onTagsChange}/><button aria-label="完成并关闭" onClick={onClose}><X size={19}/><span>完成</span></button></header>
       {editor}
     </section>

@@ -22,4 +22,11 @@ describe('image directory display names', () => {
     expect(result.matchedQuestions).toBe(1)
     expect(result.createdQuestions).toBe(0)
   })
+
+  it('载入题库时保留编辑器图片，不被结构化原图覆盖', async () => {
+    const bank = { id: 'bank', name: '题库', source: 'local' as const, chapters: [{ id: 'bank-chapter-01', name: '第一章', sections: [{ id: 'bank-chapter-01-section-1', name: '第一节', questions: [{ id: 'bank-01-1-01', number: 1, text: '', answer: '', analysis: '', imageKeys: ['editor/bank/bank-01-1-01/question/123-test.png'], imageUrls: [null] }] }] }] }
+    const file = new File(['image'], 'Q-01-1-01.1.png', { type: 'image/png' })
+    const result = await mergeImageEntries([bank], [{ bankId: 'bank', file, relativePath: `01 行列式 01-基础/${file.name}` }], { replaceExistingAssets: true, preserveExistingCustomSources: true })
+    expect(result.banks[0].chapters[0].sections[0].questions[0].imageKeys).toEqual(['editor/bank/bank-01-1-01/question/123-test.png'])
+  })
 })

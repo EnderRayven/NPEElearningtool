@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { HandwritingStroke } from './questionNotes'
-import QuestionNotePanel, { autoExtendedCanvasHeight, canvasHeightForDrawing, canvasHeightForMovingSelection, canvasHeightForStrokes, clampSpaceAdjustment, createShapeStrokes, croppedCanvasHeightForDrawing, handwritingPointFromClientDelta, handwritingToolForShortcut, historyActionForShortcut, insertSpaceIntoStrokes, lineSnapAxisForPoints, pathsForStroke, selectionHandlePointsForBounds, shouldResetCanvasForDrawingChange, snapLineEndPoint, updateSelectedShapeFill, updateSelectedShapeFillColor, updateSelectedShapeFillOpacity, updateSelectedShapeLineStyle, updateSelectedStrokeSize } from './QuestionNotePanel'
+import QuestionNotePanel, { autoExtendedCanvasHeight, canvasHeightForDrawing, canvasHeightForMovingSelection, canvasHeightForStrokes, clampSpaceAdjustment, createShapeStrokes, croppedCanvasHeightForDrawing, handwritingPointFromClientDelta, handwritingToolForShortcut, historyActionForShortcut, insertSpaceIntoStrokes, lineSnapAxisForPoints, pathsForStroke, previewPathForStroke, selectionHandlePointsForBounds, shouldResetCanvasForDrawingChange, snapLineEndPoint, updateSelectedShapeFill, updateSelectedShapeFillColor, updateSelectedShapeFillOpacity, updateSelectedShapeLineStyle, updateSelectedStrokeSize } from './QuestionNotePanel'
 
 describe('QuestionNotePanel', () => {
   it('uses an answer-style disclosure and marks saved content', () => {
@@ -128,6 +128,38 @@ describe('QuestionNotePanel', () => {
 
     expect(lightPaths.some(path => path.d.includes(' Q '))).toBe(true)
     expect(Math.max(...heavyPaths.map(path => path.width))).toBeGreaterThan(Math.max(...lightPaths.map(path => path.width)))
+  })
+
+  it('uses one lightweight path for the active stroke preview', () => {
+    const preview = previewPathForStroke({
+      id: 'preview',
+      color: '#000000',
+      size: 2,
+      input: 'pen',
+      points: Array.from({ length: 40 }, (_, index) => ({ x: index / 40, y: index / 50, pressure: .5 })),
+    })
+    expect(preview?.d.startsWith('M ')).toBe(true)
+    expect(preview?.d.match(/Q /g)?.length).toBe(39)
+  })
+
+  it('keeps mouse ink width identical while previewing and after commit', () => {
+    const mouseStroke = {
+      id: 'mouse-width',
+      color: '#8f3028',
+      size: 2,
+      input: 'mouse' as const,
+      points: [
+        { x: .1, y: .2 },
+        { x: .2, y: .25 },
+        { x: .4, y: .3 },
+      ],
+    }
+    const [committed] = pathsForStroke(mouseStroke)
+    const preview = previewPathForStroke(mouseStroke)
+
+    expect(pathsForStroke(mouseStroke)).toHaveLength(1)
+    expect(preview?.width).toBe(committed.width)
+    expect(preview?.d).toBe(committed.d)
   })
 
   it('keeps the canvas tall enough for extended handwriting', () => {

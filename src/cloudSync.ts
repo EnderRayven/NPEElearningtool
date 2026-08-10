@@ -76,6 +76,7 @@ export interface CloudSyncResult {
   uploaded: number
   downloaded: number
   downloadedPaths: string[]
+  deletedPaths: string[]
   conflicts: string[]
   firstSync: boolean
 }
@@ -210,12 +211,13 @@ export function createCloudSyncFiles(
   errorRecords: QuestionErrorRecords,
   personalNotebooks: PersonalNotebooks,
   includeBanks = false,
+  deletedBankIds: Record<string, string> = {},
 ): CloudSyncFile[] {
   const files: CloudSyncFile[] = [{
     path: USER_DATA_PATH,
     content: stringifyJson(createWorkspaceUserData(rounds, settings, notes, errorRecords, personalNotebooks)),
   }]
-  if (includeBanks) files.unshift({ path: MANIFEST_PATH, content: stringifyJson(createWorkspaceManifest(banks, folders)) })
+  if (includeBanks) files.unshift({ path: MANIFEST_PATH, content: stringifyJson(createWorkspaceManifest(banks, folders, deletedBankIds)) })
   return files
 }
 
@@ -323,11 +325,11 @@ function pathSegments(path: string) {
 }
 
 class OneDriveClient {
-  constructor(private readonly settings: CloudSyncSettings) {}
+  constructor(private readonly settings: CloudSyncSettings, private readonly storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage) {}
 
   private async request(path: string, init: RequestInit = {}) {
     const headers = new Headers(init.headers)
-    headers.set('Authorization', `Bearer ${await accessToken(this.settings)}`)
+    headers.set('Authorization', `Bearer ${await accessToken(this.settings, this.storage)}`)
     headers.set('Cache-Control', 'no-store')
     return fetch(`${GRAPH_ROOT}${path}`, { ...init, headers })
   }
@@ -457,7 +459,22 @@ export function mergeCloudSyncUserData(local: WorkspaceUserData | null | undefin
 export function mergeCloudSyncManifest(local: WorkspaceManifest | null | undefined, remote: WorkspaceManifest): WorkspaceManifest {
   const banks = new Map((Array.isArray(remote.banks) ? remote.banks : []).map(bank => [bank.id, bank]))
   ;(Array.isArray(local?.banks) ? local.banks : []).forEach(bank => banks.set(bank.id, bank))
-  return { ...remote, banks: [...banks.values()], folders: { ...(remote.folders || {}), ...(local?.folders || {}) }, updatedAt: new Date().toISOString() }
+  const deletedBankIds: Record<string, string> = { ...(remote.deletedBankIds || {}) }
+  Object.entries(local?.deletedBankIds || {}).forEach(([id, deletedAt]) => {
+    if (!deletedBankIds[id] || deletedAt >= deletedBankIds[id]) deletedBankIds[id] = deletedAt
+  })
+  const folders = { ...(remote.folders || {}), ...(local?.folders || {}) }
+  Object.keys(deletedBankIds).forEach(id => {
+    banks.delete(id)
+    delete folders[id]
+  })
+  return {
+    ...remote,
+    banks: [...banks.values()],
+    folders,
+    ...(Object.keys(deletedBankIds).length ? { deletedBankIds } : {}),
+    updatedAt: new Date().toISOString(),
+  }
 }
 
 function mergeFile(path: string, localContent: string, remoteContent: string) {
@@ -475,6 +492,10 @@ function conflictPath(path: string) {
 
 function isBankSyncPath(path: string) {
   return path === MANIFEST_PATH || path.startsWith(IMAGE_PREFIX)
+}
+
+function isSyncablePath(path: string, settings: CloudSyncSettings) {
+  return settings.includeBanks || !isBankSyncPath(path)
 }
 
 function isBinaryEntry(path: string, entry?: CloudSyncEntry) {
@@ -500,7 +521,7 @@ function remoteFile(path: string, content: SyncContent, entry?: CloudSyncEntry):
 
 export async function syncCloudFiles(settings: CloudSyncSettings, files: CloudSyncFile[], storage: Storage | null = typeof window === 'undefined' ? null : window.localStorage): Promise<CloudSyncResult> {
   if (!isOneDriveWebAuthConfigured(settings)) throw new Error('当前版本尚未配置 OneDrive 网页授权应用，请联系应用维护者')
-  const client = new OneDriveClient(settings)
+  const client = new OneDriveClient(settings, storage)
   const id = deviceId(storage)
   const previous = readLocalIndex(settings, storage)
   const rawRemoteIndex = await client.readText(INDEX_PATH)
@@ -521,23 +542,64 @@ export async function syncCloudFiles(settings: CloudSyncSettings, files: CloudSy
       ...(file.mimeType ? { mimeType: file.mimeType } : {}),
     })
   }
+  const localDeletedEntries = new Map<string, CloudSyncEntry>()
+  if (previous) {
+    const deletedAt = new Date().toISOString()
+    Object.entries(previous.files).forEach(([path, previousEntry]) => {
+      if (!localByPath.has(path) && !previousEntry.deletedAt && isSyncablePath(path, settings)) {
+        localDeletedEntries.set(path, {
+          ...previousEntry,
+          hash: '',
+          size: 0,
+          updatedAt: deletedAt,
+          deviceId: id,
+          deletedAt,
+        })
+      }
+    })
+  }
   const nextFiles = new Map(localByPath)
   const nextIndex: CloudSyncIndex = remoteIndex || emptyIndex(id)
   const conflicts: string[] = []
   let uploaded = 0
   let downloaded = 0
   const downloadedPaths: string[] = []
+  const deletedPaths: string[] = []
   const paths = new Set([
     ...localByPath.keys(),
-    ...Object.keys(nextIndex.files).filter(path => settings.includeBanks || !isBankSyncPath(path)),
+    ...localDeletedEntries.keys(),
+    ...Object.keys(nextIndex.files).filter(path => isSyncablePath(path, settings)),
   ])
 
   for (const path of paths) {
     const local = localByPath.get(path)
     const localEntry = localEntries.get(path)
+    const localDeletedEntry = localDeletedEntries.get(path)
     const remoteEntry = nextIndex.files[path]
     const previousEntry = previous?.files[path]
+    if (localDeletedEntry) {
+      const remoteChanged = Boolean(remoteEntry && !remoteEntry.deletedAt && (!previousEntry || remoteEntry.hash !== previousEntry.hash))
+      if (remoteChanged) {
+        const remoteContent = await readRemoteFile(client, path, remoteEntry)
+        if (remoteContent !== null) {
+          const conflict = conflictPath(path)
+          if (isBinaryEntry(path, remoteEntry)) await client.writeBytes(conflict, remoteContent as Uint8Array, remoteEntry.mimeType)
+          else await client.writeText(conflict, remoteContent as string)
+          conflicts.push(path)
+        }
+      }
+      nextFiles.delete(path)
+      nextIndex.files[path] = localDeletedEntry
+      continue
+    }
     if (!remoteEntry || remoteEntry.deletedAt) {
+      const unchangedLocal = Boolean(remoteEntry?.deletedAt && local && localEntry && previousEntry && !previousEntry.deletedAt && localEntry.hash === previousEntry.hash && !firstSync)
+      if (unchangedLocal) {
+        nextFiles.delete(path)
+        nextIndex.files[path] = remoteEntry
+        deletedPaths.push(path)
+        continue
+      }
       if (local && localEntry) {
         if (fileContentType(local) === 'binary') await client.writeBytes(path, contentBytes(local.content), local.mimeType)
         else await client.writeText(path, local.content as string)
@@ -591,7 +653,7 @@ export async function syncCloudFiles(settings: CloudSyncSettings, files: CloudSy
   await client.writeText(INDEX_PATH, stringifyJson(nextIndex))
   writeLocalIndex(settings, nextIndex, storage)
   try { storage?.setItem(lastSuccessKey(settings), new Date().toISOString()) } catch {}
-  return { files: [...nextFiles.values()], uploaded, downloaded, downloadedPaths, conflicts, firstSync }
+  return { files: [...nextFiles.values()], uploaded, downloaded, downloadedPaths, deletedPaths, conflicts, firstSync }
 }
 
 export function cloudSyncUserDataPath() { return USER_DATA_PATH }

@@ -1,9 +1,10 @@
 import { parseStructuredImagePath, putAssets, type StructuredImageMatch } from './assets'
+import { hasCustomImageSources } from './questionImages'
 import type { QuestionBank } from './types'
 
 export interface ImportImageEntry { file: File; relativePath: string; bankId: string; assetUrl?: string; fileHandle?: FileSystemFileHandle }
 export interface ImageImportResult { banks: QuestionBank[]; imported: number; matchedQuestions: number; createdQuestions: number; skipped: number; firstSectionId?: string }
-export interface MergeImageOptions { replaceExistingAssets?: boolean }
+export interface MergeImageOptions { replaceExistingAssets?: boolean; preserveExistingCustomSources?: boolean }
 
 export function isGeneratedChapterName(name: string, chapterCode: string) {
   return new RegExp(`^第\\s*0*${Number(chapterCode)}\\s*章$`).test(name.trim())
@@ -63,14 +64,16 @@ export async function mergeImageEntries(initialBanks: QuestionBank[], entries: I
       if (!update) continue
       const questionKeys = update.question.sort((a, b) => a.order - b.order).map(entry => entry.key)
       const answerKeys = update.answer.sort((a, b) => a.order - b.order).map(entry => entry.key)
-      if (update.question.length) {
+      const preserveQuestionSources = options.preserveExistingCustomSources && hasCustomImageSources(question, 'question')
+      const preserveAnswerSources = options.preserveExistingCustomSources && hasCustomImageSources(question, 'answer')
+      if (update.question.length && !preserveQuestionSources) {
         question.imageKeys = options.replaceExistingAssets ? questionKeys : [...new Set([...(question.imageKeys || []), ...questionKeys])]
         if (options.replaceExistingAssets) {
           question.imageUrl = undefined
           question.imageUrls = undefined
         }
       }
-      if (update.answer.length) {
+      if (update.answer.length && !preserveAnswerSources) {
         question.answerImageKeys = options.replaceExistingAssets ? answerKeys : [...new Set([...(question.answerImageKeys || []), ...answerKeys])]
         if (options.replaceExistingAssets) {
           question.answerImageUrl = undefined
