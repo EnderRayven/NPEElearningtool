@@ -28,7 +28,10 @@ const AUTH_ROOT = (import.meta.env.VITE_ONEDRIVE_AUTHORITY || 'https://login.mic
 // This is a public SPA client ID, not a secret. Keep it in the app so Web and
 // packaged builds behave the same when the release environment has no .env file.
 export const PUBLIC_ONEDRIVE_CLIENT_ID = '00bda445-7ce9-447d-947b-f2ccb7b4948e'
-const BUILT_IN_CLIENT_ID = (import.meta.env.VITE_ONEDRIVE_CLIENT_ID || '').trim() || PUBLIC_ONEDRIVE_CLIENT_ID
+const configuredOneDriveClientId = (import.meta.env.VITE_ONEDRIVE_CLIENT_ID || '').trim()
+const BUILT_IN_CLIENT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(configuredOneDriveClientId)
+  ? configuredOneDriveClientId
+  : PUBLIC_ONEDRIVE_CLIENT_ID
 const GRAPH_SCOPES = 'openid profile offline_access User.Read Files.ReadWrite.AppFolder'
 
 export interface CloudSyncSettings {

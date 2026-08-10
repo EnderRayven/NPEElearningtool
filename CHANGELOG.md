@@ -2,6 +2,10 @@
 
 本项目遵循语义化版本号。完整下载包和每个版本的说明见 [GitHub Releases](https://github.com/EnderRayven/NPEElearningtool/releases)。
 
+## v0.4.10 · OneDrive 发布环境兜底修复
+
+- 忽略发布环境中非法的 OneDrive 客户端 ID 占位值，确保 Web、Electron、Windows 和 macOS 构建继续使用内置公开客户端 ID。
+
 ## v0.4.9 · Web、Electron 与空题库体验统一
 
 - 没有某一学科题库时，数学、英语和专业课都可以正常进入空白学习页，并可直接在设置中创建题库。
