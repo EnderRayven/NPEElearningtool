@@ -1,0 +1,91 @@
+name: 正式版发布边界检查
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 可选：检查已发布的正式版标签（例如 v0.5.9）
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  repository-boundary:
+    name: 公开仓库仅保留发布门户内容
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出公开内容
+        uses: actions/checkout@v6
+
+      - name: 阻止开发环境和本地数据进入 main
+        shell: bash
+        run: |
+          set -euo pipefail
+          unexpected=()
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              README.md|.gitignore|.github/workflows/release.yml|docs/screenshots/*) ;;
+              *) unexpected+=("$file") ;;
+            esac
+          done < <(git ls-files -z)
+
+          if ((${#unexpected[@]})); then
+            echo 'main 中发现非正式版发布门户文件：' >&2
+            printf ' - %s\n' "${unexpected[@]}" >&2
+            exit 1
+          fi
+
+          if git ls-files | grep -Eq '(^|/)(开发测试|正式版|node_modules|构建|output|备份|日志|用户数据)(/|$)|用户数据\.json$'; then
+            echo 'main 中发现开发环境、构建产物或用户数据。' >&2
+            exit 1
+          fi
+
+          echo '公开 main 边界正确：仅包含正式版说明、截图和本检查。'
+
+  release-assets:
+    name: 检查正式版下载资产
+    if: github.event_name == 'workflow_dispatch' && inputs.tag != ''
+    needs: repository-boundary
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: 确认 Release 为公开正式版
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_json="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}")"
+          if [[ "$(jq -r '.draft' <<< "$release_json")" != false || "$(jq -r '.prerelease' <<< "$release_json")" != false ]]; then
+            echo "${RELEASE_TAG} 不是已公开的正式版。" >&2
+            exit 1
+          fi
+
+          mapfile -t assets < <(jq -r '.assets[].name' <<< "$release_json")
+          printf '%s\n' "${assets[@]}"
+          if ((${#assets[@]} == 0)); then
+            echo "${RELEASE_TAG} 没有正式版下载资产。" >&2
+            exit 1
+          fi
+          if printf '%s\n' "${assets[@]}" | grep -Eqi '(^|[-_.])(dev|development|source|test|debug)([-_.]|$)|开发|测试|验收'; then
+            echo 'Release 中发现开发或测试资产。' >&2
+            exit 1
+          fi
+          if printf '%s\n' "${assets[@]}" | grep -Eqi 'software.*\.zip$'; then
+            echo 'Release 中发现旧 Web Software.zip；该压缩包含开发环境，不得作为正式版发布。' >&2
+            exit 1
+          fi
+          if ! printf '%s\n' "${assets[@]}" | grep -Eqi '\.(zip|dmg|exe|apk)$'; then
+            echo 'Release 中没有可安装或可运行的正式版资产。' >&2
+            exit 1
+          fi
+          if ! printf '%s\n' "${assets[@]}" | grep -Eqi '(sha256|checksums?)'; then
+            echo 'Release 中没有 SHA-256 校验文件。' >&2
+            exit 1
+          fi
