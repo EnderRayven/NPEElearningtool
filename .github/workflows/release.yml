@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 可选：检查已发布的正式版标签（例如 v0.5.9）
+        description: 可选：检查已发布的正式版标签（例如 v0.5.10）
         required: false
         type: string
 
