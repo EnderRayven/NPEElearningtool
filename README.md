@@ -5,9 +5,9 @@
 
 考研学习空间是一款本地优先、无需注册的考研题库、错题复盘与学习进度工具。它把数学二、2004–2026 英语一、机械原理、机械设计与南航 851 历年真题放进同一套学习流程，并提供多轮复习、题目笔记、手写演算、学习记录和 OneDrive 多端同步。
 
-当前正式版：**v0.5.12** · **25 个题库** · **8477 道题** · 提供 macOS / Windows / Android 正式下载
+当前正式版：**v1.0.0** · **25 个题库** · **8477 道题** · 提供 macOS / Windows / Android 正式下载
 
-[下载正式版](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.5.12) · [查看更新说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.5.12) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
+[下载正式版](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v1.0.0) · [查看更新说明](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v1.0.0) · [反馈问题](https://github.com/EnderRayven/NPEElearningtool/issues)
 
 ## 功能一览
 
@@ -135,36 +135,36 @@
 
 ### macOS
 
-Apple Silicon 设备下载 [NPEE-Study-Space-0.5.12-arm64-mac.dmg](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.5.12/NPEE-Study-Space-0.5.12-arm64-mac.dmg)。
+Apple Silicon 设备下载 [NPEE-Study-Space-1.0.0-arm64-mac.dmg](https://github.com/EnderRayven/NPEElearningtool/releases/download/v1.0.0/NPEE-Study-Space-1.0.0-arm64-mac.dmg)。
 
 当前安装包尚未使用 Apple Developer ID 签名。首次打开如被系统拦截，请在 Finder 中右键应用并选择“打开”。
 
 ### Windows
 
-- [Windows x64 安装版](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.5.12/NPEE-Study-Space-Setup-0.5.12.exe)
-- [Windows x64 便携版](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.5.12/NPEE-Study-Space-0.5.12.exe)
+- [Windows x64 安装版](https://github.com/EnderRayven/NPEElearningtool/releases/download/v1.0.0/NPEE-Study-Space-Setup-1.0.0.exe)
+- [Windows x64 便携版](https://github.com/EnderRayven/NPEElearningtool/releases/download/v1.0.0/NPEE-Study-Space-1.0.0.exe)
 
 ### Android
 
-- [Android Release APK](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.5.12/NPEE-Study-Space-0.5.12-release.apk)
-- [Android SHA-256 校验文件](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.5.12/NPEE-Study-Space-v0.5.12-Android-SHA256SUMS.txt)
+- [Android Release APK](https://github.com/EnderRayven/NPEElearningtool/releases/download/v1.0.0/NPEE-Study-Space-1.0.0-release.apk)
+- [Android SHA-256 校验文件](https://github.com/EnderRayven/NPEElearningtool/releases/download/v1.0.0/NPEE-Study-Space-v1.0.0-Android-SHA256SUMS.txt)
 
 当前 Android Release APK 为便于覆盖升级既有版本，继续使用同一 Android 验收密钥签名；它不是应用商店长期发布签名。公开下载区只提供 Release 构建。
 
 ### 网页版
 
-下载 [v0.5.12 Web 运行包](https://github.com/EnderRayven/NPEElearningtool/releases/download/v0.5.12/NPEE-Study-Space-v0.5.12-Web.zip)，解压后运行其中的一键启动脚本。运行包仅包含程序，题库按需下载对应分包。
+下载 [v1.0.0 Web 运行包](https://github.com/EnderRayven/NPEElearningtool/releases/download/v1.0.0/NPEE-Study-Space-v1.0.0-Web.zip)，解压后运行其中的一键启动脚本。运行包仅包含程序，题库按需下载对应分包。
 
-题库数据分包与所有公开下载文件均可在 [v0.5.12 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v0.5.12) 中找到，并附带 SHA-256 校验文件。
+题库数据分包与所有公开下载文件均可在 [v1.0.0 Release](https://github.com/EnderRayven/NPEElearningtool/releases/tag/v1.0.0) 中找到，并附带 SHA-256 校验文件。
 
-## v0.5.12 更新亮点
+## v1.0.0 更新亮点
 
-- 新增单题图片导出：文字、公式和图文题一题一图，多张题图自动合并。
-- 图片导出仅保留题目内容，题号紧接题干，移除章节、考点、状态、题型和出处。
-- 桌面版使用原生文件夹选择和文件写入，导出后自动打开结果目录，并防止覆盖已有文件。
-- 新增大观园严选高数、线代文字题库，支持公式排版、出处展示和分层目录。
-- 改进题库管理、图片关联与缺失资源提示，完善英语和专业课部分解析图片。
-- 完善学习位置恢复、手写体验、题目编辑和 Android 备份恢复。
+- 新增模拟考试：按原题顺序限时训练、自动交卷、考后录分和历史考试回看。
+- 支持历史考试成绩订正和错题导出，完善主观题评分、翻译题半分记录与成绩回写。
+- 修复英语一真题原文、翻译上下文、写作题图和解析图片，并支持保留个人修改的内容迁移。
+- 改善数学公式、分式与笔记排版，修复公式附近多余滚动条、宽公式撑宽编辑器及导出符号异常。
+- 重整设置、检索、快捷键与窄屏界面，完善手写、自动保存、学习位置恢复和图片导出。
+- 修复 OneDrive 增量删除条件冲突的重试处理，保留冲突副本与原有同步方向。
 
 ## 数据与隐私
 
